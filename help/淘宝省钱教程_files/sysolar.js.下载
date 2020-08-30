@@ -1,0 +1,3824 @@
+/* ============================================================================================== */
+/* Sysolar : 客户端sysolar框架配置对象 */
+/* ============================================================================================== */
+
+Sysolar = {
+    debug : false
+}
+
+Regex = {
+	number : /^[0-9]*]*$/
+}
+
+/** ************************************************************************************************
+ *                                                                                                 $
+ * 通过元素的id获得元素对象。默认情况下，返回的对象被通过调用 $$(e) 方法扩展了常用方法。
+ *
+ * @param id 节点元素的id
+ */
+$ = function(id) {
+    var e = document.getElementById(id);
+    
+    // 判断 head 标签里的元素
+    if(null == e){
+        var nodeList = document.getElementsByTagName('head')[0].childNodes;
+        var node;
+        for(var i = 0; i < nodeList.length; i++){
+            node = nodeList[i];
+            if(node.id && node.id == id){
+                e = node;
+                break;
+            }
+        }
+    }
+    if(null == e) {
+        return null;
+    }
+	return $$(e);
+}
+
+$t = function(tagName) {
+    var es = document.getElementsByTagName(tagName);
+    if(null == es || es.length == 0) {
+        return null;
+    }
+    return $$(es[0]);
+}
+
+$$ = function(e) {
+    return Extender.$$(e);
+}
+
+Extender = {
+    $$ : function(e){
+        // 为 dom 扩展常用方法，并保证只扩展一次
+        if(!e.show){
+            for(var i in Extender){
+                e[i] = Extender[i];
+            }
+        }
+        
+        // 扩展不能通过 this 引用调用的方法
+        // ...
+        
+        // 返回对象
+        return e;
+    },
+
+    /**
+     * 隐藏 dom 对象。
+     */
+    hide : function() {
+        this.style.display = 'none';
+    },
+    
+    /**
+     * 显示 dom 对象。
+     */
+    show : function() {
+        this.style.display = 'block';
+    },
+    
+    flex : function() {
+    	this.style.display = 'flex';
+    },
+
+    /**
+     * 显示 dom 对象，且以 inline 方式显示。
+     */
+    inline : function() {
+        this.style.display = 'inline';
+    },
+    
+    /**
+     * 显示 dom 对象，且以 inline 方式显示。
+     */
+    block : function() {
+        this.style.display = 'inline-block';
+    },
+
+    /**
+     * 切换 dom 对象的隐藏显示状态。
+     */
+    toggle : function() {
+        return this[this.isVisible() ? 'hide' : 'show']();
+    },
+
+    /**
+     * 判断 dom 对象的可见性。
+     */
+    isVisible : function() {
+        return this.style.display != 'none';
+    },
+
+    /**
+     * 重新显示 dom 对象，用以修复 ie 下 position:relative,absolute 类型div不能正常显示的bug。
+     */
+    redraw : function(){
+        this.style.display = 'none';
+        this.style.display = 'block';
+    },
+
+    /**
+     * 隐藏dom对象,但是仍然占位
+     */
+    unVisibility : function() {
+        this.style.visibility = 'hidden';
+    },
+
+    /**
+     * dom对象,对应unVisibility方法 
+     */
+    visibility : function(){
+        this.style.visibility = 'visible';
+    },
+
+    /**
+     * 显示“下拉菜单”对象，支持点击页面空白处隐藏下拉菜单。
+     */
+    doShow : function(){
+        var key = 'SYSOLAR_MENU_SHOW';
+        var menu = Param.get(key);
+        
+        // 隐藏上次展开的下拉菜单，即保证页面上只有一个下拉菜单
+        if(null != menu){
+            menu.hide();
+        }
+        
+        // 暂时取消 onclick 事件，否则下拉菜单不能显示
+        document.onclick = null;
+        
+        // 显示下拉菜单
+        this.show();
+        Param.put(key, this);
+        
+        // 设定 onclick 事件
+        setTimeout(function(){
+            document.onclick = function(){
+                Param.get(key).hide();
+            };
+        }, 100);
+    },
+
+    /**
+     * 从父节点中把自己移除。
+     */
+    drop : function() {
+        this.id = '';
+        if(this.parentNode) {
+            this.parentNode.removeChild(this);
+        }
+    },
+    
+    /**
+     * 从父节点中把自己替换为目标节点。
+     */
+    replace : function(dest) {
+        this.parentNode.replaceChild(dest, this);
+    },
+    
+    /**
+     * 删除子节点。IE里 dom 对象已有名为的 clear 属性，故不能再使用该属性名。
+     *
+     * @param sonName 子节点标签名 或 子节点类选择器名，未定义时表示删除所有节点
+     * @return 新节点
+     */
+    trunc : function(sonName) {
+        if(sonName){
+            var nodeList = this.sonList(sonName);
+            for(var i=0; i<nodeList.length; i++){
+                nodeList[i].drop();
+            }       
+        }
+        else {
+            this.innerHTML = '';
+        }
+        return this;
+    },
+    
+    /**
+     * 获得所有子节点。
+     */
+    nodeList : function(){
+        var nodeList = this.childNodes;
+        var result = [];
+        for (var i = 0; i < nodeList.length; i++) {
+            if(nodeList[i].nodeType == 1){
+                result[result.length] = $$(nodeList[i]);
+            }
+        }
+        return result;
+    },
+
+    tagList : function(tagName){
+        var nodeList = this.getElementsByTagName(tagName);
+        var list = new Array();
+        for(var i=0; i<nodeList.length; i++){
+            list[i] = $$(nodeList[i]);
+        }
+        return list;
+    },
+    
+    tag : function(tagName){
+        var list = this.tagList(tagName);
+        if(list.size() > 0){
+            return list.get(0);
+        }
+        return null;
+    },
+
+    /**
+     * 取得节点下 特定标签 或 特定样式选择器类名 的直系子节点列表。
+     *
+     * @param sonName 子节点标签名 或 子节点类选择器名
+     */
+    sonList : function(sonName) {
+        sonName = sonName.toUpperCase();
+        var nodeList = this.childNodes;
+        var result = new Array();
+        for (var i = 0, j = 0; i < nodeList.length; i++) {
+            if(nodeList[i].nodeType != 1){
+                continue;
+            }
+            var className = '';
+            if(nodeList[i].className){
+                className = nodeList[i].className.toUpperCase();
+            }
+            if ((className == sonName) 
+                    || (className.indexOf(' ' + sonName) >= 0) 
+                    || (className.indexOf(sonName + ' ') >= 0)
+                    || (nodeList[i].tagName.toUpperCase() == sonName)) {
+                result[j++] = $$(nodeList[i]);
+            }
+        }
+        return result;
+    },
+    
+    /**
+     * 取得节点下第一个 特定标签 或 特定样式选择器类名 的直系子节点。
+     *
+     * @param sonName 子节点标签名 或 子节点类选择器名
+     */
+    son : function(sonName){
+        var list = this.sonList(sonName);
+        var docObj = (list.length > 0) ? list[0] : null;
+        list.clear();
+        return docObj;
+    },
+
+    /**
+     * 取得节点下 特定标签 和 特定样式选择器类名 的子节点列表。
+     *
+     * @param tagName 子节点标签名
+     * @param className 子节点类选择器名
+     */
+    childList : function(tagName, className){
+        className = className.toUpperCase();
+        var result = new Array();
+        var nodeList = this.getElementsByTagName(tagName);
+        for (var i = 0, j = 0; i < nodeList.length; i++) {
+            if(nodeList[i].className.toUpperCase().indexOf(className) >= 0){
+                result[j++] = $$(nodeList[i]);
+            }
+        }
+        return result;
+    },
+    
+    /**
+     * 取得节点下第一个 特定标签 和 特定样式选择器类名 的子节点。
+     *
+     * @param tagName 子节点标签名
+     * @param className 子节点类选择器名
+     */
+    child : function(tagName, className){
+        var list = this.childList(tagName, className);
+        var docObj = (list.length > 0) ? list[0] : null;
+        list.clear();
+        return docObj;
+    },
+    
+    /**
+     * 根据样式类选择器名取得父节点。
+     *
+     * @param parentName 父节点样式类选择器名
+     */
+    parent : function(parentName){
+        var parent = this;
+        while(parent = parent.parentNode){
+            if(parent.className && parent.className.indexOf(parentName) >= 0){
+                return parent;
+            }
+        }
+        return null;
+    },
+
+    /**
+     * 判断指定节点是否为自己的父节点。
+     *
+     * @param node 指定节点
+     */
+    checkParent : function(node){
+        var parent = this;
+        while(parent = parent.parentNode){
+            if(parent == node){
+                return true;
+            }
+        }
+        return false;
+    },
+
+    /**
+     * 获得父节点，并扩展常用方法。
+     */
+    getParent : function(){
+        return $$(this.parentNode);
+    },
+
+    /**
+     * 跨浏览器 获得元素当前的样式。
+     */
+    getStyle : function() {
+        // IE
+        if(this.currentStyle) {
+            return this.currentStyle;
+        }
+        
+        // Firefox
+        if(document.defaultView && document.defaultView.getComputedStyle){
+            return document.defaultView.getComputedStyle(this, '');
+        }
+        
+        // other
+        return this.style;
+    },
+    
+    getHeight : function(){
+        return this.offsetHeight;
+    },
+    
+    getWidth : function(){
+        return parseInt(this.getStyle().width);
+    },
+
+    getHtml : function(){
+        return this.innerHTML;
+    },
+    
+    setHtml : function(html){
+        this.innerHTML = html;
+        return this;
+    },
+
+    /**
+     * 更细样式类选择器。
+     */
+    updateClass : function(className){
+        this.className = className;
+    },
+        
+    appendClass : function(className){
+        if(this.className){
+            this.removeClass(className);
+            this.className = (this.className + ' ' + className).trim();
+        }
+        else {
+            this.className = className;
+        }
+    },
+    
+    removeClass : function(className){
+        this.replaceClass(className, '');
+    },    
+
+    replaceClass : function(oldClassName, newClassName){
+        if(this.className){
+            this.className = this.className.replace(oldClassName, newClassName).trim();
+        }
+    },
+
+    turnOn : function(){
+        if(this.parentNode){
+            $$(this.parentNode).clearOn();
+        }
+        this.appendClass('on');
+    },
+
+    turnOff : function(){
+        this.removeClass('on');
+    },
+    
+    clearOn : function(){
+        var ons = this.sonList('on');
+        for(var i = 0; i < ons.length; i++){
+            ons[i].turnOff();
+        }
+    },
+    
+    /**
+     * 搜索模板上绑定的 json 数据对象。
+     */
+    seekBean : function(){
+        var node = this;
+        do {
+            if(node.bean){
+                return node.bean;
+            }
+        } while(node = node.parentNode);
+
+        return null;
+    },
+
+    /**
+     * 搜索绑定的 json 数据对象的 dom 节点对象。
+     */
+    seekNode : function(){
+        var node = this;
+        do {
+            if(node.bean){
+                return node;
+            }
+        } while(node = node.parentNode);
+
+        return null;
+    },
+    
+    copy : function(){
+        var copy = this.clone({});
+        copy.bean = null;
+        return copy;
+    },
+
+    clone : function(json){
+        // 创建新节点，克隆 class 属性
+        var newTag = $$(document.createElement(this.tagName));
+        if(this.title && '' != this.title.trim()){
+            newTag.title = EL.doParse(this.title, json);
+        }
+        if(this.className && '' != this.className.trim()){
+            newTag.className = EL.doParse(this.className, json);
+        }
+        newTag.onclick = this.onclick;
+        newTag.onmousedown = this.onmousedown;
+        newTag.ondbclick = this.ondbclick;
+        newTag.onmouseup = this.onmouseup;
+        newTag.onmouseover = this.onmouseover;
+        newTag.onmouseout = this.onmouseout;
+        
+        // 节点属性里的 '{', '}', '(', ')', ' ' 会被浏览器处理为 %XX 格式，要把它们替换回来
+        var text = this.getHtml().replace(/%7B/g, '{').replace(/%7D/g, '}')
+                    .replace(/%28/g, '(').replace(/%29/g, ')')
+                    .replace(/%20/g, '');
+        
+        // 解析EL表达式，填充内容
+        newTag.setHtml(EL.doParse(text, json));
+        
+        // 提取所有的标签
+        var arr = [newTag];
+        var prevLength = 0, startIndex, node;
+        do {
+            startIndex = prevLength;
+            prevLength = arr.length;
+            for(var i = startIndex; i < prevLength; i++){
+                for(var j = 0; j < arr[i].childNodes.length; j++){
+                    node = arr[i].childNodes[j];
+                    if(node.tagName){
+                        arr[arr.length] = arr[i].childNodes[j];
+                    }
+                }
+            }
+        } while (prevLength < arr.length)
+        
+        // 处理标签的 title 属性
+        var node, attrs, kvs;
+        for(var i = 0; i < arr.length; i++){
+            // 扩展所有的标签
+            node = arr[i];
+            
+            if(!node.title || node.title.indexOf('::') < 0){
+                continue;
+            }
+            
+            // 多个属性之间以分号分隔
+            attrs = node.title.split(';');
+            node.title = '';
+            for(var j = 0; j < attrs.length; j++){
+                kvs = attrs[j].split('::');
+                if(kvs[0] == 'style'){
+                    node.style.cssText = kvs[1];
+                }
+                else if(kvs[0] == 'onclick'){
+                    node.onclickFuncName = kvs[1];
+                    node.onclick = function(){
+                        eval(this.onclickFuncName);
+                        return false;
+                    }
+                }
+                else if(kvs[0].trim() != ''){
+                    node[kvs[0]] = kvs[1];
+                }
+            }
+        }
+        
+        // 关联数据与结构
+        newTag.bean = json;
+        
+        return newTag;
+    },
+    
+    /**
+     * 鼠标是否在 dom 范围内。
+     */
+    isMouseLiveIn : function(evt){
+        var mouseCoor = Browser.getMouseCoor(evt);
+        Browser.setNodeCoor(this);
+        if(mouseCoor.x > this.minx && mouseCoor.x < this.maxx 
+                && mouseCoor.y > this.miny && mouseCoor.y < this.maxy){
+            return true;
+        }
+        return false;
+    },
+    
+    enableOnMouse : function(className){
+        /**
+         * 鼠标悬停
+         */
+        this.onmouseover = function(evt){
+            if(!className){
+                className = 'hover';
+            }
+            this.appendClass(className);
+        };
+
+        /**
+         * 鼠标离去
+         */
+        this.onmouseout = function(evt){
+            // 鼠标在子节点上切换
+            if(this.isMouseLiveIn(evt)){
+                return;
+            }
+            
+            // 鼠标在绝对坐标子节点上切换
+            var node, list = this.nodeList();
+            for(var i = 0; i < list.size(); i++){
+                node = list.get(i);
+                if(node.getStyle().position == 'absolute' && node.isMouseLiveIn(evt)){
+                    return;
+                }
+            }
+            
+            // 隐藏下拉菜单
+            var menu = this.child('div', 'dropDownMenu');
+            if(null != menu){
+                menu.hide();
+            }
+            
+            // 移除样式
+            if(!className){
+                className = 'hover';
+            }
+            this.removeClass(className);
+        }
+    },
+    
+    enableOnClick : function(){
+        /**
+         * 鼠标点击
+         */
+        this.onclick = function(evt){
+            var target = Browser.getTarget(evt);
+            
+            // 无效点击
+            if(!target.className) {
+                return;
+            }
+            if(target.className.indexOf('core') >= 0){
+                this.turnOn();
+            }
+            else if(target.className.indexOf('ddAngle') >= 0) {
+                // 打开下拉菜单
+                this.son('dropMenu').show();
+            }
+        }
+    },
+
+    enableAutoHide : function(){
+        /**
+         * 鼠标悬停
+         */    
+        this.onmouseover = function(evt){
+            this.show();
+        }
+    
+        /**
+         * 鼠标离去
+         */    
+        this.onmouseout = function(evt){
+            this.hide();
+        }
+        
+        /**
+         * 鼠标点击
+         */    
+        this.onclick = function(evt){
+            this.hide();
+            if(this.parentNode){
+                $$(this.parentNode).turnOn();
+            }
+        }
+    }
+}
+
+/* ============================================================================================== */
+/* EL : JS 版 EL 表达式 */
+/* ============================================================================================== */
+
+EL = {
+    parse : function(text, json){
+        // 提取 EL 表达式字串
+        var els = text.match(/@\{[()\w\+\-\*\/\.\,%\s]+\}/g);
+
+        // 没有任何匹配
+        if(null == els) return text;
+        
+        // 解析 EL 表达式
+        var el, doEval, fields, field, value, regExp;
+        try {
+            for(var i = 0; i < els.length; i++){
+                // 删除 '@', '{', '}', ' ' 字符后再解析 
+                el = els[i].replace(/[@\{\}\s]/g, '');
+
+                // 判断是否调用 eval 函数
+                // doEval = (el.search(/[\+\-\*\/%\(]/) >= 0);
+            
+                // 过滤掉函数名、提取字段名
+                //fields = el.replace(/[a-zA-Z_$]\w+\s*\(/g, '').match(/[a-zA-Z_][\w\.]+\w/g);
+                fields = el.replace(/[a-z_$]\w*\s*\(/ig, '').match(/[a-z_][\w\.]*/ig);
+                
+                // 把 EL 里的字段名替换为 
+                for(var j = 0; (null != fields) && (j < fields.length); j++){
+                    field = fields[j];
+                    el = el.replace(field, 'json.' + field);
+                }
+
+                // 把源字串里的 EL 替换为具体的值
+                value = eval(el);
+                text = text.replace(els[i], value ? value : '');
+            }
+        }
+        catch(err){
+            Logger.log('EL.parse: ' + err, el, field, value);
+        }
+        return text;
+    },
+
+    /**
+     * 把text里的el表达式替换为具体的值，然后返回新串。
+     */
+    doParse : function(text, json){
+        // 提取 EL 表达式 
+        var regExp = new RegExp('@\\{([\\(\\)\\w\\+\\-\\*\\/\\.\\,\\s%]+)\\}', 'g');
+        var result, buffer = '', startIndex = 0;
+
+        // 递归从text里查找el表达式，然后替换为具体的值
+        while(null != (result = regExp.exec(text))) {
+            buffer += text.substring(startIndex, result.index) + EL.bind(result[1], json);
+            startIndex = regExp.lastIndex;
+        }
+        
+        // 考虑最后一个el之后的字串
+        if(startIndex < text.length){
+            buffer += text.substring(startIndex, text.length );
+        }
+        
+        // 返回新串
+        return buffer;
+    },
+    
+    /**
+     * 解析单个el的值，考虑嵌套字段名(urlCat.url.urlName)的情况。
+     */
+    bind : function(el, json){
+        var regExp = new RegExp('[a-z_][\\w\\.]*', 'g');
+        var buffer = '', result;
+        var startIndex = 0;
+        
+        while(null != (result = regExp.exec(el))) {
+            // 过滤掉方法名
+            if(regExp.lastIndex != el.length && el.charAt(regExp.lastIndex) == '('){
+                continue;
+            }
+            buffer += el.substring(startIndex, result.index) + 'json.' + result[0];
+            startIndex = regExp.lastIndex;
+        }
+        
+        // 考虑最后一个el之后的字串
+        if(startIndex < el.length){
+            buffer += el.substring(startIndex, el.length );
+        }
+        
+        // 返回字段值，考虑值不存在的情况
+        var value = eval(buffer);
+        return (typeof value != 'undefined') ? value : '';
+    }
+}
+
+/* ============================================================================================== */
+/* ArrayList : 实现类似Java里 ArrayList 的功能 */
+/* ============================================================================================== */
+
+function ArrayList(){
+    /**
+     * 内部 Array 对象，用来存储数据
+     */
+    this.array = new Array();
+    
+    /**
+     * 向列表的尾部添加指定的元素。
+     *
+     * @param element 要添加到列表的元素
+     */
+    this.add = function(element){
+        this.array[this.array.length] = element;
+    }
+    
+    /**
+     * 返回列表中指定位置的元素。
+     *
+     * @param index 要返回的元素的索引
+     * @return 列表中指定位置的元素
+     */
+    this.get = function(index){
+        return this.array[index];
+    }
+    
+    /**
+     * 向列表的尾部添加指定的元素。
+     *
+     * @param element 要添加到列表的元素
+     */
+    this.remove = function(index){
+        if(index >= this.array.length) {
+            return;
+        }
+        for(var i = index; i < this.array.length; i++) {
+            this.array[i] = this.array[i+1];
+        }
+        this.array.length = this.array.length - 1;
+    }
+
+    /**
+     * 从此列表中移除第一次出现的指定元素（如果存在）。
+     *
+     * @param element 要从该列表中移除的元素，如果存在的话
+     */
+    this.removeElement = function(element) {
+        for(var i = 0; i < this.array.length; i++){
+            if(this.array[i] == element) {
+                this.remove(i);
+                return;
+            }
+        }
+    }
+
+    /**
+     * 返回列表中的元素数。
+     *
+     * @return 列表中的元素数
+     */
+    this.size = function(){
+        return this.array.length;
+    }
+
+    /**
+     * 从列表中移除所有元素。此调用返回后该列表将是空的。
+     */
+    this.clear = function(){
+        this.array.length = 0;
+    }
+}
+
+/* ============================================================================================== */
+/* HashMap : 实现类似Java里 HashMap 的功能 */
+/* ============================================================================================== */
+
+function HashMap(){
+    /**
+     * 内部 ArrayList 对象，用来存储数据
+     */
+    this.list = new ArrayList();
+
+    /**
+     * 将指定的值与此映射中的指定键关联。如果此映射以前包含一个该键的映射关系，则用指定值替换旧值。
+     *
+     * @param key 与指定值关联的键
+     * @param value 与指定键关联的值
+     */
+    this.put = function(key, value){
+        var element = this.getElement(key);
+        if(null == element){
+            element = new Object();
+            element.key = key;
+            this.list.add(element);
+        }
+        element.value = value;
+    }
+
+    /**
+     * 返回指定键所映射的值；如果此映射不包含该键的映射关系，则返回 null。
+     *
+     * @param key 要返回其关联值的键
+     * @return 指定键所映射的值 
+     */
+    this.get = function(key){
+        for(var i = 0; i < this.list.size(); i++) {
+            var element = this.list.get(i);
+            if(element.key == key){
+                return element.value;
+            }
+        }
+
+        return null;
+    }
+    
+    this.getElement = function(key){
+        for(var i = 0; i < this.list.size(); i++) {
+            var element = this.list.get(i);
+            if(element.key == key){
+                return element;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * 如果存在一个键的映射关系，则将其从此映射中移除。
+     *
+     * @param key 映射中移除其映射关系的键
+     * @return 以前与 key 关联的值；如果没有 key 的映射关系，则返回 null。
+     */
+    this.remove = function(key){
+        for(var i = 0; i < this.list.size(); i++) {
+            var element = this.list.get(i);
+            if(element.key == key){
+                this.list.remove(i);
+                return element.value;
+            }
+        }
+
+        return null;
+    }
+    
+    /**
+     * 从此映射中移除所有映射关系。
+     */
+    this.clear = function(){
+        this.list.clear();
+    }
+}
+
+/* ============================================================================================== */
+/* HashSet : 实现类似Java里 HashSet 的功能 */
+/* ============================================================================================== */
+
+function HashSet(){
+    /**
+     * 内部 ArrayList 对象，用来存储数据
+     */
+    this.list = new ArrayList();
+
+    this.add = function(element){
+        // 判断元素是否已存在：比较元素的 string 值
+        var theElement;
+        for(var i = this.list.size() - 1; i >= 0; i--){
+            theElement = this.list.get(i);
+            if(theElement == element || ('' + theElement) == ('' + element)) {
+                return;
+            }
+        }
+        
+        // 添加新元素
+        this.list.add(element);
+    }
+    
+    this.toList = function(){
+        return this.list;
+    }
+
+    /**
+     * 从此映射中移除所有映射关系。
+     */
+    this.clear = function(){
+        this.list.clear();
+    }
+}
+
+/* ============================================================================================== */
+/* Thread : 启动一个定时执行的线程，每隔 10ms 执行一次线程里的所有任务。 Timer */
+/* ============================================================================================== */
+
+Thread = {
+    RUN_TYPE_AT_ONCE : 0,       // 执行类型：立刻执行
+    RUN_TYPE_WAIT : 1,          // 执行类型：等待interval时间后再执行
+    maxTaskId : 0,                  // 任务ID的最大值
+    taskList : new ArrayList(),     // 执行队列
+    isStarted : false,              // 线程是否已启动
+    
+    
+    /**
+     * 往执行线程里添加指定时间间隔、指定执行次数内被重复被执行的任务。执行次数为 null 或者未定义时一直执行。
+     * 通过返回的任务ID可以从线程里移除该任务。 
+     *
+     * @param func 指定将被执行的函数
+     * @param interval 时间间隔
+     * @param maxTimes 最大循环次数，未指定则表示一直循环
+     * @param param 参数
+     * @param runType 执行类型：0-立刻执行 1-等待interval时间后再执行
+     * @return 任务ID
+     */
+    add : function(func, interval, maxTimes, param, runType) {
+        var e = Thread;
+        var task = new Object();
+
+        task.id = e.maxTaskId++;                        // 任务ID
+        task.func = func;                               // 函数名
+        task.param = param ? param : null;              // 参数
+
+        task.interval = interval;                       // 两次执行之间的时间间隔
+        task.lastRunTime = null;                        // 上次执行时间
+
+        task.maxTimes = maxTimes ? maxTimes : null;     // 最大执行次数
+        task.times = 0;                                 // 已执行次数
+        
+        if(!runType || runType == e.RUN_TYPE_WAIT){
+            task.lastRunTime = new Date().getTime() + interval;
+        }
+        else {
+            task.lastRunTime = new Date().getTime() - interval;
+        }
+
+        e.taskList.add(task);
+        return task.id;
+    },
+    
+    /**
+     * 根据任务ID从线程的任务列表里移除任务。
+     *
+     * @param taskId 任务ID
+     * @return true - 移除成功；false - 移除失败。
+     */
+    remove : function(taskId){
+        var e = Thread;
+        for(var i = 0; i < e.taskList.size(); i++){     // 移除任务
+            if(taskId == e.taskList.get(i).id){
+                e.taskList.remove(i);
+                return true;
+            }
+        }
+        return false;
+    },
+    
+    /**
+     * 每隔 10ms 启动一次线程，然后循环执行队列里的函数。
+     */
+    run : function(interval){
+        var e = Thread, timestamp, task;        // 变量声明
+
+        if(!e.isStarted){                       // 线程还未被启动
+            return;
+        }
+        
+        for(var i = 0; i < e.taskList.size(); i++){         // 循环执行队列里的函数，先进先执行
+            task = e.taskList.get(i);
+            timestamp = new Date().getTime();
+
+            if(timestamp - task.lastRunTime >= task.interval){
+                task.lastRunTime = timestamp;
+                task.times++;
+                task.func(task.param);
+            }
+        }
+        
+        for(var i = e.taskList.size() - 1; i >= 0; i--){     // 移除够次数的任务
+            if(null != task.maxTimes && task.times >= task.maxTimes){     
+                e.taskList.remove(i);
+            };
+        }
+        
+        setTimeout(Thread.run, interval);
+    },
+
+    /**
+     * 启动并循环执行线程。
+     */
+    start : function(interval){
+        if(!Thread.isStarted){
+            Thread.isStarted = true;
+            setTimeout(Thread.run, interval);
+            // setInterval(Thread.run, interval);
+        }
+    }
+}
+
+Thread.start(10); // 启动线程
+
+/* ============================================================================================== */
+/* 动态改变浏览器地址栏，添加锚点 */
+/* ============================================================================================== */
+
+Anchor = {
+    create : function(anchorName){
+	    if(null == $(anchorName + 'Id')){
+	        var element = document.createElement('a');
+	        element.setAttribute('name', anchorName);
+	        element.setAttribute('id', anchorName + 'Id');
+	        var house = document.getElementsByTagName('body')[0];
+	        house.insertBefore(element, house.firstChild);
+	    }
+    },
+    
+    update : function(anchorName){
+    	
+    	//加密锚点
+    	var encryptAnchorName = Encrypt.base64encode(anchorName);
+        Anchor.create(encryptAnchorName);
+        location.href = '#' + encryptAnchorName+".html";
+        
+        Param.put('anchorName', anchorName);
+    },
+    
+    forwardAndBack : function(){
+    	//取出Param中的锚点信息(明文)
+        var anchorInParam = Param.get('anchorName');
+        //Param中的值是空的,说明未执行过任何页面方法,不需要任何动作
+        if(anchorInParam == null){
+        	return;
+        }
+        
+		//拿到当前地址栏中的锚点信息(明文)
+        var currentAnchor = Anchor.parse().fullAnchor;
+        //如果地址栏中的锚点是空的,说明当前页面是我的收藏页面,更改当前锚点值
+        if(currentAnchor == null || currentAnchor == ''){
+        	currentAnchor = 'openUserUrl';
+        }
+        //至此,Param中的锚点值不是空的,说明之前访问过方法,而当前地址栏中的锚点值和Param中的又不等,说明
+        //有前进或者后退的动作,加载地址栏中的锚点方法.
+        if(anchorInParam != currentAnchor){
+        	//说明点了后退或者前进按钮
+        	Handler.refresh();
+        }
+        
+    },
+    
+    parse : function (){
+    	var currentUrl = location.href;//e.g.:http://localhost/wangyu001/jjj#b3BlblRvcFVybA==.html
+    	//返回的jsonObjshiite明码
+    	var jsonObj = {
+    		anchorName:null,//e.g.:openFriendUrl
+    		personalDomain:null,//e.g.:jjj
+    		paramArr:null,//e.g.:1,2,3
+    		func:null,//e.g.:openHome
+    		fullAnchor:null//e.g : openFriendUrl_1
+    	};
+    	var anchorName = '';
+    	var params = [];
+    	var func;
+
+    	//http://www.5i56.com或者http://www.5i56.com/
+    	if(currentUrl.trim() == Handler.domain || currentUrl.trim() == Handler.domain+"/"){
+    		jsonObj.anchorName = 'openHome';
+    		jsonObj.func = "openHome";
+    		return jsonObj;
+    	}
+    	var afterBias = currentUrl.substring(currentUrl.lastIndexOf("/")+1);
+    	// 到了这里,说明/后面有东西,看看有没有#
+    	var anchorIndex = afterBias.indexOf('#'); 
+    	var anchor = '';
+    	//如果有#,截取/和#之间的串,认为是个性域名,放到jsonObj中
+    	if(anchorIndex != -1){
+    		domain = afterBias.substring(0,afterBias.indexOf('#'));
+			//再看看#后面有没有内容
+    		anchor = afterBias.substring(anchorIndex+1);
+    		//两个都为空,这种情况http://www.5i56.com/#,首页
+    		if(anchor.trim() == ''&& domain.trim()==''){
+    			jsonObj.anchorName='openHome';
+        		jsonObj.func = "openHome";
+        		return jsonObj;
+    		}
+    		else{
+    			jsonObj.personalDomain = domain;
+    			//这种情况http://www.5i56.com/#xxx.html和
+    			//http://www.5i56.com/xxx#和
+    			//http://www.5i56.com/xxx#xxx.html
+    			//截掉后面的.html
+    			anchor = anchor.substring(0, anchor.indexOf(".html"));
+    			//解密锚点
+    			anchor = Encrypt.base64decode(anchor);
+    			jsonObj.fullAnchor = anchor;
+    			// 查找参数标记
+    			var paramIndex = anchor.indexOf('::');
+    			if(paramIndex!=-1){
+    				anchorName = anchor.substring(0, paramIndex);
+    				params = anchor.substring(paramIndex+2);
+    				params = params.split('::');
+    			}
+    			else{
+    				anchorName = anchor;
+    			}
+    			//有域名,没锚点,说明是刷新个人页面
+    			if(domain!=""&&anchor==""){
+    				func = "openUserUrl";
+    			}
+    			else{
+    				func = anchorName;
+    			}
+    			jsonObj.anchorName = anchorName;
+    			jsonObj.paramArr = params;
+    			jsonObj.func = func;
+    			
+    		}
+    	}
+    	else{
+    		//到了这里,说明没有#,但是有域名
+    		
+    		jsonObj.personalDomain = afterBias;
+    		
+    	}	
+    	return jsonObj;
+	},
+	
+	change:function(str){
+		location.href=str;
+	},
+	
+	getFuncName : function(){
+		var currentUrl = location.href;
+		var startIdx = currentUrl.indexOf('#');
+		var endIdx = currentUrl.indexOf('.html');
+		if(startIdx == -1 || endIdx == -1){
+			return '';
+		}
+		var anchor = currentUrl.substring(startIdx, endIdx);
+		return Encrypt.base64decode(anchor);
+	}
+
+}
+/*****************************************************************************
+ * BASE64加密
+ */
+Encrypt = {
+
+		base64EncodeChars : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+		base64DecodeChars : new Array(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1),
+		base64encode:function (str) {
+			var out, i, len;
+			var c1, c2, c3;
+			len = str.length;
+			i = 0;
+			out = "";
+			while (i < len) {
+				c1 = str.charCodeAt(i++) & 255;
+				if (i == len) {
+					out += Encrypt.base64EncodeChars.charAt(c1 >> 2);
+					out += Encrypt.base64EncodeChars.charAt((c1 & 3) << 4);
+					out += "==";
+					break;
+				}
+				c2 = str.charCodeAt(i++);
+				if (i == len) {
+					out += Encrypt.base64EncodeChars.charAt(c1 >> 2);
+					out += Encrypt.base64EncodeChars.charAt(((c1 & 3) << 4) | ((c2 & 240) >> 4));
+					out += Encrypt.base64EncodeChars.charAt((c2 & 15) << 2);
+					out += "=";
+					break;
+				}
+				c3 = str.charCodeAt(i++);
+				out += Encrypt.base64EncodeChars.charAt(c1 >> 2);
+				out += Encrypt.base64EncodeChars.charAt(((c1 & 3) << 4) | ((c2 & 240) >> 4));
+				out += Encrypt.base64EncodeChars.charAt(((c2 & 15) << 2) | ((c3 & 192) >> 6));
+				out += Encrypt.base64EncodeChars.charAt(c3 & 63);
+			}
+			return out;
+		},
+		base64decode:function (str) {
+			var c1, c2, c3, c4;
+			var i, len, out;
+			len = str.length;
+			i = 0;
+			out = "";
+			while (i < len) {
+				/* c1 */
+				do {
+					c1 = Encrypt.base64DecodeChars[str.charCodeAt(i++) & 255];
+				} while (i < len && c1 == -1);
+				if (c1 == -1) {
+					break;
+				}
+				/* c2 */
+				do {
+					c2 = Encrypt.base64DecodeChars[str.charCodeAt(i++) & 255];
+				} while (i < len && c2 == -1);
+				if (c2 == -1) {
+					break;
+				}
+				out += String.fromCharCode((c1 << 2) | ((c2 & 48) >> 4));
+				/* c3 */
+				do {
+					c3 = str.charCodeAt(i++) & 255;
+					if (c3 == 61) {
+						return out;
+					}
+					c3 = Encrypt.base64DecodeChars[c3];
+				} while (i < len && c3 == -1);
+				if (c3 == -1) {
+					break;
+				}
+				out += String.fromCharCode(((c2 & 15) << 4) | ((c3 & 60) >> 2));
+				/* c4 */
+				do {
+					c4 = str.charCodeAt(i++) & 255;
+					if (c4 == 61) {
+						return out;
+					}
+					c4 = Encrypt.base64DecodeChars[c4];
+				} while (i < len && c4 == -1);
+				if (c4 == -1) {
+					break;
+				}
+				out += String.fromCharCode(((c3 & 3) << 6) | c4);
+			}
+			return out;
+		}
+}
+
+/** ************************************************************************************************
+ *                                                                                            String
+ * 扩展 JavaScript 内建 String 类的方法
+ */
+
+/**
+ * 删除左右两端的空格
+ */
+String.prototype.trim = function () {
+	return this.replace(/(^\s*)|(\s*$)/g, '');
+};
+
+/**
+ * 删除左边的空格
+ */
+String.prototype.ltrim = function () {
+	return this.replace(/(^\s*)/g, '');
+};
+
+/**
+ * 删除右边的空格
+ */
+String.prototype.rtrim = function () {
+	return this.replace(/(\s*$)/g, '');
+};
+
+/**
+ * 判断是否为空字符串
+ */
+String.prototype.isEmpty = function() {
+    return (this == '');
+};
+
+/**
+ * 判断字符串里包含的 ascii 字符的数量。
+ */
+String.prototype.asciiLength = function() {
+    var count = 0;
+    var c;
+    for(var i = 0; i < this.length; i++){
+        c = this.charAt(i);
+        if( c >= ' ' && c <= '~'){
+            count++;
+        }
+    }
+    return count;
+};
+
+/**
+ * 判断字符串的半角长度，一个汉字按照两个半角计算。
+ */
+String.prototype.halfAngleLength = function() {
+    return 2 * this.length - this.asciiLength();
+}
+
+/**
+ * 裁剪字符串长度为指定半角长度，一个汉字按照两个半角计。
+ */
+String.prototype.trimTo = function(length, suffix){
+    var str = this;
+    if(str.halfAngleLength() <= length){
+        return str;
+    }
+    if(str.length > length) {
+        str = str.substring(0, length);
+    }
+    while(str.halfAngleLength() > length) {
+        str = str.substring(0, str.length - 1);
+    }
+    return str + suffix;
+}
+/**
+ * replaceAll
+ */
+String.prototype.replaceAll  = function(s1,s2){    
+	return this.replace(new RegExp(s1,"gm"),s2);    
+}
+/**
+ * 计算字符串中有多少个sign
+ * @param sign
+ * @return
+ */
+String.prototype.count = function(sign) {
+    var count = 0;
+    var m = this.indexOf(sign);
+    while(m != -1) {
+        m = this.indexOf(sign, m + 1);
+        count = count + 1;
+    }
+   return count;
+}
+
+String.prototype.startsWith = function(str) {
+	if (str == null || str == "" || this.length == 0
+			|| str.length > this.length)
+		return false;
+	if (this.substr(0, str.length) == str)
+		return true;
+	else
+		return false;
+	return true;
+}
+/** ************************************************************************************************
+ *                                                                                            String
+ * 扩展 JavaScript 内建 Array 类的方法
+ */
+
+/**
+ * 删除左右两端的空格
+ */
+Array.prototype.clear = function () {
+    this.length = 0;
+};
+
+Array.prototype.get = function (i) {
+    return this[i];
+};
+
+Array.prototype.set = function (i, element) {
+    this[i] = element;
+};
+
+Array.prototype.size = function () {
+    return this.length;
+};
+
+Array.prototype.add = function (element) {
+    this[this.length] = element;
+};
+
+Array.prototype.remove = function(index){
+    if(index >= this.length) {
+        return null;
+    }
+    var element = this[index];
+    for(var i = index; i < this.length; i++) {
+        this[i] = this[i + 1];
+    }
+    this.length = this.length - 1;
+    return element;
+}
+
+Array.prototype.removeElement = function(element) {
+	for(var i=0; i<this.length; i++){
+		if(this[i] == element) {
+			this.remove(i);
+			return;
+		}
+	}
+}
+function sort(pData, left, right, property, adesc) {
+    var middle, strTemp;
+    var i = left;
+    var j = right;
+    middle = pData[Math.floor((left + right) / 2)][property];
+    do {
+        
+    	if(adesc == 'asc'){
+    		while((pData[i][property] < middle) && (i < right)){
+    			i++;
+    		}
+    		while((pData[j][property] > middle) && (j > left)){
+    			j--;
+    		}
+    	}
+    	else if(adesc == 'desc'){
+    		while((pData[i][property] > middle) && (i < right)){
+    			i++;
+    		}
+    		while((pData[j][property] < middle) && (j > left)){
+    			j--;
+    		}
+    	}
+        
+        if(i <= j) {
+        	if(pData[i][property] != pData[j][property]){
+	            strTemp = pData[i];
+	            pData[i] = pData[j];
+	            pData[j] = strTemp;
+        	}
+        	i++;
+        	j--;
+        }
+    } while(i < j);//如果两边扫描的下标交错，完成一次排序
+    if(left < j){
+        sort(pData, left, j, property, adesc); //递归调用
+    }
+    if(right > i){
+        sort(pData, i, right, property, adesc); //递归调用
+    }
+    return pData;
+}
+
+Array.prototype.subList = function(fromIndex, size){
+	var result = [];
+	var toIndex = fromIndex + size - 1;
+	//如果result的最后一个元素的下标比toIndex还小,则toIndex赋值为最有一个元素的下标
+	if(this.length - 1 < toIndex){
+		toIndex = this.length - 1;
+	}
+    for(var i = fromIndex; i <= toIndex; i++){
+    	result.push(this[i]);
+    }
+    return result;
+}
+
+/**
+ * 计算目标属性的和
+ * @return
+ */
+Array.prototype.sum = function(property){
+	var sum = 0;
+    for(var i = 0; i < this.length; i++){
+    	sum += this[i][property];
+    }
+    return sum;
+}
+
+/* ============================================================================================== */
+/* Date : 日期对象 */
+/* ============================================================================================== */
+
+/**
+ * 返回特定格式的日期字串。
+ *
+ * @param pattern 返回的日期字串样式，例如 yyyy-mm-dd HH:MM:SS sss 返回 2009-11-10 09:40:58 456
+ *      y : 年
+ *      m : 月
+ *      d : 月里的天（1-31）
+ *      H : 天里的小时（0-23）
+ *      M : 小时里的分钟（0-59）
+ *      S : 秒
+ *      s : 毫秒
+ */
+Date.prototype.format = function(pattern){
+    var year, month, day, hour, min, sec, ms, isCn = false;
+    if(pattern.indexOf('年') >= 0 || pattern.indexOf('月') >= 0
+            || pattern.indexOf('日') >= 0 || pattern.indexOf('号') >= 0){
+        isCn = true;
+    }
+    
+    year = this.getFullYear();
+    month = this.getMonth() + 1;
+    day = this.getDate();
+    hour = this.getHours();
+    min = this.getMinutes();
+    sec = this.getSeconds();
+    ms = this.getMilliseconds();
+
+    pattern = pattern.replace('yyyy', year);
+    pattern = pattern.replace('mm', (isCn || month > 9) ? month : ('0' + month));
+    pattern = pattern.replace('dd', (isCn || day > 9) ? day : ('0' + day));
+    
+    pattern = pattern.replace('HH', (isCn || hour > 9) ? hour : ('0' + hour));
+    pattern = pattern.replace('MM', min > 9 ? min : ('0' + min));
+    pattern = pattern.replace('SS', sec > 9 ? sec : ('0' + sec));
+    
+    pattern = pattern.replace('sss', (ms > 99 ? ms : (ms > 9 ? ('0' + ms) : ('00' + ms))));
+    
+    return pattern;
+}
+
+/* ============================================================================================== */
+/* Logger : 在页面上创建一个日志模块，输入脚本的运行信息。 */
+/* ============================================================================================== */
+
+Logger = {
+    index : 0,
+    
+    doFilt : function(){
+        var _sys_logger = $('sysLogger');
+        var key = _sys_logger.son('form').key.value.trim();
+        var logItems = _sys_logger.son('logZone').sonList('logItem');
+        var msg;
+        for(var i = 0; i < logItems.length; i++){
+            msg = logItems[i].son('logMsg').innerHTML;
+            if(key != '' && msg.indexOf(key) == -1){
+                logItems[i].hide();
+            }
+            else {
+                logItems[i].show();
+            }
+        }
+    },
+    
+    doClear : function(){
+        $('sysLogger').son('logZone').trunc();
+    },
+
+    log : function() {
+        var _sys_logger = $('sysLogger');
+        var _t_log_item = $('tLogItem');
+
+        if(!Sysolar.debug || null == _sys_logger || null == _t_log_item){
+            return;
+        }
+        else {
+            _sys_logger.show();
+        }
+        
+        var msg = '';
+        for(var i=0; i<arguments.length; i++){
+            msg += (arguments[i] + '; ');
+        }
+
+        var param = {
+            logIndex : Logger.index++, 
+            logTime : new Date().format('HH:MM:SS sss'), 
+            logMsg : msg
+        };
+        var logItemClone = _t_log_item.clone(param);
+        var _log_zone = _sys_logger.son('logZone');
+        
+        if(_log_zone.firstChild){
+            _log_zone.insertBefore(logItemClone, _log_zone.firstChild);
+        }
+        else {
+            _log_zone.appendChild(logItemClone);
+        }
+        
+        var key = _sys_logger.son('form').key.value.trim();
+        if(key != '' && msg.indexOf(key) == -1){
+            logItemClone.hide();
+        }
+    }
+};
+
+/** ************************************************************************************************
+ *                                                                                            Loader
+ * 封装了动态加载 JavaScript 脚本文件、CSS 样式文件的函数。需要注意的一个问题是，浏览器不能保证通过该函数
+ * 和 通过Ajax 加载的内容的先后顺序。
+ */
+Loader = {
+    head : null,
+    
+    /**
+     * 获得 head 标签。
+     */
+    getHead : function(){
+        var e = Loader;
+        if(null == e.head){
+            e.head = document.getElementsByTagName('head')[0];
+        }
+        return e.head;
+    },
+
+    /**
+     * 动态加载JavaScript脚本文件。
+     */
+    loadJs : function(filePath, scriptId) {
+        // 删除已经加载的脚步
+    
+        var jsId = Loader.generateFileId(filePath);
+        if(null != $(jsId)){
+            return;
+        }
+		var element = document.createElement('script');
+		element.setAttribute('type','text/javascript');
+		element.setAttribute('src', filePath);
+		element.setAttribute('id', jsId);
+        
+        // 加载文件，并返回文件的 id 以供移除时使用
+		Loader.add(element);     
+        return jsId;
+    },
+
+    /**
+     * 动态加载CSS样式文件。
+     */
+    loadCss : function(filePath, linkId) {
+        // 删除已加载的css
+        if(linkId){
+            var link = $(linkId);
+            if(null != link){
+                link.drop();
+            }
+        }
+
+        // 动态创建 link 标签
+		var element = document.createElement('link');
+		element.setAttribute('rel', 'stylesheet');
+		element.setAttribute('type', 'text/css');
+		element.setAttribute('href', filePath);
+        if(linkId){
+            element.setAttribute('id', linkId);
+        }
+
+        // 把 link 标签添加至 head 标签
+		Loader.getHead().appendChild(element);
+    }
+};
+
+/** ************************************************************************************************
+ *                                                                                           Browser
+ * 封装了需要区分浏览器类型的函数，以实现 JavaScript 页面效果的跨浏览器。
+ */
+Browser = {
+    isIe : false,
+    isIe6 : false,
+    isFirefox : false, 
+    isChrome : false,
+    isOpera : false, 
+    isSafari : false,
+    
+    /**
+     * 确定浏览器类型。
+     */
+    init : function() {
+        var ua = navigator.userAgent.toLowerCase();
+        if(ua.match(/msie ([\d.]+)/)){
+            Browser.isIe = true;
+        }
+        else if(ua.match(/firefox\/([\d.]+)/)){
+            Browser.isFirefox = true;
+        }
+        else if(ua.match(/chrome\/([\d.]+)/)){
+            Browser.isChrome = true;
+        }
+        else if(ua.match(/opera.([\d.]+)/)){
+            Browser.isOpera = true;
+        }
+        else if(ua.match(/version\/([\d.]+).*safari/)){
+            Browser.isSafari = true;
+        }
+        
+        if(/msie (5\.5|6)/.test(ua)){
+            Browser.isIe6 = true;
+        }
+    },
+    
+    getDocumentBody : function() {
+        // if(document.compatMode && document.compatMode != "BackCompat") {
+        //  return document.documentElement;
+        // }    
+        return document.body.scrollTop ? document.body : document.documentElement;
+    },
+    
+    /**
+     * 获得滚动条的高度。
+     */
+    getScrollTop : function(){
+        if(Browser.isChrome){
+            return document.body.scrollTop;
+        }
+        return Browser.getDocumentBody().scrollTop;
+    },
+
+    /**
+     * 跨浏览器 获得事件对象。
+     */
+    getEvent : function(ev) {
+        return ev ? ev : window.event;
+    },
+    
+    /**
+     * 跨浏览器 获得触发事件的元素。
+     */
+    getTarget : function(ev) {
+        if(!ev) {
+            ev = Browser.getEvent(ev);
+        }
+        
+        var target = null;
+        if(Browser.isIe) {
+            target = ev.srcElement;
+        }
+        else {
+            target = ev.target;
+            if(target.nodeType == 3){
+                target = target.parentNode;
+            }
+        }
+
+        return $$(target); 
+    },
+
+    /**
+     * 跨浏览器 获得鼠标的绝对坐标 x,y。
+     */
+    getMouseCoor : function(ev) {
+        if(!ev) {
+            ev = Browser.getEvent(ev);
+        }
+        
+        if(Browser.isIe) {
+            var docBody = Browser.getDocumentBody();
+            return {
+                x:(ev.clientX + docBody.scrollLeft - docBody.clientLeft),
+                y:(ev.clientY + docBody.scrollTop  - docBody.clientTop) 
+            };
+        }
+
+        return {x:ev.pageX, y:ev.pageY};
+    },
+
+    /**
+     * 跨浏览器 设定节点的绝对坐标(左上角、中心点、右下角) (minx, miny)、(midx, midy)、(maxx, maxy)。
+     * 
+     * 必须考虑父层的边框宽度
+     */
+    setNodeCoor : function(node) {
+        var origin = node;
+        origin.minx = origin.offsetLeft;
+        origin.miny = origin.offsetTop;
+
+        var oStyle = null;
+        while (node = node.offsetParent) {
+            oStyle = Browser.getStyle(node);
+            borderLeftWidth = isNaN(parseInt(oStyle.borderLeftWidth)) ? 0 : parseInt(oStyle.borderLeftWidth);
+            borderTopWidth  = isNaN(parseInt(oStyle.borderTopWidth))  ? 0 : parseInt(oStyle.borderTopWidth);        
+            origin.minx += (node.offsetLeft + borderLeftWidth);
+            origin.miny += (node.offsetTop + borderTopWidth);
+        }
+
+        origin.midx = origin.minx + origin.offsetWidth * 0.5;
+        origin.midy = origin.miny + origin.offsetHeight * 0.5;
+        origin.maxx = origin.minx + origin.offsetWidth;
+        origin.maxy = origin.miny + origin.offsetHeight;
+
+        return origin;
+    },
+
+    /**
+     * 跨浏览器 获得元素当前的样式。
+     */
+    getStyle : function(node) {
+        // IE
+        if(node.currentStyle) {
+            return node.currentStyle;
+        }
+        
+        // Firefox
+        if(document.defaultView && document.defaultView.getComputedStyle){
+            return document.defaultView.getComputedStyle(node, '');
+        }
+        
+        // other
+        return node.style;
+    },
+
+    
+    /**
+     * 跨浏览器 获得鼠标与触发鼠标事件的元素的相对位置 x, y。
+     */
+    getMouseOffset : function(ev){
+        var mouseCoor = Browser.getMouseCoor(ev);
+        var nodeCoor = Browser.getNodeCoor(Browser.getTarget(ev));
+
+        return {
+            x:(mouseCoor.x - nodeCoor.minX), 
+            y:(mouseCoor.y - nodeCoor.minY)
+        };
+    },
+    
+    /**
+     * 获得页面的宽度。
+     */
+    getPageWidth : function(){
+        return docBody.scrollWidth;
+    },
+    
+    /**
+     * 获得页面的高度。
+     */
+    getPageHeight : function(){
+        return Browser.getDocumentBody().scrollHeight;
+        
+        /*
+        if(typeof _footer == 'undefined'){
+            return height;
+        }
+        Browser.setNodeCoor(_footer);
+        return height > _footer.maxy ? height : _footer.maxy;
+        */
+    },
+    
+    getScreenHeight : function(){
+        return window.screen.height;
+    },
+    
+    getClientHeight : function(){
+    	var height = 0; 
+    	if(Browser.isChrome){
+    		height =  document.documentElement.clientHeight;
+    	}
+    	else{
+    		height = Browser.getDocumentBody().clientHeight;
+    	}
+    	
+    	if(height == Browser.getPageHeight()){
+    		return window.innerHeight;
+    	}
+    	return height;
+    },
+
+    /**
+     * 把指定URL设为浏览器主页。
+     */
+    setHomePage : function(url){
+        if(Browser.isIe){
+            document.body.style.behavior="url(#default#homepage)";
+            document.body.setHomePage(url);
+        }
+        else if(Browser.isFirefox){
+            try {
+                netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+            }
+            catch (e){
+                alert("此操作被浏览器拒绝！\n请在浏览器地址栏输入“about:config”并回车\n然后将[signed.applets.codebase_principal_support]设置为true");
+                return;
+            }
+    
+            var pref =  Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch );
+            pref.setCharPref('browser.startup.homepage', url);
+        }
+    }
+};
+
+/**
+ * 确定浏览器类型、IE下缓存背景图片
+ */
+Browser.init();
+try {
+  document.execCommand('BackgroundImageCache', false, true);
+}
+catch(ex){}
+
+/** ************************************************************************************************
+ *                                                                               $$AjaxResultWrapper
+ * 包装通过Ajax技术从服务器获得的内容至dom文档对象流，以便通过 JavaScript 操作新获得的内容。
+ */
+$$AjaxResultWrapper = function (e){
+    $$(e);
+
+    /**
+     * 把服务器返回的内容填充至包装器
+     */
+    e.fill = function(responseText){
+        e.innerHTML = responseText;
+    }
+    
+    /**
+     * 执行js脚本
+     */
+    e.eval = function(){
+        var scriptList = e.getElementsByTagName('script');       
+        for(var i = 0; i < scriptList.length; i++){
+            eval(scriptList[i].innerHTML);
+        }
+    }
+    
+    /**
+     * 把从服务获得的内容移至目标对象。
+     */
+    e.shiftTo = function(target){
+        $$(target).trunc();
+        var nodeList = e.nodeList();      
+        for(var i=0; i<nodeList.length; i++){
+            target.appendChild(nodeList[i]);     
+        }
+    }
+
+    return e;
+}
+
+/* ============================================================================================== */
+/* Ajax : 封装Ajax的相关操作，使得程序里可以很方便的使用 Ajax 技术实现和服务器的交互。 */
+/* ============================================================================================== */
+
+Ajax = {
+    charset : 'UTF-8', // POST 数据采用的编码格式，默认为 UTF-8
+    xmlHttp : null, // 与服务器进行交互的 XmlHttpRequest 对象
+    currRequest : null, // 当前正在发送的请求
+    requestList : new ArrayList(), // 请求队列
+
+    REQ_TYPE_AJAX : 1, // 请求类型：通过Ajax技术请求服务器
+    REQ_TYPE_SCRIPT : 2, // 请求类型：通过动态创建script标签方式请求服务器
+
+    REQ_STATE_SENDED : 1, // 请求处理状态：请求已发送
+    REQ_STATE_BACKED : 4, // 请求处理状态：请求已返回
+
+    // 通过ajax技术请求服务器，进行请求之前，执行此函数，一般用来设置请求过程中的页面状态
+    doOnRequest : null, 
+    doFirst : null, // 通过ajax技术完成页面加载后预先进行的处理
+    doFinal : null, // 通过ajax技术请求服务器，处理完成后，执行此函数
+    
+    // 服务器返回的特殊值
+    errorCode:null,
+    intValue:null,
+    stringValue:null,
+    objectValue:null,
+    jsonValue : null,
+    
+    reset : function(){
+        Ajax.errorCode = null;
+        Ajax.intValue = null;
+        Ajax.stringValue = null;
+        Ajax.objectValue = null;
+        Ajax.jsonValue = null;
+    },
+
+    /**
+     * 通过Ajax技术从服务器加载包含 html 标签的内容。
+     *
+     * @param url 请求地址
+     * @param params 请求参数
+     * @param callback 回调函数，请求返回后将调用该函数
+     * @param charset 编码方式
+     */
+    load : function(url, params, callback, charset){
+        Ajax.add(Ajax.REQ_TYPE_AJAX, url, params, callback, charset);
+    },
+
+    /**
+     * 通过动态创建script标签方式请求服务器。
+     *
+     * @param url 请求地址
+     * @param params 请求参数
+     * @param callback 回调函数，请求返回后将调用该函数
+     * @param charset 编码方式
+     */
+    send : function(url, params, callback, charset){
+    	
+    	var token = $('__hkToken');
+    	if(token){
+    		params.__hkToken = token.value;
+    	}
+    	
+    	var reqUrl = getUrlPath(url);
+        Ajax.add(Ajax.REQ_TYPE_SCRIPT, reqUrl, params, callback, charset);
+    },
+
+    /**
+     * 把请求添加至请求队列。
+     *
+     * @param reqType 请求类型 1-Ajax请求 2-script请求
+     * @param url 请求地址
+     * @param params 请求参数
+     * @param callback 回调函数，请求返回后将调用该函数
+     * @param charset 编码方式
+     */
+    add : function(reqType, url, params, callback, charset){
+        var request = new Object();
+        request.url = url;
+        request.queryString = Ajax.buildQueryString(params);
+        request.callback = (callback ? callback : null);
+        request.charset = (charset ? charset : null);
+
+        // 请求添加时间与请求发送时间
+        request.addedTime = new Date().getTime();
+        request.sendedTime = null;
+        request.backedTime = null;
+
+        // 请求类型：1-同域请求 2-通过script标签跨域请求
+        request.reqType = reqType;
+        
+        // 请求状态：0-未初始化 1-正在加载 2-已加载 3-交互中 4-完成
+        request.reqState = null;
+        
+        // 被重新发送的次数
+        request.reSendedNum = 0;
+
+        /**
+         * 重写 toString 方法
+         */
+        request.toString = function(){
+            var s = 'Ajax {';
+            s += ( 'reqType:' + this.reqType);
+            
+            // 请求发送等待时间
+            if(null != this.sendedTime){
+                s += ( ', wait:' + (this.sendedTime - this.addedTime) + 'ms');
+            }
+            
+            // 请求处理时间
+            if(null != this.backedTime){
+                s += ( ', deal:' + (this.backedTime - this.sendedTime) + 'ms');
+            }
+            
+            // 队列里的请求数量
+            s += (', reqList.size:' + Ajax.requestList.size());
+            
+            // 线程队列大小
+            s += (', Thread.size:' + Thread.taskList.size());
+
+            s += (', url:<b>' + this.url.replace(/\?t=\d+/, '') + '</b>')
+            s += ( ', queryString:' + this.queryString);
+            s += '}';
+            return  s;
+        }
+
+        Ajax.requestList.add(request); // 添加新请求至队列
+        // Ajax.makeRequest(); // 发送新请求
+        Ajax.listen();
+    },
+
+    /**
+     * 监听请求队列。
+     */
+    listen : function(){
+        var request, requestList = Ajax.requestList;
+
+        while(requestList.size() > 0){
+            request = requestList.get(0);
+            if(null == request.reqState){
+                // 发送新请求
+                Ajax.makeRequest(request);
+                return;
+            }
+            else if(request.reqState == Ajax.REQ_STATE_SENDED){
+                var rightNow = new Date().getTime();
+
+                // 中断当前请求，刷新页面
+                /* if(request.reqType == Ajax.REQ_TYPE_AJAX 
+                        && rightNow - request.sendedTime > 10 * 1000){
+                    Ajax.xmlHttp.abort();
+                    location.reload();
+                    return;
+                } */
+                
+                // 若请求3秒钟还未返回，则忽略当前请求，认为其已返回
+                if(request.reqType == Ajax.REQ_TYPE_SCRIPT
+                        && rightNow - request.sendedTime > 3000){
+                    request.reqState = Ajax.REQ_STATE_BACKED;
+                    continue; 
+                }
+
+                // 重新发送请求
+                // Ajax.makeRequest(request);
+
+                // 等待请求完成
+                return;
+            }
+            else if(request.reqState == Ajax.REQ_STATE_BACKED){
+                // 移除已完成的请求
+                requestList.remove(0);
+                Logger.log(request);
+            }
+        }
+    },
+
+    /**
+     * 处理请求队列：发送新的请求。请求添加至队列的先后顺序即为请求的优先级，Ajax请求不可并发，即后面的
+     * 请求（Ajax请求或script请求）要等待前面的Ajax请求处理完成后才能被发出。script请求间不需要等待，
+     * 即后面的script请求无需等待前面的script请求。
+     */
+    makeRequest : function(request) {
+        if(null != Ajax.doOnRequest){
+            Ajax.doOnRequest();
+        }
+    
+        request.reqState = Ajax.REQ_STATE_SENDED;       // 设定请求状态为：请求已发送
+        request.sendedTime = new Date().getTime();      // 设定请求发送时间
+        request.url += ('?t=' + request.sendedTime);
+
+        if(request.reqType == Ajax.REQ_TYPE_AJAX){
+            Ajax.makeAjaxRequest(request);
+        }
+        else if(request.reqType == Ajax.REQ_TYPE_SCRIPT){
+            Ajax.makeScriptRequest(request);
+        }
+    },
+    
+    /**
+     * 通过Ajax技术请求服务器。
+     * 
+     * @param request 包含url链接地址、参数等信息的对象
+     */
+    makeAjaxRequest : function(request){
+        // 重置 Ajax 的状态
+        Ajax.reset();
+        
+        // 创建 XMLHttpRequest 对象，判断请求状态，执行回调函数
+        var xmlHttp = Ajax.xmlHttp = Ajax.createXmlHttp();
+        xmlHttp.onreadystatechange = function() {
+            // 服务器已正确返回
+            if(xmlHttp.readyState == Ajax.REQ_STATE_BACKED){
+                // 从队列里移除请求
+                // Ajax.remove(request);
+                // 先修改状态
+                request.reqState = Ajax.REQ_STATE_BACKED;
+                request.backedTime = new Date().getTime();
+
+                if(xmlHttp.status == 200 || xmlHttp.status == 0){
+                    // 执行预处理
+                    if(null != Ajax.doFirst) {
+                        Ajax.doFirst();
+                    }
+                    
+                    // 执行回调函数
+                    if(null != request.callback){
+                        request.callback();
+                    }
+                }
+
+                // 执行后处理
+                if(null != Ajax.doFinal) {
+                    Ajax.doFinal();
+                }
+            }
+        };
+
+        // 请求服务器
+        if(null != request.queryString) {
+            xmlHttp.open('POST', request.url, true);
+            xmlHttp.setRequestHeader('Content-Type','application/x-www-form-urlencoded;charset=' 
+                    + (null == request.charset ? Ajax.charset : request.charset));
+        }
+        else {
+            xmlHttp.open('GET', request.url, true);
+        }
+        xmlHttp.send(request.queryString);
+    },
+    
+    /**
+     * 通过动态创建script标签技术请求服务器。
+     * 
+     * @param request 包含url链接地址、参数等信息的对象
+     */
+    makeScriptRequest : function(request){
+        // 动态创建script标签
+        var head = $t('head');
+        var script = document.createElement("script");
+        if(null == request.queryString){
+            script.src = request.url;
+        }
+        else {
+            script.src = request.url + '&' + request.queryString;
+        }
+
+        // 设置脚本编码
+        script.charset = (null == request.charset ? Ajax.charset : request.charset);
+        
+        // 加载完成后执行回调函数
+        script.onload = script.onreadystatechange = function(){
+            if (!this.readyState || this.readyState == "loaded" || this.readyState == "complete"){
+                // 从队列里移除请求
+                // Ajax.remove(request);
+                // 先修改状态
+                request.reqState = Ajax.REQ_STATE_BACKED;
+                request.backedTime = new Date().getTime();
+
+                // 从head标签里移除script标签，避免IE内存溢出
+                script.onload = script.onreadystatechange = null;
+                if(!Sysolar.debug) {
+                    setTimeout(function(){
+                        head.removeChild(script);
+                    }, 1000);
+                }
+
+                // 执行回调函数
+                if(null != request.callback) {
+                    request.callback();
+                }
+
+                // 执行后处理
+                if(null != Ajax.doFinal) {
+                    Ajax.doFinal();
+                }
+            }
+        };
+
+        // 在head标签里添加script标签
+        head.appendChild(script);
+    },
+
+    /**
+     * 跨浏览器，创建 XMLHttpRequest 对象。
+     */
+    createXmlHttp : function(){
+        if(window.XMLHttpRequest) { // Mozilla, Safari, ...
+            return new XMLHttpRequest();
+        } 
+        
+        if(window.ActiveXObject) {  // IE
+            try {
+                return new ActiveXObject('Msxml2.XMLHTTP');
+            } 
+            catch(e) {
+                return new ActiveXObject('Microsoft.XMLHTTP');
+            }
+        }
+        return null;
+    },
+
+    /**
+     * 构建请求参数。
+     */
+    buildQueryString : function(params) {
+        var queryString = null;
+        if(null != params){
+            queryString = '';
+            for(var i in params){
+                if(null != params[i] && typeof params[i] != 'undefined'){
+                    queryString += ('&' + i + '=' + encodeURIComponent(Util.syEncode(params[i])));
+                }
+            }
+            queryString = queryString.substring(1);
+        }
+        return queryString;
+    },
+
+    /**
+     * 以纯文本方式获得服务器返回的内容。
+     */
+    getText : function(){
+        return Ajax.xmlHttp.responseText.toString().trim();
+    },
+
+    /**
+     * 获得服务器返回的字符串，当返回值是字串时在回调函数里使用。
+     */
+    getString : function(){
+        return Ajax.stringValue;
+        //return Ajax.request.responseText.toString().trim();
+    },
+    
+    /**
+     * 获得服务器返回的字符串，并转化为整数，当返回值是整数时在回调函数里使用。
+     */
+    getInt : function(){
+        return Ajax.intValue;
+    },
+
+    getObject : function(){
+        return Ajax.objectValue;
+    },
+    
+    getJson : function(){
+        return Ajax.jsonValue;
+    },
+
+    update : function(url, params, callback){
+        Ajax.load(url, params, callback);
+    },
+
+    /**
+     * 通过 POST 方式请求服务器。
+     */
+    post : function(url, params, callback){
+        Ajax.load(url, params, callback);
+    }
+};
+
+// 监控请求
+Thread.add(Ajax.listen, 20);
+
+/* ============================================================================================== */
+/* DB : 全局数据容器 */
+/* ============================================================================================== */
+
+DB = {
+    map : new Object(),
+    
+    put : function(key, obj){
+        DB.remove(key);
+        DB.map[key] = new Bean(obj);
+    },
+
+    get : function(key){
+        if(DB.map[key]){
+            return DB.map[key].value;
+        }
+        return null;
+    },
+    
+    remove : function(key){
+        delete DB.map[key];
+    },
+    
+    setCacheTime : function(key, cacheTime){
+        if(DB.map[key]){
+            return DB.map[key].setCacheTime(cacheTime);
+        }
+    },
+    
+    isOld : function(key){
+        if(DB.map[key]){
+            return DB.map[key].isOld();
+        }
+    },
+
+    list : function(){
+        for(var key in DB.map){
+            Logger.log(key + '=' + DB.map[key]);
+        }
+    }
+};
+
+function Bean(value){
+    this.value = value;
+    this.cacheTime = null;
+    this.timestamp = new Date().getTime();
+    
+    this.setCacheTime = function(cacheTime){
+        this.cacheTime = cacheTime;
+    };
+
+    this.isOld = function(){
+        if(!this.cacheTime){
+            return false;
+        }
+        var now = new Date().getTime();
+        if(now - this.timestamp > this.cacheTime){
+            return true;
+        }
+        return false;
+    };
+}
+
+/** ************************************************************************************************
+ *                                                                                            PngFix
+ * PNG背景图处理。
+ */
+PngFixer = {
+    /**
+     * 修复PNG背景图。
+     */
+    doFix : function(dom){
+        // 只处理 ie6 和ie5.5
+        if(!Browser.isIe6){
+            return;
+        }
+        
+        // 通过滤镜加载PNG图片
+        var style = Browser.getStyle(dom);
+        var imgUrl = style.backgroundImage.substring(5, style.backgroundImage.length - 2);
+        dom.style.filter = 'progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true, sizingMethod=crop, src=' + imgUrl + ')';
+        dom.style.backgroundImage = 'none';
+    },
+
+    /**
+     * 设置PNG背景图。
+     */
+    setBackgroundImage : function(dom, imgUrl){
+        if(Browser.isIe6){
+            dom.style.filter = 'progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true, sizingMethod=crop, src=' + imgUrl + ')';
+            dom.style.backgroundImage = 'none';
+        }
+        else {
+            dom.style.backgroundImage = 'url(' + imgUrl + ')';
+        }
+    }
+};
+
+/** ************************************************************************************************
+ *                                                                                              
+ * SysRadio
+ */
+SysRadio = {
+    addEvent : function(ulWrapper){
+        var liList = ulWrapper.sonList('li');
+        for(var i=0; i<liList.length; i++){
+            /**
+             * 鼠标悬停
+             */
+            liList[i].onmouseover = function(evt){
+                this.appendClass('hover');
+            }
+        
+            /**
+             * 鼠标离去
+             */
+            liList[i].onmouseout = function(evt){
+                this.removeClass('hover');
+            }
+            
+            /**
+             * 鼠标双击
+             */
+            liList[i].onclick = function(evt){
+                this.son('input').checked=1
+            }            
+        }
+    }
+}
+ 
+Util = {
+	/**
+	 * inputRef:待检查的输入框.
+	 * promptRef:显示剩余字符数的dom元素.
+	 * maxLen:最大长度,以英文字母个数算.
+	 * event:键盘事件,由于火狐没有windwo.event对象,只能临时传递.
+	 */
+	promptLeftLen : function(inputRef, propmtRef, maxLen,evt) {
+		var left = maxLen - inputRef.value.halfAngleLength();
+		propmtRef.innerHTML = left;
+	},
+	
+	getRadioValue : function(radioName){  
+	    var obj;      
+	    obj=document.getElementsByName(radioName);  
+	    if(obj!=null){  
+	        var i;  
+	        for(i=0;i<obj.length;i++){  
+	            if(obj[i].checked){  
+	                return obj[i].value;              
+	            }  
+	        }  
+	    }  
+	    return null;  
+	},
+	
+	unCheckRadio: function(radioName){  
+	    var obj;      
+	    obj=document.getElementsByName(radioName);  
+	    if(obj!=null){  
+	        for(var i=0;i<obj.length;i++){  
+	            if(obj[i].checked){  
+	                obj[i].checked = false;              
+	            }  
+	        }  
+	    }  
+	},
+	
+	checkRadio:function(radioName, value){
+		var obj=document.getElementsByName(radioName);
+		if(obj!=null){  
+	        for(var i=0;i<obj.length;i++){  
+	            if(obj[i].value == value){  
+	                obj[i].checked = true;              
+	            }  
+	        }  
+	    }  
+	},
+	
+	selectSelect:function(selectDomId, value){
+		var options = $(selectDomId).options;
+		for(var i=0;i<options.length;i++){
+			if(options[i].value == value){
+				options[i].selected = true;
+			}
+		}
+	},
+	
+	copyToClipboard:function(txt) {    
+	    if(window.clipboardData) {    
+	        window.clipboardData.clearData();    
+	        window.clipboardData.setData("Text", txt);
+	        return true;
+	    } else if(navigator.userAgent.indexOf("Opera") != -1) {    
+	        window.location = txt;    
+	    } else if (window.netscape) {    
+	        try {    
+	            netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");    
+	        } catch (e) {    
+	            return false;
+	        }    
+	    var clip = Components.classes['@mozilla.org/widget/clipboard;1'].createInstance(Components.interfaces.nsIClipboard);    
+	    if (!clip)    
+	        return false;    
+	    var trans = Components.classes['@mozilla.org/widget/transferable;1'].createInstance(Components.interfaces.nsITransferable);    
+	    if (!trans)    
+	        return false;    
+	    trans.addDataFlavor('text/unicode');    
+	    var str = new Object();    
+	    var len = new Object();    
+	    var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);    
+	    var copytext = txt;    
+	    str.data = copytext;    
+	    trans.setTransferData("text/unicode",str,copytext.length*2);    
+	    var clipid = Components.interfaces.nsIClipboard;    
+	    if (!clip){
+	        return false;    
+	    }
+	    clip.setData(trans,null,clipid.kGlobalClipboard);    
+	    return true;
+	    }
+	},
+	getClipboardData : function() {
+		if (window.clipboardData) {
+			return window.clipboardData.getData("Text");
+		}
+		else if (navigator.userAgent.indexOf("Opera") != -1) {
+			window.location = txt;
+		}
+		else if (window.netscape) {
+			try {
+				netscape.security.PrivilegeManager
+						.enablePrivilege("UniversalXPConnect");
+                var clip = Components.classes['@mozilla.org/widget/clipboard;1']
+                        .createInstance(Components.interfaces.nsIClipboard);
+                if (!clip) {
+                    return false;
+                }
+                var trans = Components.classes['@mozilla.org/widget/transferable;1']
+                        .createInstance(Components.interfaces.nsITransferable);
+                if (!trans) {
+                    return false;
+                }
+                trans.addDataFlavor("text/unicode");
+                clip.getData(trans, clip.kGlobalClipboard);
+                var str = new Object();
+                var strLength = new Object();
+                trans.getTransferData("text/unicode", str, strLength);
+                if (str) {
+                    str = str.value
+                            .QueryInterface(Components.interfaces.nsISupportsString);
+                }
+                if (str) {
+                    return pastetext = str.data.substring(0, strLength.value / 2);
+                }
+			} 
+			catch (e) {
+				return false;
+			}
+
+			return false;
+		}
+		else{
+			return false;
+		}
+	},
+	syEncode:function(text){
+		if(typeof text != 'string'){
+			return text;
+		}
+//		text = text.replaceAll('&',"&#38;");
+		text = text.replaceAll("'","&#39;");
+		text = text.replaceAll('"',"&#34;");
+		text = text.replaceAll('<',"&#60;");
+		text = text.replaceAll('>',"&#62;");
+		
+        var index = -1;
+        while((index = text.indexOf('\n')) != -1) {
+            text = text.substring(0, index) + "&nbsp;" + text.substring(index + 1);
+        }
+        while((index = text.indexOf('\r')) != -1) {
+            text = text.substring(0, index) + text.substring(index + 1);
+        }
+        return text;
+	},
+	syDecode:function(text){
+		if(typeof text != 'string'){
+			return text;
+		}
+		text = text.replaceAll("&#39;","'");
+		text = text.replaceAll("&#34;",'"');
+		text = text.replaceAll("&#60;",'<');
+		text = text.replaceAll("&#62;",'>');
+//		text = text.replaceAll("&#38;",'&');
+		var regExp = new RegExp('&nbsp;','g');
+		text = text.replace(regExp, '\r\n');
+		return text;
+	}
+}
+Cookie = {
+	set : function (name, value, expireDays) {
+		if(!expireDays){
+			expireDays = 30; // 默认30天失效
+		}
+		var exdate = new Date();
+		exdate.setDate(exdate.getDate() + expireDays);
+		document.cookie = name + "=" + escape(value) + ";expires=" + exdate.toGMTString();
+	},
+	
+	get : function (name){
+		str = document.cookie;
+		nameIndex = str.indexOf(name+'=');
+		if(nameIndex != -1){
+			return unescape(str.substring(nameIndex + name.length + 1, str.indexOf(';', nameIndex)));
+		}
+		else{
+			return null;
+		}
+	},
+
+	reload : function(form, fieldName){
+		if(form == null || form[fieldName] == null){
+			return;
+		}
+		var cookieValue = Cookie.get(fieldName);
+		if(null != cookieValue){
+			var fieldType = form[fieldName].type;
+			if(fieldType == 'checkbox' || fieldType == 'radio'){
+				if(cookieValue != ''){
+					form[fieldName].checked = true;
+				}
+			}
+			else {
+				form[fieldName].value = cookieValue;
+			}
+		}
+	},
+	
+	refresh : function(form, fieldName, fieldValue){
+		if(null != fieldValue){
+			Cookie.set(fieldName, fieldValue);
+		}
+		else {
+			Cookie.reload(form, fieldName);
+		}
+	}
+}
+
+/* ============================================================================================== */
+/* Keyboard : 捕获用户键盘输入 */
+/* ============================================================================================== */
+
+Keyboard = {
+    isEnable : false,
+    altDown : false,
+    
+    enable : function(){
+        Keyboard.isEnable = true;
+        document.onkeypress = Keyboard.onKeyPress;
+    },
+
+    onKeyPress : function(event){
+        event = Browser.getEvent(event);
+ 
+        // 屏蔽浏览器的默认键盘事件响应
+        if(!Browser.isIe){
+            //event.preventDefault();
+        }
+
+        // 功能键
+        altDown = event.altKey;
+        
+        Logger.log(event.keyCode, altDown);
+    },
+    
+    isAltDown : function(){
+        return altDown;
+    }
+}
+
+/* ============================================================================================== */
+/* Param : 参数对象容器 */
+/* ============================================================================================== */
+
+Param = new HashMap();
+
+/* ============================================================================================== */
+/* LightMe : 高亮显示当前选中的页签 dom */
+/* ============================================================================================== */
+
+LightMe = {
+    select : function(_this, key){
+        var on = Param.get(key);
+        if(null != on){
+            on.removeClass('on');
+        }
+        if(null != _this){
+            _this.appendClass('on');
+            Param.put(key, _this);
+        }
+    }
+}
+
+/* ============================================================================================== */
+/* Pager : 翻页器 */
+/* ============================================================================================== */
+
+Pager = {
+    /**
+     * 创建一个翻页器 dom 对象，并添加鼠标事件。
+     *
+     * @param maxPageNum 最大页数
+     * @param pageNum 当前页数
+     * @param func 翻页处理函数
+     */
+    create : function(maxPageNum, pageNum, func){
+		maxPageNum = maxPageNum < 1 ? 1 : maxPageNum;
+        var e = Pager;
+        var dom = $('tPager').copy();       // 复制一个翻页器 dom
+        
+        dom._on_click = func;
+        dom.maxPageNum = maxPageNum;
+        dom.pageNum = pageNum;
+        dom.list = dom.sonList('a');        // 页签
+        
+        for(var i = 0; i < dom.list.size(); i++){
+            dom.list.get(i).index = i;                     				// 页签固定索引
+            if(dom.list.size() == 7){
+                dom.list.get(i).onclick = e.core$$onClick$$mobile;      // 页签 onclick 事件
+            }
+            else {
+                dom.list.get(i).onclick = e.core$$onClick;      		// 页签 onclick 事件
+            }
+        }
+
+        if(dom.list.size() == 7){
+            e.drawMobile(dom);        // 绘制翻页器
+        }
+        else {
+            e.draw(dom);        // 绘制翻页器
+        }
+        return dom;         // 返回翻页器 dom
+    },
+    
+    /**
+     * 页签上的 onclick 事件，设定用户选中的页数，重绘，调用与服务器交互的函数。
+     */
+    core$$onClick : function(){
+        var e = Pager;
+        var dom = this.parentNode;
+        var oldPageNum = dom.pageNum;
+
+        if(this.index == 0){                                // 用户点击上一页
+            if(dom.pageNum != 1){
+                dom.pageNum--;
+            }
+        }
+        else if(this.index == 15){                          // 用户点击下一页
+            if(dom.pageNum != dom.maxPageNum){
+                dom.pageNum++;
+            }
+        }
+        else if(this.index != 3 && this.index != 12){       // 用户点击某一页
+            dom.pageNum = parseInt(this.getHtml());         // 解析页码
+        }
+        
+        if(oldPageNum != dom.pageNum){
+        	e.draw(dom);        							// 绘制翻页器
+	        dom._on_click(dom.pageNum);         			// 调用服务器交互函数
+        }
+        
+        return false;
+    },
+
+    /**
+     * 重绘翻页器。
+     */    
+    draw : function(dom){
+        var e = Pager;
+
+        var endPageNum = dom.pageNum + 3;       // 8个活动页码的结束页数
+        if(endPageNum > dom.maxPageNum - 2){
+            endPageNum = dom.maxPageNum - 2;
+        }
+
+        var beginPageNum = endPageNum - 7;      // 8个活动页码的开始页数
+        if(beginPageNum < 3){
+            beginPageNum = 3;
+        }
+        
+        var tag = dom.list.get(0);             // 上一页 dom，第一页时无效
+        if(dom.pageNum == 1){
+            tag.updateClass('disable'); 
+        }
+        else {
+            tag.updateClass('core');
+        }
+
+        tag = dom.list.get(15);                 // 下一页 dom，最后一页时无效
+        if(dom.pageNum == dom.maxPageNum){
+            tag.updateClass('disable'); 
+        }
+        else {
+            tag.updateClass('core');
+        }
+        
+        var tag = dom.list.get(3);              // 前省略号
+        if(dom.maxPageNum > 12 && beginPageNum > 3){
+            tag.show(); 
+        }
+        else {
+            tag.hide();
+        }
+
+        tag = dom.list.get(12);                 // 后省略号
+        if(dom.maxPageNum > 12 && endPageNum < dom.maxPageNum - 2){
+            tag.show(); 
+        }
+        else {
+            tag.hide();
+        }
+
+        tag = dom.list.get(1);              // 第1页
+        if(dom.pageNum == 1){
+            tag.updateClass('on'); 
+        }
+        else {
+            tag.updateClass('core'); 
+        }
+        
+        tag = dom.list.get(2);              // 第2页
+        if(dom.maxPageNum < 2){
+            tag.hide(); 
+        }
+        else {
+            tag.show(); 
+	        if(dom.pageNum == 2){
+	            tag.updateClass('on'); 
+	        }
+	        else {
+	            tag.updateClass('core'); 
+	        }
+        }
+        
+        tag = dom.list.get(14);              // 倒数第1页
+        if(dom.maxPageNum < 3){
+            tag.hide(); 
+        }
+        else {
+            tag.show();
+            tag.setHtml(dom.maxPageNum);
+
+            if(dom.pageNum == dom.maxPageNum){
+                tag.updateClass('on'); 
+            }
+            else {
+                tag.updateClass('core'); 
+            }
+        }
+        
+        tag = dom.list.get(13);              // 倒数第2页
+        if(dom.maxPageNum < 4){
+            tag.hide(); 
+        }
+        else {
+            tag.show();
+            tag.setHtml(dom.maxPageNum - 1);
+
+            if(dom.pageNum == dom.maxPageNum - 1){
+                tag.updateClass('on'); 
+            }
+            else {
+                tag.updateClass('core'); 
+            }
+        }
+
+        for(var i = 4; i < 12; i++){        // 先全部隐藏活动页签
+            tag = dom.list.get(i);
+            tag.hide();
+        }
+
+        var count = 0, pageNum;
+        for(var i = 4; i < 12 && dom.maxPageNum > 4; i++){
+            tag = dom.list.get(i);
+            pageNum = beginPageNum + count;
+            
+            if(pageNum > dom.maxPageNum - 2){       // 不能超过倒数第三页
+                break;
+            }
+            
+            tag.show();                             // 显示页签
+            if(pageNum == dom.pageNum){
+                tag.updateClass('on');              // 调整样式为选中状态
+            }
+            else {
+                tag.updateClass('core');            // 调整样式为正常状态
+            }
+            tag.setHtml(pageNum);                   // 设定页数
+            count++;
+        }
+    },
+    
+    /*
+     * 手机端用户点击翻页。
+     */
+    core$$onClick$$mobile : function(){
+    	var e = Pager;
+        var dom = this.parentNode;
+        var oldPageNum = dom.pageNum;
+
+        if(this.index == 0){                                // 用户点击上一页
+            if(dom.pageNum != 1){
+                dom.pageNum--;
+            }
+        }
+        else if(this.index == 6){                          // 用户点击下一页
+            if(dom.pageNum != dom.maxPageNum){
+                dom.pageNum++;
+            }
+        }
+        else {       // 用户点击某一页
+            dom.pageNum = parseInt(this.getHtml());         // 解析页码
+        }
+        
+        if(oldPageNum != dom.pageNum){
+        	e.drawMobile(dom);								// 重汇翻页器
+	        dom._on_click(dom.pageNum);         			// 调用服务器交互函数
+        }
+        
+        return false;
+    },
+    
+    /*
+     * 手机端翻页，只显示5页
+     */
+    drawMobile : function(dom){
+        var e = Pager;
+
+        var beginPageNum = dom.pageNum - 2;      // 5个活动页码的开始页数
+        if(beginPageNum < 1){
+            beginPageNum = 1;
+        }
+
+        var endPageNum = beginPageNum + 4;       // 5个活动页码的结束页数
+        if(endPageNum > dom.maxPageNum){
+            endPageNum = dom.maxPageNum;
+            beginPageNum = dom.maxPageNum - 4;
+        }
+        
+        if(beginPageNum < 1){
+            beginPageNum = 1;
+        }
+
+        var tag = dom.list.get(0);             	// 上一页 dom，第一页时无效
+        if(dom.pageNum == 1){
+            tag.updateClass('disable'); 
+        }
+        else {
+            tag.updateClass('core');
+        }
+
+        tag = dom.list.get(6);                 	// 下一页 dom，最后一页时无效
+        if(dom.pageNum == dom.maxPageNum){
+            tag.updateClass('disable'); 
+        }
+        else {
+            tag.updateClass('core');
+        }
+        
+        for(var i = 1; i < 6; i++){        		// 先全部隐藏活动页签
+            tag = dom.list.get(i);
+            tag.hide();
+        }
+        
+        var count = 0, pageNum;
+        for(var i = 1; i <= endPageNum - beginPageNum + 1; i++){
+            tag = dom.list.get(i);
+            pageNum = beginPageNum + count;
+            
+            tag.show();                             // 显示页签
+            if(pageNum == dom.pageNum){
+                tag.updateClass('on');              // 调整样式为选中状态
+            }
+            else {
+                tag.updateClass('core');            // 调整样式为正常状态
+            }
+            tag.setHtml(pageNum);                   // 设定页数
+            count++;
+        }
+    }
+}
+
+/* ============================================================================================== */
+/* PuLayer : 弹出层 */
+/* ============================================================================================== */
+
+PuLayer = {
+    pu : null,              // 当前显示的弹出窗口
+    	
+    init : function(){
+        var e = PuLayer;
+        var pu, puList = $('puCase').sonList('pu');
+
+        $('puLayer').open = e.puLayer$$open;
+        
+        for(var i = 0; i < puList.length; i++){
+            pu = puList[i];
+
+            pu.open  = e.pu$$open;
+            pu.close = e.pu$$close;
+            pu.showErr = e.pu$$showErr;
+            pu.hideErr = e.pu$$hideErr;
+            pu.err = pu.son('puErr');
+            pu.showMsg = e.pu$$showMsg;
+            
+            pu.f = pu.tag('form');      // 弹出窗口里包含的 form 表单 dom 对象
+            pu.msg = pu.child('p', 'puMsg');       // 弹出窗口里包含的信息提示 dom 对象
+            pu.itemErrList = pu.childList('p', 'itemErr');
+            
+            if(null != pu.msg){
+                Msger.extend(pu, 'puMsg', 'puErr');
+            }
+            
+            if(null == pu.f){
+                continue;
+            }
+            
+            /**
+             * form 表单回车键提交。
+             */
+            pu.f.onkeydown = function(event){
+                var event = Browser.getEvent(event);
+                var target = Browser.getTarget(event);
+                
+                // 不是按的回车键
+                if(event.keyCode != 13 || target.tagName.toUpperCase() == 'TEXTAREA'){
+                    return true;
+                }
+                
+                // 切换至未输入内容的输入框
+                var element, finished = true;
+                for(var i = 0; i < this.elements.length; i++){
+                    element = this.elements[i];
+                    if(element.value == ''){
+                        finished = false;
+                        element.focus();
+                    }
+                }
+                
+                // 都输入了内容，点击确认按钮
+                if(finished){
+                    this.child('a', 'button').onclick();
+                }
+                
+                // 禁用表单的默认提交
+                return false;
+            }
+            
+            //加可拖动属性
+            //            DragAble(pu.child('p', 'dragBox'));
+            
+        }
+    },
+
+    close : function(){
+        var e = PuLayer;
+
+        // 关闭弹出窗口
+        if(null != e.pu){
+            e.pu.close();
+        }
+        
+        // 关闭灰色背景
+        var puLayer = $('puLayer');
+        if(null != puLayer){
+            puLayer.hide();
+        }
+    },
+    
+ // 显示提示信息，并自动关闭
+    toast : function(msg, ms, func){
+    	if(!msg){
+    		msg = "操作成功";
+    	}
+    	
+    	var pu = $('puToast');
+    	if(null == pu){
+    		alert(msg);
+    		return;
+    	}
+    	
+    	var toastTag = pu.son('p');
+    	if(!toastTag){
+    		toastTag = $('pu-toast-text');
+    	}
+    	toastTag.innerHTML = msg;
+    	pu.open();
+    	
+    	// 等待时间
+    	if(!ms){
+    		ms = 800;
+    	}
+    	
+    	// 1000毫秒后自动关闭
+		setTimeout(function(){
+            PuLayer.close();
+            
+            // 执行回调
+            if(func){
+            	func();
+            }
+        }, ms);
+    },
+    
+ // 显示提示信息
+    alert : function(msg){
+    	if(!msg){
+    		msg = "操作成功";
+    	}
+    	
+    	var pu = $('puAlert');
+    	if(null == pu){
+    		alert(msg);
+    		return;
+    	}
+    	
+    	$('pu-alert-text').innerHTML = msg;
+    	if(typeof pu.open != 'undefined'){
+    		pu.open();
+    	}
+    	else{
+    		alert(msg);
+    		return;
+    	}
+    },
+
+    pu$$open : function(){
+        var e = PuLayer;
+
+        // 关闭上个弹出窗口
+        if(null != e.pu){       
+            e.pu.close();
+        }
+        
+        // 设定自己为当前弹出窗口
+        e.pu = this;                
+
+        // 显示弹出窗口灰色背景
+        $('puLayer').show();        
+        
+        // 居中显示自己（弹出层窗口）
+        this.show();
+        
+        // 隐藏错误提示
+        var errDiv = this.son('puErr');
+    	if(null != errDiv){
+    		errDiv.hide();
+    	}
+    },
+
+    pu$$close : function(){
+        var e = PuLayer;
+        e.pu = null;
+        this.hide();
+    },
+    
+    pu$$showErr : function(err){
+    	this.open();
+    	if(err){
+    		this.err.setHtml(err);
+    	}
+    	this.err.show();
+    },
+    
+    pu$$hideErr : function(){
+    	this.err.hide();
+    },
+    
+    pu$$showMsg : function(msg){
+    	this.open();
+    	if(msg){
+    		this.son('puTxt').setHtml(msg);
+    	}
+    }
+}
+
+DragAble = function(e){
+	e.onmousedown = function(evt){
+		PuDrag.mouseDown(evt,e);
+	}
+}
+
+/* ============================================================================================== */
+/* Msger : 消息器 */
+/* ============================================================================================== */
+
+Msger = {
+    extend : function(dom, msgClassName, errClassName){
+        var e = Msger;
+        
+        dom.msgDom = dom.child('p', msgClassName);
+        dom.msgClassName = msgClassName;
+        dom.errClassName = errClassName;
+        
+        dom.showMsg = e.dom$$showMsg;
+        dom.showErr = e.dom$$showErr;
+        dom.hideMsg = e.dom$$hideMsg;
+        dom.hideErr = e.dom$$hideMsg;
+    },
+    
+    dom$$showMsg : function(msg){
+        this.msgDom.setHtml(msg);
+        this.msgDom.updateClass(this.msgClassName);
+        this.msgDom.show();
+    },
+    
+    dom$$showErr : function(err){
+        this.msgDom.setHtml(err);
+        this.msgDom.updateClass(this.errClassName);
+        this.msgDom.show();
+    },
+    
+    dom$$hideMsg : function(){
+        if(this.msgDom.getStyle().display == 'block'){
+            this.msgDom.hide();
+        }
+    }
+}
+
+Former = {
+    extend : function(dom){
+        dom.f = dom.tag('form');
+    }
+}
+
+/* ============================================================================================== */
+/* DdLayer : 遮罩层 */
+/* ============================================================================================== */
+
+DdLayer = {
+    open : function(){
+        var dom = $('ddLayer');
+        dom.style.height = Browser.getPageHeight() + "px";
+        dom.show();
+    },
+    
+    close : function(){
+        $('ddLayer').hide();
+    }
+}
+
+AutoScroll = {
+	scrollToPos : function(targetCoorV){
+		var currentScrollPos = Browser.getDocumentBody().scrollTop;
+		var step = 0;
+		step = Math.abs(targetCoorV-currentScrollPos)/10;
+		if(step == 0){
+			return;
+		}
+		var s = setInterval(go, 1);
+		function go(){
+			if(currentScrollPos <= targetCoorV){
+				currentScrollPos = currentScrollPos + step;
+				if(currentScrollPos >= targetCoorV){
+					clearInterval(s);
+					scrollTo(0, targetCoorV);
+					return;
+				}
+				scrollTo(0, currentScrollPos);
+			}
+			else{
+				currentScrollPos = currentScrollPos - step;
+				if(currentScrollPos <= targetCoorV){
+					clearInterval(s);
+					scrollTo(0, targetCoorV);
+					return;
+				}
+				scrollTo(0, currentScrollPos);
+			}
+		}
+	},
+	
+	scrollMove : function(evt){
+		if(!evt){
+			evt = window.event;
+		}
+		//当前滚动条位置
+		var currentScrollPos = Browser.getDocumentBody().scrollTop;
+		//屏幕可用高度
+		var clientHeight = Browser.getClientHeight();
+		//步长
+		var step = 20;
+		//触发自动滚动的鼠标Y轴临界值
+		var limit = 50;
+		
+		if(!Drag.isMouseDown || (evt.clientY > limit && evt.clientY < (clientHeight - limit))){
+			return;
+		}
+		if(evt.clientY < limit){
+			//拖拽时, 当鼠标距离浏览器顶端20个像素时, 滚动条自动滚动
+			scrollTo(0, currentScrollPos - step);
+		}
+		else if(evt.clientY > (clientHeight - limit)){
+			scrollTo(0, currentScrollPos + step);
+		}
+	}
+}
+Gradient = {
+	colorList : ['#FFFFFF','#FFEEEE','#FFDDDD','#FFCCCC','#FFBBBB','#FFAAAA','#FF9999','#FF8888',
+	             '#FF7777','#FF6666','#FF5555','#FF4444','#FF3333','#FF2222','#FF1111','#FF0000'],
+	
+	light : function(dom){
+		Gradient.colorList[0] = dom.style.backgroundColor;
+		var s;
+		var i = -1;
+		if(s){
+			clearInterval(s);
+		}
+		s = setInterval(go,60);
+		   
+		function go(){
+			i = i + 1; //逐渐显示速度
+			if(i >= Gradient.colorList.length){
+				clearInterval(s);
+				Gradient.dark(dom);
+				i = -1;
+				return;
+			}
+			dom.style.backgroundColor = Gradient.colorList[i];
+		}
+	},
+	
+	dark : function(dom){
+		var j = Gradient.colorList.length;
+		var h = setInterval(go,60);
+			
+		function go(){
+			j = j - 1;
+			if(j<0){
+				clearInterval(h);
+				j = Gradient.colorList.length;
+				return;
+			}
+			dom.style.backgroundColor = Gradient.colorList[j];
+		}
+	}
+}
+
+/* ============================================================================================== 
+Fader : 自动消失的消息提示器 , 需要页面上有id=fader的dom
+
+<div class="fader" id="fader">
+<a href="#" onclick="return false"></a>
+<p></p>
+</div>
+
+.fader {
+    display:none;
+    width:400px;
+    border:1px solid #2E6AB1;
+    background-color:#FFF;
+    position:absolute;
+    top:100px;
+    left:100px;
+    z-index:3100;
+    filter: Alpha(opacity = 100);
+    opacity:1.0;
+    background-color:#FFF;
+}
+
+.fader p {
+    padding:30px 20px;
+    text-align:center;
+    font-size:13px;
+    color:#333;
+}
+
+.fader p b {
+    color:#FF6600;
+    font-size:14px;
+    padding:0 6px;
+}
+============================================================================================== */
+
+Fader = {
+    init : function(){
+        var dom = $('fader');
+        dom.step = 10;
+        dom.msg = dom.son('p');
+        dom.timeOutId = null;
+
+        /**
+         * 打开消息提示器，并动态设定提示内容。
+         */
+        dom.open = function(msg){
+            this.show();
+            if(msg.indexOf('<b>') < 0) {
+                msg = '<b>' + msg + '</b>';
+            }
+            this.msg.setHtml(msg);
+            
+            // 取消滤镜效果
+            if(this.filters) {
+                this.filters[0].opacity = 100;
+            }
+            else {
+                this.style.opacity = 1.0;
+            }
+            
+            // 清除 Timeout 事件
+            if(null != this.timeOutId) {
+                clearTimeout(this.timeOutId);
+            }
+            
+            // 居中显示自己（弹出层窗口）
+            var bodyObj = Browser.getDocumentBody(); 
+            this.style.top  = bodyObj.scrollTop  + (Browser.getClientHeight() - this.getHeight()) / 2 + "px";
+            this.style.left = bodyObj.scrollLeft + (bodyObj.clientWidth  - this.getWidth() ) / 2 + "px";
+            
+            // 1.5 秒后自动消失
+            this.step = 10;
+            setTimeout(this.out, 1500);
+        }
+        
+        /**
+         * 通过改变滤镜的值实现慢慢消失的效果。
+         */
+        dom.out = function(){
+            if(dom.step > 0){
+                if(dom.filters) {
+                    dom.filters[0].opacity = dom.step*10;
+                }
+                else {
+                    dom.style.opacity = dom.step/10.0;
+                }
+                
+                dom.step -= 0.5;
+                dom.timeOutId = setTimeout(dom.out, 50);
+            }
+            else {
+                dom.step = 10;
+                dom.hide();
+                dom.timeOutId = null;
+            }
+        }
+    },
+    
+    open : function(msg){
+        $('fader').open(msg);
+    }
+}
+
+function fadeErr(msg){
+	Fader.open(msg);
+}
+
+function fadeOk(msg){
+	Fader.open(msg);
+}
+
+function fadeMsg(msg){
+	Fader.open(msg);
+}
+
+function delayload(option){
+	//读取参数
+    //图片未加载时显示的图片
+    var src = option.src ? option.src : '',
+    //指定那些id下的img元素使用延迟显示
+    id = option.id ? option.id : [];
+    //图片列表
+    var imgs = [];
+    //获得所有的图片元素
+    for(var i=0 ; i < id.length ; i++){
+        var idbox = document.getElementById(id[i]);
+        imgs = idbox.getElementsByTagName('img');
+    }
+    //取元素的页面绝对 X位置
+    var getLeft = function(El){
+        var left = 0;
+        do{
+            left += El.offsetLeft;
+            El = El.offsetParent;
+        }
+        while(El != null && El.nodeName != 'BODY' && El.nodeName != 'HTML');
+        return left;
+    };
+    //取元素的页面绝对 Y位置
+    var getTop = function(El){
+        var top = 0;
+        do{
+            top += El.offsetTop;
+            El = El.offsetParent;
+        }
+        while(El != null && El.nodeName != 'BODY' && El.nodeName != 'HTML');
+        return top;
+    };
+    //是否为ie，并读出ie版本
+    var isIE = !!navigator.userAgent.match(/MSIE\b\s*([0-9]\.[0-9]);/img);
+    isIE && (isIE = RegExp.$1);
+    //是否为chrome
+    var isGoo = !!navigator.userAgent.match(/AppleWebKit\b/img);
+    //获得可以触发scroll事件的对象
+    var box = isIE ? document.documentElement : document;
+    //body元素的scroll事件
+    var onscroll = box.onscroll = function(){
+        //读取滚动条的位置和浏览器窗口的显示大小
+//        var top = isGoo ? document.body.scrollTop : document.documentElement.scrollTop,
+//            left = isGoo ? document.body.scrollLeft :document.documentElement.scrollLeft,
+//            width = document.documentElement.clientWidth,
+//            height = document.documentElement.clientHeight;
+        var top = document.body.scrollTop || document.documentElement.scrollTop,
+            left = document.body.scrollLeft || document.documentElement.scrollLeft,
+            width = document.documentElement.clientWidth,
+            height = document.documentElement.clientHeight;
+        //对所有图片进行批量判断是否在浏览器显示区域内
+        for(var i=0 ; i < imgs.length; i++){
+            
+            var _top = getTop(imgs[i]),_left = getLeft(imgs[i]);
+            //判断图片是否在显示区域内
+            if( _top >= top &&
+                _left >= left &&
+                _top <= top + height &&
+                _left <= left + width){
+                var _src = imgs[i].getAttribute('_src');
+                //如果图片已经显示，则取消赋值
+                if(imgs[i].src !== _src && _src != null){
+//                  imgs[i].src = _src.replace('img.alicdn.com', 'gd2.alicdn.com');
+                    imgs[i].src = _src;
+                }
+                if(option.isSquare == null){
+                    imgs[i].height = imgs[i].width;
+                }
+            }
+        }
+    };
+    var load = new Image();
+    load.src = getUrlPath(src);
+    load.onload = function(){
+        onscroll();
+    };
+    if(isIE){
+        onscroll();
+    }
+}
+
+function getUrlPath(url){
+	var l = location.href;
+	//域名取第一条单斜线之前的一串,从8开始是为了跳过http://
+	var firstLineIndex = l.indexOf("/", 8);
+	var domain = "";
+	if(firstLineIndex == -1){
+		//当前地址是http://www.123.com的情况
+		domain = l.substring(0);
+	}
+	else{
+		//当前地址是http://www.123.com/456的情况
+		domain = l.substring(0, firstLineIndex);
+	}
+	//至此domain的值是http://www.123.com (结尾无斜线)
+	//上下文取第一条单斜线到最后一条单斜线中间的一串
+	var lastLineIndex = l.lastIndexOf("/");
+	var ctx = "";
+	if(lastLineIndex == -1){
+		ctx = l.substring(firstLineIndex);
+	}
+	else{
+		ctx = l.substring(firstLineIndex, lastLineIndex);
+	}
+	
+	var firstCtx = '';
+	if(domain.indexOf("localhost") != -1 || domain.indexOf("127.0.0.1") != -1 || domain.indexOf("192.168") != -1){
+		//本次测试环境,应用地址是http://localhost/xxx/,取出xxx
+		var secondLineIndex = l.indexOf("/", firstLineIndex + 1);
+		firstCtx = l.substring(firstLineIndex, secondLineIndex);
+	}
+	
+	//至此ctx的值是 /456
+	var reqUrl = "";
+	if(url.startsWith("http")){
+		//url类似http://www.123.com/Action.do
+		reqUrl = url;
+	}
+	else if(url.startsWith("/")){
+		//url类似/Action.do
+		reqUrl = domain + firstCtx + url;
+	}
+	else{
+		//url类似Action.do
+		reqUrl = domain + ctx + "/" + url;
+	}
+	return reqUrl
+}
+
+function formatDate(millisecond, patternType){
+	if(millisecond == null){
+		return "";
+	}
+    var pattern = 'yyyy-mm-dd HH:MM:SS';
+    switch(patternType){
+	    case 1:
+	    	pattern = 'yyyy-mm-dd HH:MM';
+	    	break;
+	    case 2:
+	    	pattern = 'yyyy-mm-dd';
+	    	break;
+        case 3:
+            pattern = 'mm-dd HH:MM';
+            break;
+        case 4:
+        	pattern = 'HH:MM';
+        	break;
+    }
+    return new Date(millisecond).format(pattern);
+}
+
+function beforeTime(timestamp){
+	var curTime = new Date();
+    curTime.setHours(0, 0, 0, 0);
+    var todayZore = curTime.getTime();
+    var yestodayZore = todayZore - 60*60*24*1000;
+    var yesyestodayZore = yestodayZore - 60*60*24*1000;
+    var date = new Date();
+    date.setTime(timestamp);
+    var result;
+    if(timestamp > todayZore){
+    	//今天之内
+    	result = "今天 " + date.format('HH:MM');
+    }
+    else if(timestamp <= todayZore && timestamp > yestodayZore){
+    	//昨天之内
+    	result = "昨天 " + date.format('HH:MM');
+    }
+    else if(timestamp <= yestodayZore && timestamp > yesyestodayZore){
+    	//前天之内
+    	result = "前天 " + date.format('HH:MM');
+    }
+    else{
+    	result = date.format('mm月dd日 HH:MM');
+    }
+    return result;
+}
+
+function getDateDiff(dateTimeStamp){
+	var minute = 1000 * 60;
+	var hour = minute * 60;
+	var day = hour * 24;
+	var halfamonth = day * 15;
+	var month = day * 30;
+	var now = new Date().getTime();
+	var diffValue = now - dateTimeStamp;
+	if(diffValue < 0){
+		return;
+	}
+	var monthC = diffValue/month;
+	var weekC = diffValue/(7*day);
+	var dayC = diffValue/day;
+	var hourC = diffValue/hour;
+	var minC = diffValue/minute;
+	if(monthC >= 1){
+		result = "" + parseInt(monthC) + "月前";
+	}
+	else if(weekC >= 1){
+		result = "" + parseInt(weekC) + "周前";
+	}
+	else if(dayC >= 1){
+		result = "" + parseInt(dayC) +"天前";
+	}
+	else if(hourC >= 1){
+		result = "" + parseInt(hourC) + "小时前";
+	}
+	else if(minC >= 1){
+		result = "" + parseInt(minC) + "分钟前";
+	}
+	else{
+		result = "刚刚";
+	}
+	return result;
+}
+
+function getDuring(mss) {
+    var days = mss / (1000 * 60 * 60 * 24);
+    var hours = (mss % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60);
+    var minutes = (mss % (1000 * 60 * 60)) / (1000 * 60);
+    var seconds = (mss % (1000 * 60)) / 1000;
+    var str = '';
+    days = Math.floor(days);
+    hours = Math.floor(hours);
+    minutes = Math.floor(minutes);
+    seconds = Math.floor(seconds);
+    if(days > 0){
+    	str = str + days + "天";
+    }
+    if(hours > 0){
+    	str = str + hours + "小时";
+    }
+    if(minutes > 0){
+    	str = str + minutes + "分钟";
+    }
+    return str;
+}
+
+function toFix(value, fix){
+	return value.toFixed(fix);
+}
+
+function getPathById(id) {
+    return parseInt((id - 1) / 10000);
+}
+
+App = {
+	copyValue : function(value){
+		var clipBoard = api.require('clipBoard');
+		clipBoard.set({
+		    value: value
+		}, function(ret, err) {
+		    if (ret) {
+		    	api.toast({
+		            msg: '已复制',
+		            duration: 2000,
+		            location: 'bottom'
+		        });
+		    } else {
+		        alert(JSON.stringify(err));
+		    }
+		});
+	},
+	
+	copyInnerHtml : function(domId){
+		var text = $(domId).innerHTML;
+		var clipBoard = api.require('clipBoard');
+		clipBoard.set({
+			value: text
+		}, function(ret, err) {
+			if (ret) {
+				api.toast({
+					msg: '已复制',
+					duration: 2000,
+					location: 'bottom'
+				});
+			} else {
+				alert(JSON.stringify(err));
+			}
+		});
+		
+	}
+}
+
+function getBetween(srcStr, beginFlg, endFlg) {
+    var beginIndex = 0;
+    if(beginFlg != null) {
+        beginIndex = srcStr.indexOf(beginFlg);
+        if(beginIndex == -1) {
+            return null;
+        }
+        beginIndex = beginIndex + beginFlg.length;
+    }
+    if(endFlg != null) {
+        var endIndex = srcStr.indexOf(endFlg, beginIndex);
+        if(endIndex == -1) {
+            return null;
+        }
+        return srcStr.substring(beginIndex, endIndex);
+    }
+    else {
+        return srcStr.substring(beginIndex);
+    }
+}
+
+function formatUrl2Tb(href){
+    /*
+     * 格式化商品地址,要求参数中只能有id
+     */
+    if(!href.startsWith("http")) {
+        href = "http://" + href;
+    }
+
+    href = href.replace("https://", "http://");
+    href = href.replace("yao.95095", "taobao");
+    
+    if(href.indexOf("taobao.com") != -1 || href.indexOf("tmall.com") != -1 || href.indexOf("tmall.hk") != -1) {
+        //截取问号后面的字符串
+        var index = href.indexOf("?");
+        if(index == -1) {
+            return "";
+        }
+        //截取前办部分保留
+        var prefix = href.substring(0, index);
+        //在地址中找到id参数,加1是为了过掉问号
+        var paramStr = href.substring(index + 1);
+        var params = paramStr.split("&");
+        for(var i = 0; i < params.length; i++) {
+        	var param = params[i];
+            if(param.startsWith("id=") || param.startsWith("meal_id=")) {
+            	index = param.indexOf("#");
+            	if(index != -1){
+            		param = param.substring(0, index);
+            	}
+                href = prefix + "?" + param;
+                return href;
+            }
+        }
+    }
+    else if(href.indexOf("jd.com") != -1 || href.indexOf("jd.hk") != -1) {
+        var index = href.indexOf(".html");
+        href = href.substring(0, index);
+        href = href + ".html";
+        return href;
+    }
+    else if(href.indexOf("yangkeduo.com") != -1) {
+    	var itemId = getBetween(href, 'goods_id=', '&');
+    	if(itemId == null){
+    		itemId = getBetween(href, 'goods_id=', '#');
+    	}
+    	if(itemId == null){
+    		itemId = getBetween(href, 'goods_id=', null);
+    	}
+    	if(itemId != null){
+    		href = 'https://mobile.yangkeduo.com/goods2.html?goods_id=' + itemId;
+    	}
+    	return href;
+    }
+    return "";
+}

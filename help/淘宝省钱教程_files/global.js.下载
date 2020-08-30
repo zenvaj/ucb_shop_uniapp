@@ -1,0 +1,359 @@
+C = {
+		getDomain : function(){
+			if(location.href.indexOf('://localhost') != -1){
+				return 'http://localhost/mp';
+			}
+			else{
+				return 'https://mp.qingting123.com';
+			}
+		},
+		zzRatio : 0.4,
+		qtServer : 'https://www.qingting123.com',
+		qt2Server : 'https://qt2.qingting123.com',
+		zzServer : 'https://zhuan.qingting123.com',
+		mpServer : 'https://mp.qingting123.com',
+	//	qtServer : 'http://localhost/QingTing',
+	//	qt2Server : 'http://localhost/QingTing',
+	//	zzServer : 'http://localhost/zhuan',
+	//	mpServer : 'http://localhost/mp',
+		zzUserIdForSC : 10000, //找券使用的pid归属zzUser
+		pidIdForSC : 21,       //找券使用的pid
+		
+		zzUserIdForQuanDefalut : 10001, //券小主默认邀请人		
+		pidIdForQuanDefalut : 1273,     //券小主默认邀请人pidId
+		
+		pidIdForPaidExpired : 1272, //赚赚付费过期
+		
+		// 分成比例
+		tbSplit: 1,
+		pddSplit: 1,
+		jdSplit: 0.9
+	};
+
+
+function getPageNum(containerId, sonClass, pageSize){
+	var container = $(containerId);
+	var arr = container.sonList(sonClass);
+	return pageNum = parseInt(arr.length/pageSize + 1);
+}
+
+function showLoading(){
+	if($('next-load')){
+		$('next-load').show();
+	}
+	if($('next-page')){
+		$('next-page').hide();
+	}
+}
+
+function showNextPage(pageNum, pageSize, totalGoodsNum, dataLength){
+	var dom = $('next-page');
+	if(!dom){
+		return;
+	}
+	var totalPage = (totalGoodsNum % pageSize) > 0 ? Math.floor(totalGoodsNum / pageSize) + 1
+            : (totalGoodsNum / pageSize);
+	var totalPage = Math.floor(totalPage + 0.5);
+	if(pageNum < totalPage && dataLength >= pageSize){
+		dom.son('small').setHtml(pageNum + '/' + totalPage);
+		//dom.show();
+	}
+	else {
+		dom.hide();
+		if($('theEnded')){
+			$('theEnded').show();
+		}
+	}
+}
+
+function copy3(goods){
+	var pu = $('puCopyImg');
+	pu.child('img','imageHref').src = goods.imageHref;
+	pu.child('span','goodsTitle').innerHTML = goods.goodsTitle;
+	pu.child('span','quanMbHref').innerHTML = goods.quanMbHref;
+	pu.child('span','goodsHref').innerHTML = goods.goodsHref;
+	pu.child('span','goodsDesc').innerHTML = goods.goodsDesc;
+
+	var img = pu.child('img','imageHref');
+	if(img){
+    	img.setAttribute('tk-type', goods.tkType);
+    	img.setAttribute('goods-from', goods.goodsFrom);  
+    	img.setAttribute('quan-remain-num', goods.quanRemainNum);  
+    	img.setAttribute('quan-end-date', goods.quanEndDate);        
+	}
+
+	// pu.child('span','tkType').innerHTML = goods.tkType;
+	// var f = $('puCopyImgForm');
+	// f.tkType.value = goods.tkType;
+	pu.open();
+}
+
+/**
+ * 该方法代替alert,方便样式改造
+ * @return
+ */
+function alt(str){
+	PuLayer.alert(str);
+}
+
+/**
+ * 该方法代替confirm, 方便样式改造
+ * @param str
+ * @return
+ */
+function cfm(str){
+	return confirm(str);
+}
+
+function GUID() {
+    this.date = new Date();   /* 判断是否初始化过，如果初始化过以下代码，则以下代码将不再执行，实际中只执行一次 */
+    if (typeof this.newGUID != 'function') {   /* 生成GUID码 */
+        GUID.prototype.newGUID = function () {
+            this.date = new Date(); var guidStr = '';
+            sexadecimalDate = this.hexadecimal(this.getGUIDDate(), 16);
+            sexadecimalTime = this.hexadecimal(this.getGUIDTime(), 16);
+            for (var i = 0; i < 9; i++) {
+                guidStr += Math.floor(Math.random() * 16).toString(16);
+            }
+            guidStr += sexadecimalDate;
+            guidStr += sexadecimalTime;
+            while (guidStr.length < 32) {
+                guidStr += Math.floor(Math.random() * 16).toString(16);
+            }
+            return this.formatGUID(guidStr);
+        }
+        /* * 功能：获取当前日期的GUID格式，即8位数的日期：19700101 * 返回值：返回GUID日期格式的字条串 */
+        GUID.prototype.getGUIDDate = function () {
+            return this.date.getFullYear() + this.addZero(this.date.getMonth() + 1) + this.addZero(this.date.getDay());
+        }
+        /* * 功能：获取当前时间的GUID格式，即8位数的时间，包括毫秒，毫秒为2位数：12300933 * 返回值：返回GUID日期格式的字条串 */
+        GUID.prototype.getGUIDTime = function () {
+            return this.addZero(this.date.getHours()) + this.addZero(this.date.getMinutes()) + this.addZero(this.date.getSeconds()) + this.addZero(parseInt(this.date.getMilliseconds() / 10));
+        }
+        /* * 功能: 为一位数的正整数前面添加0，如果是可以转成非NaN数字的字符串也可以实现 * 参数: 参数表示准备再前面添加0的数字或可以转换成数字的字符串 * 返回值: 如果符合条件，返回添加0后的字条串类型，否则返回自身的字符串 */
+        GUID.prototype.addZero = function (num) {
+            if (Number(num).toString() != 'NaN' && num >= 0 && num < 10) {
+                return '0' + Math.floor(num);
+            } else {
+                return num.toString();
+            }
+        }
+        /*  * 功能：将y进制的数值，转换为x进制的数值 * 参数：第1个参数表示欲转换的数值；第2个参数表示欲转换的进制；第3个参数可选，表示当前的进制数，如不写则为10 * 返回值：返回转换后的字符串 */GUID.prototype.hexadecimal = function (num, x, y) {
+            if (y != undefined) { return parseInt(num.toString(), y).toString(x); }
+            else { return parseInt(num.toString()).toString(x); }
+        }
+        /* * 功能：格式化32位的字符串为GUID模式的字符串 * 参数：第1个参数表示32位的字符串 * 返回值：标准GUID格式的字符串 */
+        GUID.prototype.formatGUID = function (guidStr) {
+            var str1 = guidStr.slice(0, 8) + '-', str2 = guidStr.slice(8, 12) + '-', str3 = guidStr.slice(12, 16) + '-', str4 = guidStr.slice(16, 20) + '-', str5 = guidStr.slice(20);
+            return str1 + str2 + str3 + str4 + str5;
+        }
+    }
+}
+
+function getImageHref(imageId, contextPath){
+	var imageFolder = parseInt(imageId / 10000);
+	var imageHref = contextPath + "/image/" + imageFolder + "/" + imageId + ".jpg";
+	return imageHref;
+}
+
+function detectOS() {
+    var sUserAgent = navigator.userAgent;
+    var isWin = (navigator.platform == "Win32") || (navigator.platform == "Windows");
+    var isMac = (navigator.platform == "Mac68K") || (navigator.platform == "MacPPC") || (navigator.platform == "Macintosh") || (navigator.platform == "MacIntel");
+    if (isMac) return "Mac";
+    var isUnix = (navigator.platform == "X11") && !isWin && !isMac;
+    if (isUnix) return "Unix";
+    var isLinux = (String(navigator.platform).indexOf("Linux") > -1);
+    if (isLinux) return "Linux";
+    if (isWin) {
+        var isWin2K = sUserAgent.indexOf("Windows NT 5.0") > -1 || sUserAgent.indexOf("Windows 2000") > -1;
+        if (isWin2K) return "Win2000";
+        var isWinXP = sUserAgent.indexOf("Windows NT 5.1") > -1 || sUserAgent.indexOf("Windows XP") > -1;
+        if (isWinXP) return "WinXP";
+        var isWin2003 = sUserAgent.indexOf("Windows NT 5.2") > -1 || sUserAgent.indexOf("Windows 2003") > -1;
+        if (isWin2003) return "Win2003";
+        var isWinVista= sUserAgent.indexOf("Windows NT 6.0") > -1 || sUserAgent.indexOf("Windows Vista") > -1;
+        if (isWinVista) return "WinVista";
+        var isWin7 = sUserAgent.indexOf("Windows NT 6.1") > -1 || sUserAgent.indexOf("Windows 7") > -1;
+        if (isWin7) return "Win7";
+    }
+    return "other";
+}
+
+function relogin(){
+	if(weixin()){
+		window.location.href = C.getDomain() + "/m/wxLogin.jsp";
+	}
+	else {
+		window.location.href = C.getDomain() + "/m/phoneLogin.jsp";
+	}
+}
+
+function weixin(){ 
+	var ua = navigator.userAgent.toLowerCase(); 
+	if(ua.match(/MicroMessenger/i)=="micromessenger") { 
+		return true; 
+	} 
+	else { 
+		return false; 
+	} 
+}
+
+function isNeedImgSubfix(imageHref){
+	if(!imageHref){
+		return false;
+	}	
+	if(imageHref.indexOf("alicdn")>-1 || imageHref.indexOf("tbcdn")>-1 || imageHref.indexOf("taobaocdn")>-1 || imageHref.indexOf("gaitaobao")>-1){
+		return true;
+	}
+	return false;
+}
+
+//数字格式化为千分位
+function toThousands(num) {
+	if((num+"").trim()==""){
+		return"";
+	}
+	if(isNaN(num)){
+		return"";
+	}
+	num = num+"";
+	if(/^.*\..*$/.test(num)){
+		var pointIndex =num.lastIndexOf(".");
+		var intPart = num.substring(0,pointIndex);
+		var pointPart =num.substring(pointIndex+1,num.length);
+		intPart = intPart +"";
+		var re =/(-?\d+)(\d{3})/
+		while(re.test(intPart)){
+			intPart =intPart.replace(re,"$1,$2")
+		}
+		num = intPart+"."+pointPart;
+	}else{
+		   num = num +"";
+		    var re =/(-?\d+)(\d{3})/
+		    while(re.test(num)){
+		     num =num.replace(re,"$1,$2")
+		    }
+	}
+	return num;
+}
+
+function autoLoad(fun){
+	window.onscroll = function () { 
+		if($('theEnded') != null && $('theEnded').isVisible()){
+    		return;
+    	}
+    	if (Browser.getScrollTop() + Browser.getClientHeight() == Browser.getPageHeight()) { 
+			fun();
+    	} 
+   	}
+}
+
+function toDecimal2(num) {
+	var s = num.toString();   
+    var rs = s.indexOf('.');    
+    if (rs < 0) {    
+        rs = s.length;    
+        s += '.';    
+    }    
+    while (s.length <= rs + 2) {    
+        s += '0';    
+    }    
+    return s;    
+}
+
+function limitDecimal2(num) {
+	if(num==0){
+		return num;
+	}	
+	var s = num.toString();   
+    var rs = s.indexOf('.');    
+    if (rs > -1 && s.substring(rs).length>3) {
+    	s = s.substring(0, rs+3);
+    }
+    return parseFloat(s);
+}
+
+function limitDecimal2Str(num) {
+	if(num==0){
+		return num;
+	}	
+	var s = num.toString();   
+    var rs = s.indexOf('.');    
+    if (rs > -1 && s.substring(rs).length>3) {
+    	s = s.substring(0, rs+3);
+    }
+    return s;
+}
+
+function roundDecimal2(num) {
+	if(num==0){
+		return num;
+	}
+	return Math.round(num * 100) / 100;
+}
+
+function getCookie(Name) {
+   var search = Name + "="//查询检索的值
+   var returnvalue = "";//返回值
+   if (document.cookie.length > 0) {
+     sd = document.cookie.indexOf(search);
+     if (sd!= -1) {
+        sd += search.length;
+        end = document.cookie.indexOf(";", sd);
+        if (end == -1)
+         end = document.cookie.length;
+         //unescape() 函数可对通过 escape() 编码的字符串进行解码。
+        returnvalue=unescape(document.cookie.substring(sd, end))
+      }
+   } 
+   return returnvalue;
+}
+
+function iosAppGoodsFilter(goods){
+	//苹果审核商品过滤
+//	if(Sysolar.IOSPhoneType && Sysolar.appType){
+//		if(!goods.goodsTitle){
+//			return false;
+//		}	
+//		if(goods.goodsTitle.indexOf('内衣')>=0 || goods.goodsTitle.indexOf('性感')>=0 ||goods.goodsTitle.indexOf('丝袜')>=0 ||goods.goodsTitle.indexOf('内裤')>=0 ||goods.goodsTitle.indexOf('文胸')>=0){
+//			return true;
+//		}	
+//	}
+	return false;
+}
+
+function goodsFilter(goodsTitle){
+	if(!goodsTitle){
+		return false;
+	}	
+	if(goodsTitle.indexOf('内衣')>=0 || goodsTitle.indexOf('性感')>=0 || goodsTitle.indexOf('丝袜')>=0 || goodsTitle.indexOf('内裤')>=0 || goodsTitle.indexOf('文胸')>=0){
+		return true;
+	}
+	return false;
+}
+
+function realPhoneNum(phoneNum){
+	if(phoneNum.indexOf('_')==11){
+		phoneNum = phoneNum.substring(0,11);
+	}
+	return phoneNum;
+}
+
+function blurPhoneNum(phoneNum){
+	if(phoneNum.indexOf('_')==11){
+		phoneNum = phoneNum.substring(0,11);
+	}	
+	if(phoneNum.length==11){
+		phoneNum = phoneNum.substring(0,3) + '****' + phoneNum.substring(7,11);
+	}
+	return phoneNum;
+}
+
+function goMainLand(actionStr){
+	if($('mpMaster') && $('mpMaster').value=='0') {
+		actionStr =  C.mpServer + actionStr;
+	}
+	return actionStr;
+}
+

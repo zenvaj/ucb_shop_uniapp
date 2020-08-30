@@ -1,0 +1,2511 @@
+AgentLogic = {
+	login : function(){
+		var account = $('account').value.trim();
+		var password = $('password').value.trim();
+
+		if(account == ''){
+			$('errBox').innerHTML = '请输入手机号码/账号';
+			$('errBox').show();
+			return false;
+		}
+		
+		if(password == ''){
+			$('errBox').innerHTML = '请输入登录密码';
+			$('errBox').show();
+			return false;
+		}
+		
+		var params = {
+			key : 'AgentAction.login',
+			dispatch : 'login',
+			account : account,
+			password : password
+		}
+		var loginButton = $('loginButton');
+		loginButton.innerHTML = '登录中...';
+		var oldFunction = loginButton.onclick;
+		loginButton.onclick = function(){};
+		var action = '/AgentAction.do';
+		Ajax.send(action, params, function(){
+			var map = DB.get(params.key);
+			var code = map.code;
+			if(code==0){
+				window.location.href = 'index.jsp';
+			}else{
+				loginButton.innerHTML = '登录';
+				loginButton.onclick = oldFunction;
+				$('errBox').innerHTML = map.msg;
+				$('errBox').show();
+			}
+		});		
+	},
+	
+	logout : function(){		
+		var params = {
+			key : 'AgentAction.logout',
+			dispatch : 'logout'
+		}
+		var logoutButton = $('logoutButton');
+		var oldFunction = logoutButton.onclick;
+		logoutButton.onclick = function(){};
+		var action = '/AgentAction.do';
+		Ajax.send(action, params, function(){
+			var map = DB.get(params.key);
+			var code = map.code;
+			if(code==0){
+				window.location.href = 'index.jsp';
+			}else{
+				logoutButton.onclick = oldFunction;
+				PuLayer.alert(map.msg);
+			}
+		});		
+	},	
+	
+	logoutWx : function(appId){		
+		var params = {
+			key : 'AgentAction.logoutWx',
+			dispatch : 'logoutWx'
+		}
+		var logoutButton = $('logoutButton');
+		var oldFunction = logoutButton.onclick;
+		logoutButton.onclick = function(){};
+		var action = goMainLand('/AgentAction.do');
+		Ajax.send(action, params, function(){
+			var map = DB.get(params.key);
+			var code = map.code;
+			if(code==0){
+				action = '/AgentAction.do';
+				Ajax.send(action, params, function(){
+					var map = DB.get(params.key);
+					var code = map.code;
+					if(code==0){
+						window.location.href = 'mine.jsp?appId='+appId;
+					}else{
+						logoutButton.onclick = oldFunction;
+						PuLayer.alert(map.msg);
+					}
+				});		
+				//window.location.href = 'mine.jsp?appId='+appId;
+			}else{
+				logoutButton.onclick = oldFunction;
+				PuLayer.alert(map.msg);
+			}
+		});		
+		
+	},		
+	
+	fetchWithTodayOrder : function(queryType) {
+		var params = {
+			dispatch : 'fetchWithTodayOrder',
+			key : 'AgentAction.fetchWithTodayOrder',
+			queryType : queryType
+		};
+
+		var action = goMainLand('/AgentAction.do');
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			var agent = map.agent;
+			var todayRevenueExcepted;
+			var todayPayNum;
+
+			if(code != 0){
+				PuLayer.alert(map.msg);
+				return;
+			}
+			
+			if(queryType){//个人
+				todayRevenueExcepted = map.todayRevenueExceptedSelf;
+				todayPayNum = map.todayPayNumSelf;
+			}else{//全部
+				todayRevenueExcepted = map.todayRevenueExcepted;
+				todayPayNum = map.todayPayNum;
+			}
+
+			$('teamNum').innerHTML = agent.teamNum;			
+			if(todayRevenueExcepted && todayRevenueExcepted!=0){
+				$('todayCommission').innerHTML = "￥"+todayRevenueExcepted;
+			}else{
+				$('todayCommission').innerHTML = "0";
+			}	
+			
+			if(todayPayNum){
+				$('todayPayNum').innerHTML = todayPayNum;
+			}else{
+				$('todayPayNum').innerHTML = "0";
+			}
+					
+		});
+	},	
+	
+	fetch : function() {
+		var params = {
+			dispatch : 'fetchForMine',
+			key : 'AgentAction.fetchForMine'
+		};
+
+		var action = goMainLand('/AgentAction.do');
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			var mpNickName = map.mpNickName;
+			var phoneNum = map.phoneNum;
+			var nickname = map.nickname;
+			var headerUrl = map.headerUrl;
+			var showPrivilege = map.showPrivilege;
+			var serviceImgUrl = map.serviceImgUrl;
+			var fromMpUserNickname = map.fromMpUserNickname;
+			var agent = map.agent;
+			var settleType = map.settleType;
+			var zjRatio = map.zjRatio;
+			var privilegeRatio = map.privilegeRatio;
+			
+			if(code != 0){
+				return;
+			}
+			
+			if(headerUrl){
+				$('agentHeadImg').src = headerUrl;
+			}	
+
+			if(nickname){
+				$('nickname').innerHTML = nickname;
+				$('nickname').block();
+			}
+			
+			var phoneText='';
+			if(phoneNum && agent.agentPhoneVerifyStatus==1){
+				phoneNum = blurPhoneNum(phoneNum);
+				phoneText += phoneNum;
+			}else{
+				phoneText += "手机号：未设置";
+			}
+			
+			if(agent && agent.ratio) {
+				
+				if (zjRatio && agent.ratio >= zjRatio) {
+					// 总监用户
+					$('zongjian').block();
+					
+				} else if (privilegeRatio && agent.ratio >= privilegeRatio) {
+					// 特权用户
+					
+					if (agent.topTaokerId == 6632 && agent.agentType >= 2) {
+						// 大V佣金，判断条件是：1.等级为V3以上，2.个人佣金比例大于等于特权佣金
+						$('superPrivilege').block();
+					} else {
+						$('privilege').block();
+					}
+				}
+			}
+			
+//			if (showPrivilege) {
+//				if(agent.ratio > privilegeRatio && agent.topTaokerId == 6632){
+//					$('superPrivilege').block();
+//				} else {
+//					$('privilege').block();
+//				}
+//			}
+			
+			if(mpNickName){
+				if(agent.agentId !=null){
+					phoneText += '（公众号：' + mpNickName + '，ID：'+agent.agentId+'）';
+				}else{
+					phoneText += '（公众号：' + mpNickName + '）';
+				}
+			}	
+			$('phoneNum').innerHTML = phoneText;
+			
+			if(fromMpUserNickname){
+				$('fromMpUserNickname').innerHTML = fromMpUserNickname;
+				$('fromMpUserNicknameBlock').inline();
+			}
+			
+			if(agent.agentId){
+				var lastMonthPayNum = agent.lastMonthPayNum;
+				var lastMonthCommission = agent.lastMonthCommission;
+				var thisMonthPayNum = agent.thisMonthPayNum;
+				var thisMonthCommission = agent.thisMonthCommission;
+				
+				var accountBalance = agent.accountBalance;
+				var withdrawAmount = agent.withdrawAmount;
+				thisMonthPayNum = thisMonthPayNum == null? '0' : thisMonthPayNum;
+				lastMonthCommission = lastMonthCommission == null? '0.00' : toDecimal2(lastMonthCommission);
+				thisMonthCommission = thisMonthCommission == null? '0.00' : toDecimal2(thisMonthCommission);
+				accountBalance = accountBalance == null? '0.00' : toDecimal2(accountBalance);
+				withdrawAmount = withdrawAmount == null? '0.00' : toDecimal2(withdrawAmount);
+								
+//				if(settleType==0){//月结
+//					$('lastMonthCommission').innerHTML = '￥' + lastMonthCommission;
+//					$('thisMonthCommission').innerHTML = '￥' + thisMonthCommission;
+//					
+//					$('settleMonth').inline();
+//					$('settleDay').hide();
+//				}else if(settleType==1){//日结
+//					var unSettledPayNum = map.unSettledPayNum;
+//					var unSettledCommission = map.unSettledCommission;
+//					
+//					unSettledPayNum = unSettledPayNum == null? '0' : unSettledPayNum;					
+//					unSettledCommission = unSettledCommission == null? '0.00' : toDecimal2(unSettledCommission);
+//					
+//					$('unSettledPayNum').innerHTML = unSettledPayNum + '单';
+//					$('unSettledCommission').innerHTML = '￥' + unSettledCommission;
+//					
+//					$('settleMonth').hide();
+//					$('settleDay').inline();
+//				}
+				
+				var unSettledPayNum = map.unSettledPayNum;
+				var unSettledCommission = map.unSettledCommission;
+				
+				unSettledPayNum = unSettledPayNum == null? '0' : unSettledPayNum;					
+				unSettledCommission = unSettledCommission == null? '0.00' : toDecimal2(unSettledCommission);
+				
+				$('unSettledPayNum').innerHTML = unSettledPayNum + '单';
+				$('unSettledCommission').innerHTML = '￥' + unSettledCommission;
+				
+
+				$('accountBalance').innerHTML = '￥' + accountBalance;
+				$('withdrawAmount').innerHTML = '￥' + withdrawAmount;				
+				$('agentSummary').show();
+			}
+			
+			if(serviceImgUrl){
+				$('serviceImg').src = serviceImgUrl;
+				$('assistantQr').show();				
+			}	
+		});
+	},
+	
+	fetchForHomePage : function() {
+		var params = {
+			dispatch : 'fetchForMine',
+			key : 'AgentAction.fetchForMine'
+		};
+
+		var action = goMainLand('/AgentAction.do');
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			var serviceImgUrl = map.serviceImgUrl;
+			var agent = map.agent;
+			if(code != 0){
+				return;
+			}
+			
+			if(serviceImgUrl){
+				$('serviceImg').src = serviceImgUrl;
+				$('assistantQr').show();
+				$('assistantQrNo').hide();
+				$('assistantQr1').show();
+				$('assistantQrNo1').hide();
+			}else{
+				$('assistantQr').hide();
+				$('assistantQrNo').show();	
+				$('assistantQr1').hide();
+				$('assistantQrNo1').show();	
+				
+			}	
+		});
+	},
+	
+	noAssisAlert : function() {
+		PuLayer.alert('暂时未给您分配客服！');
+	},
+	
+	showAssis : function() {
+		var params = {
+			dispatch : 'fetchForMine',
+			key : 'AgentAction.fetchForMine'
+		};
+
+		var action = '/AgentAction.do';
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			var serviceImgUrl = map.serviceImgUrl;
+			var agent = map.agent;
+			if(code != 0){
+				return false;
+			}
+			
+			if (!serviceImgUrl) {
+				PuLayer.alert('暂时未给您分配客服！');
+				return false;
+			}
+			$('serviceImg2').src = serviceImgUrl;
+			$('puContactService2').open();
+		});
+	},
+	
+	// 显示如何升级特权弹窗
+	showApplyPrivige: function() {
+		var dialog = $('applyPrivige');
+		
+		//加载升级的所需的4个数量
+		var params = {
+			dispatch : 'jsGetMp',
+			key : 'MpAction.jsGetMp'
+		};
+		var action = goMainLand('/MpAction.do');
+		Ajax.send(action, params, function() {
+			var privilegeOrderNum = 0;
+			var privilegeSonNum = 0;
+			
+			var map = DB.get(params.key);
+			var code = map.code;
+			if(code == 1){
+				privilegeOrderNum = map.privilegeOrderNum;
+				privilegeSonNum = map.privilegeSonNum;
+			}
+			
+			// 订单要求
+			if (privilegeOrderNum) {
+				dialog.child('p', 'has-order').show();
+				dialog.child('span', 'order-number').innerText = privilegeOrderNum;
+			} else {
+				dialog.child('p', 'no-order').show();
+			}
+			// 好友要求
+			if (privilegeSonNum) {
+				dialog.child('p', 'has-friend').show();
+				dialog.child('span', 'friend-number').innerText = privilegeSonNum;
+			} else {
+				dialog.child('p', 'no-friend').show();
+			}
+			dialog.open();
+			
+		});
+	},
+	
+	// 显示如何升级总监弹窗
+	showApplyZj: function() {
+		var dialog = $('applyZj');
+		
+		//加载升级的所需的4个数量
+		var params = {
+			dispatch : 'jsGetMp',
+			key : 'MpAction.jsGetMp'
+		};
+		var action = goMainLand('/MpAction.do');
+		Ajax.send(action, params, function() {
+			var zjOrderNum = 0;
+			var zjSonNum = 0;
+			
+			var map = DB.get(params.key);
+			var code = map.code;
+			if(code == 1){
+				zjOrderNum = map.zjOrderNum;
+				zjSonNum = map.zjSonNum;
+			}
+			
+			// 订单要求
+			if (zjOrderNum) {
+				dialog.child('p', 'has-order').show();
+				dialog.child('span', 'order-number').innerText = zjOrderNum;
+			} else {
+				dialog.child('p', 'no-order').show();
+			}
+			// 好友要求
+			if (zjSonNum) {
+				dialog.child('p', 'has-friend').show();
+				dialog.child('span', 'friend-number').innerText = zjSonNum;
+			} else {
+				dialog.child('p', 'no-friend').show();
+			}
+			dialog.open();
+			
+		});
+		
+	},
+	
+	// 商品详情页面显示客服弹窗
+	showAssisForDetail : function() {
+		var params = {
+			dispatch : 'fetchForMine',
+			key : 'AgentAction.fetchForMine'
+		};
+
+		var action = '/AgentAction.do';
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			var serviceImgUrl = map.serviceImgUrl;
+			var agent = map.agent;
+			if(code != 0){
+				return;
+			}
+			
+			if(serviceImgUrl){
+				$('serviceImg').src = serviceImgUrl;
+				$('puContactService').open();
+			}else{
+				PuLayer.alert('暂时未给您分配客服！');
+			}	
+		});
+	},
+	
+	fetchSubLevelList : function(tabIndex) {
+		var f = $('next-form');
+		var currentPageNum = parseInt(f.currentPageNum.value);
+		pageNum = currentPageNum+1; 
+		var container = $('agentContainer');
+		
+		var totalPage = 1;
+		var params = {
+			dispatch : 'fetchSonOrGrandsonList',
+			key : 'AgentAction.fetchSonOrGrandsonList',
+			pageNum : pageNum,
+			requestType : tabIndex
+		};
+		
+		var action = '/AgentAction.do';
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var t = $('tAgentItem');
+			var arr = map.agentList;
+			totalPage = map.totalPage;
+			var totalAgentNum = map.totalAgentNum;
+			var code = map.code;
+			if(code != 0){
+				return;
+			}
+			
+			if(pageNum==1){
+				$('allNum').innerHTML = '全部('+totalAgentNum+')';
+			}	
+			
+			for (var i = 0; i < arr.length; i++) {
+				var agent = arr[i];
+				
+				agent.agentCdate = new Date(agent.agentCdate).format('yyyy-mm-dd HH:MM');
+				if(!agent.teamNum){
+					agent.teamNum = 0;
+				}	
+				
+				agent.phoneNumBlur = blurPhoneNum(agent.phoneNum);
+				agent.phoneNum = realPhoneNum(agent.phoneNum);				
+				
+				var clone = t.clone(agent);
+				if(agent.agentHeadUrl){
+					clone.child('img', 'headUrl').src = agent.agentHeadUrl;
+				}	
+				
+			//	clone.child('small', 'phoneAccount').innerHTML = '手机:'+(agent.phoneNum==null?'未设置':agent.phoneNum);				
+							
+				if(agent.selfOrderNum){
+					clone.child('em', 'hasSelfOrder').block();
+				}else{
+					clone.child('small', 'noSelfOrder').block();
+				}
+				
+				if(agent.selfOrderConfirmNum){
+					clone.child('i', 'hasSelfOrderConfirm').block();
+				}else{
+					clone.child('small', 'noSelfOrderConfirm').block();
+				}
+				
+				if(agent.agentPhoneVerifyStatus!=1){
+					clone.child('span', 'showPhoneNum').hide();
+				}	
+				
+//				if(agent.mpUser.mpSubscribeStatus==-1){
+//					clone.child('span', 'cancelSubscribe').inline();
+//				}	
+				// 加入页面
+				container.appendChild(clone);
+			}	
+			
+			if(pageNum >= totalPage){
+				if($('theEnded')){
+					$('theEnded').show();
+				}
+			}			
+			f.currentPageNum.value=pageNum;
+			
+			// 没有数据
+			if (map.totalOrderNum == 0) {
+				$('theEnded').hide();
+			}
+			
+		});	
+	},
+	
+	countSelfOrderSon : function() {
+		var params = {
+			dispatch : 'countSelfOrderSon',
+			key : 'AgentAction.countSelfOrderSon'
+		};
+		var action = goMainLand('/AgentAction.do');
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			var selfOrderSonNum = map.selfOrderSonNum;
+			var selfOrderConfirmSonNum = map.selfOrderConfirmSonNum;
+			if(code != 0){
+				return;
+			}
+			$('selfOrderSonNum').innerHTML = selfOrderSonNum;
+			if(selfOrderConfirmSonNum>0){
+				$('selfOrderConfirmSonNum').innerHTML = selfOrderConfirmSonNum;
+				$('selfOrderConfirmSon').block();
+			}	
+			$('sonNumBlock').show();
+		});
+	},
+	
+	countSelfOrderGrandson : function() {
+		var params = {
+			dispatch : 'countSelfOrderGrandson',
+			key : 'AgentAction.countSelfOrderGrandson'
+		};
+		var action = goMainLand('/AgentAction.do');
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			var selfOrderGrandsonNum = map.selfOrderGrandsonNum;
+			var selfOrderConfirmGrandsonNum = map.selfOrderConfirmGrandsonNum;
+			if(code != 0){
+				return;
+			}
+			$('selfOrderGrandsonNum').innerHTML = selfOrderGrandsonNum;
+			if(selfOrderConfirmGrandsonNum>0){
+				$('selfOrderConfirmGrandsonNum').innerHTML = selfOrderConfirmGrandsonNum;
+				$('selfOrderConfirmGrandson').block();
+			}	
+			$('grandsonNumBlock').show();
+		});
+	},
+	
+	fetchSubLevelListSort : function(tabIndex, sortType) {
+		var f = $('next-form');
+		var currentPageNum = parseInt(f.currentPageNum.value);
+		pageNum = currentPageNum+1; 
+		var container = $('agentContainer');
+		
+		var totalPage = 1;
+		var params = {
+			dispatch : 'fetchSonOrGrandsonListSort',
+			key : 'AgentAction.fetchSonOrGrandsonListSort',
+			pageNum : pageNum,
+			requestType : tabIndex,
+			sortType : sortType
+		};
+		
+		var action = '/AgentAction.do';
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var t = $('tAgentItem');
+			var arr = map.agentList;
+			totalPage = map.totalPage;
+			var totalAgentNum = map.totalAgentNum;
+			var code = map.code;
+			if(code != 0){
+				return;
+			}
+			
+			if(pageNum==1){
+				$('allNum').innerHTML = '全部('+totalAgentNum+')';
+			}
+			
+			for (var i = 0; i < arr.length; i++) {
+				var agent = arr[i];
+				agent.index = (pageNum - 1) * 50 + i + 1;
+				
+				var thisMonthCommission = agent.thisMonthCommission == null ? 0 : agent.thisMonthCommission;
+				var thisMonthPayNum = agent.thisMonthPayNum == null ? 0 : agent.thisMonthPayNum;
+				var thisMonthCommissionSelf = agent.thisMonthCommissionSelf == null ? 0 : agent.thisMonthCommissionSelf;
+				var thisMonthPayNumSelf = agent.thisMonthPayNumSelf == null ? 0 : agent.thisMonthPayNumSelf;
+				
+				var lastMonthCommission = agent.lastMonthCommission == null ? 0 : agent.lastMonthCommission;
+				var lastMonthPayNum = agent.lastMonthPayNum == null ? 0 : agent.lastMonthPayNum;
+				var lastMonthCommissionSelf = agent.lastMonthCommissionSelf == null ? 0 : agent.lastMonthCommissionSelf;
+				var lastMonthPayNumSelf = agent.lastMonthPayNumSelf == null ? 0 : agent.lastMonthPayNumSelf;
+				
+				var thisMonthCommissionSub = thisMonthCommission - thisMonthCommissionSelf;
+				var thisMonthPayNumSub = thisMonthPayNum - thisMonthPayNumSelf;
+				var lastMonthCommissionSub = lastMonthCommission - lastMonthCommissionSelf;
+				var lastMonthPayNumSub = lastMonthPayNum - lastMonthPayNumSelf;
+				
+				thisMonthCommissionSub = thisMonthCommissionSub < 0 ? 0 : thisMonthCommissionSub;
+				thisMonthPayNumSub = thisMonthPayNumSub < 0 ? 0 : thisMonthPayNumSub;
+				lastMonthCommissionSub = lastMonthCommissionSub < 0 ? 0 : lastMonthCommissionSub;
+				lastMonthPayNumSub = lastMonthPayNumSub < 0 ? 0 : lastMonthPayNumSub;
+				
+				agent.thisMonthCommission = roundDecimal2(toDecimal2(thisMonthCommission));
+				agent.thisMonthCommissionSelf = roundDecimal2(toDecimal2(thisMonthCommissionSelf));
+				agent.thisMonthCommissionSub = roundDecimal2(toDecimal2(thisMonthCommissionSub));
+				agent.thisMonthPayNum = thisMonthPayNum;
+				agent.thisMonthPayNumSelf = thisMonthPayNumSelf;
+				agent.thisMonthPayNumSub = thisMonthPayNumSub;
+				
+				agent.lastMonthCommission = roundDecimal2(toDecimal2(lastMonthCommission));
+				agent.lastMonthCommissionSelf = roundDecimal2(toDecimal2(lastMonthCommissionSelf));
+				agent.lastMonthCommissionSub = roundDecimal2(toDecimal2(lastMonthCommissionSub));
+				agent.lastMonthPayNum = lastMonthPayNum;
+				agent.lastMonthPayNumSelf = lastMonthPayNumSelf;
+				agent.lastMonthPayNumSub = lastMonthPayNumSub;
+				
+				var clone = t.clone(agent);
+				if(agent.agentHeadUrl){
+					clone.child('img', 'headUrl').src = agent.agentHeadUrl;
+				}	
+				if((sortType==1 && agent.sonNum>0)||(sortType==2 && agent.thisMonthCommission>0)||(sortType==3 && agent.thisMonthCommissionSelf>0)
+						||(sortType==4 && agent.lastMonthCommission>0)||(sortType==6 && agent.selfOrderNum>0)){
+					clone.child('em', 'hasTop').block();
+				}else{
+					clone.child('span', 'noTop').block();
+				}	
+
+				// 加入页面
+				container.appendChild(clone);
+			}	
+			
+			if(pageNum >= totalPage){
+				if($('theEnded')){
+					$('theEnded').show();
+				}
+			}			
+			f.currentPageNum.value=pageNum;
+			
+			// 没有数据
+			if (map.totalOrderNum == 0) {
+				$('theEnded').hide();
+			}
+			
+		});	
+	},
+	
+	fetchListByClassSort : function(classNum, sortType) {
+		var f = $('next-form');
+		var currentPageNum = parseInt(f.currentPageNum.value);
+		pageNum = currentPageNum+1; 
+		var container = $('agentContainer');
+		
+		var totalPage = 1;
+		var params = {
+			dispatch : 'fetchListByClassSort',
+			key : 'AgentAction.fetchListByClassSort',
+			pageNum : pageNum,
+			classNum : classNum,
+			sortType : sortType
+		};
+		
+		var action = '/AgentAction.do';
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var t = $('tAgentItem');
+			var arr = map.agentList;
+			totalPage = map.totalPage;
+			var totalAgentNum = map.totalAgentNum;
+			var code = map.code;
+			if(code != 0){
+				return;
+			}
+			
+			for (var i = 0; i < arr.length; i++) {
+				var agent = arr[i];
+				agent.index = (pageNum - 1) * 50 + i + 1;
+				agent.agentCdate = new Date(agent.agentCdate).format('yyyy-mm-dd HH:MM');
+				
+				var thisMonthCommission = agent.thisMonthCommission == null ? 0 : agent.thisMonthCommission;
+				var thisMonthPayNum = agent.thisMonthPayNum == null ? 0 : agent.thisMonthPayNum;
+				var thisMonthCommissionSelf = agent.thisMonthCommissionSelf == null ? 0 : agent.thisMonthCommissionSelf;
+				var thisMonthPayNumSelf = agent.thisMonthPayNumSelf == null ? 0 : agent.thisMonthPayNumSelf;
+				
+				var lastMonthCommission = agent.lastMonthCommission == null ? 0 : agent.lastMonthCommission;
+				var lastMonthPayNum = agent.lastMonthPayNum == null ? 0 : agent.lastMonthPayNum;
+				var lastMonthCommissionSelf = agent.lastMonthCommissionSelf == null ? 0 : agent.lastMonthCommissionSelf;
+				var lastMonthPayNumSelf = agent.lastMonthPayNumSelf == null ? 0 : agent.lastMonthPayNumSelf;
+				
+				var thisMonthCommissionSub = thisMonthCommission - thisMonthCommissionSelf;
+				var thisMonthPayNumSub = thisMonthPayNum - thisMonthPayNumSelf;
+				var lastMonthCommissionSub = lastMonthCommission - lastMonthCommissionSelf;
+				var lastMonthPayNumSub = lastMonthPayNum - lastMonthPayNumSelf;
+				
+				thisMonthCommissionSub = thisMonthCommissionSub < 0 ? 0 : thisMonthCommissionSub;
+				thisMonthPayNumSub = thisMonthPayNumSub < 0 ? 0 : thisMonthPayNumSub;
+				lastMonthCommissionSub = lastMonthCommissionSub < 0 ? 0 : lastMonthCommissionSub;
+				lastMonthPayNumSub = lastMonthPayNumSub < 0 ? 0 : lastMonthPayNumSub;
+				
+				agent.thisMonthCommission = roundDecimal2(toDecimal2(thisMonthCommission));
+				agent.thisMonthCommissionSelf = roundDecimal2(toDecimal2(thisMonthCommissionSelf));
+				agent.thisMonthCommissionSub = roundDecimal2(toDecimal2(thisMonthCommissionSub));
+				agent.thisMonthPayNum = thisMonthPayNum;
+				agent.thisMonthPayNumSelf = thisMonthPayNumSelf;
+				agent.thisMonthPayNumSub = thisMonthPayNumSub;
+				
+				agent.lastMonthCommission = roundDecimal2(toDecimal2(lastMonthCommission));
+				agent.lastMonthCommissionSelf = roundDecimal2(toDecimal2(lastMonthCommissionSelf));
+				agent.lastMonthCommissionSub = roundDecimal2(toDecimal2(lastMonthCommissionSub));
+				agent.lastMonthPayNum = lastMonthPayNum;
+				agent.lastMonthPayNumSelf = lastMonthPayNumSelf;
+				agent.lastMonthPayNumSub = lastMonthPayNumSub;
+				
+				var clone = t.clone(agent);
+				if(agent.agentHeadUrl){
+					clone.child('img', 'headUrl').src = agent.agentHeadUrl;
+				}	
+				if((sortType==1 && agent.sonNum>0)||(sortType==2 && agent.thisMonthCommission>0)||(sortType==3 && agent.thisMonthCommissionSelf>0)
+						||(sortType==4 && agent.lastMonthCommission>0)||(sortType==5 && agent.lastMonthCommissionSelf>0)){
+					clone.child('em', 'hasTop').block();
+				}else{
+					clone.child('span', 'noTop').block();
+				}
+				// 加入页面
+				container.appendChild(clone);
+			}	
+			
+			if(pageNum >= totalPage){
+				if($('theEnded')){
+					$('theEnded').show();
+				}
+			}			
+			f.currentPageNum.value=pageNum;
+			
+			// 没有数据
+			if (map.totalOrderNum == 0) {
+				$('theEnded').hide();
+			}
+			
+		});	
+	},
+	
+	fetchFatherAndAssistant : function() {
+		var container = $('teacherContainer');
+		
+		var params = {
+			dispatch : 'fetchFatherAndAssistant',
+			key : 'AgentAction.fetchFatherAndAssistant'
+		};
+		var action = '/AgentAction.do';
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var tFather = $('tFatherItem');		
+			var tAssistant = $('tAssistantItem');
+			
+			var father = map.father;
+			var assistant = map.assistant;
+			
+			if(father){
+				father.agentCdate = new Date(father.agentCdate).format('yyyy-mm-dd HH:MM');
+				var clone = tFather.clone(father);
+				if(!father.sonNum){//防止数据有误
+					clone.child('p', 'sonNum').hide();
+				}	
+				if(father.agentHeadUrl){
+					clone.child('img', 'headUrl').src = father.agentHeadUrl;
+				}	
+				container.appendChild(clone);
+			}	
+			if(assistant){
+				assistant.agentCdate = new Date(assistant.agentCdate).format('yyyy-mm-dd HH:MM');
+				var clone = tAssistant.clone(assistant);
+				if(assistant.agentHeadUrl){
+					clone.child('img', 'headUrl').src = assistant.agentHeadUrl;
+				}	
+				container.appendChild(clone);
+			}
+		});	
+	},	
+	
+	fetchForBalance : function() {
+		var params = {
+			dispatch : 'fetchForBalance',
+			key : 'AgentAction.fetchForBalance'
+		};
+
+		var action = goMainLand('/AgentAction.do');
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			var agent = map.agent;
+			var canWithdraw = map.canWithdraw;
+			minPayAmount = map.minPayAmount==null?1:map.minPayAmount;
+			if(code != 0){
+				return;
+			}
+			
+			if(agent.accountBalance && agent.accountBalance!=0){
+				$('accountBalance').innerHTML = toDecimal2(agent.accountBalance);
+			}else{
+				$('accountBalance').innerHTML = "0.00";
+			}
+			
+			if(agent.withdrawAmount && agent.withdrawAmount!=0){
+				$('withdrawAmount').innerHTML = toDecimal2(agent.withdrawAmount);
+			}else{
+				$('withdrawAmount').innerHTML = "0.00";
+			}
+			
+			if(canWithdraw==1){
+				if($('extractBt')){
+					$('extractBt').show();
+				}								
+			}else{
+				if($('notWithdraw')){
+					$('notWithdraw').show();
+				}
+			}	
+			
+			if($('moneyValue')){
+				$('moneyTips').innerHTML = minPayAmount;
+				$('withdrawRule').innerHTML = minPayAmount;
+			}							
+		});
+	},	
+	
+	fetchForSetting : function() {
+		var params = {
+			dispatch : 'fetchForSetting',
+			key : 'AgentAction.fetchForSetting'
+		};
+
+		var action = goMainLand('/AgentAction.do');
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			var agent = map.agent;
+			var payType = map.payType;
+			if(code != 0){
+				return;
+			}
+			
+			if(agent.phoneNum && agent.agentPhoneVerifyStatus == 1){
+				$('phoneNum').innerHTML = agent.phoneNum;			
+			}else{
+				$('phoneNum').innerHTML = "点击设置";
+			}
+			
+			if(payType==1){//管理员设置支付宝支付
+				$('defaultPayType').innerHTML = "支付宝";
+				$('editDefaultPayType').href = '#';	
+				$('setBank').hide();
+			}else if(payType==2){//管理员设置银行卡支付
+				$('defaultPayType').innerHTML = "银行卡";
+				$('editDefaultPayType').href = '#';
+				$('setAlipay').hide();
+			}else if(payType==3){//管理员设置微信支付
+				$('defaultPayType').innerHTML = "微信支付";
+				$('editDefaultPayType').href = '#';
+				$('setBank').hide();
+			}else{//管理员未设置支付方式
+				if(agent.defaultPayType==1){
+					$('defaultPayType').innerHTML = "支付宝";
+				}else if(agent.defaultPayType==2){
+					$('defaultPayType').innerHTML = "银行卡";
+				}else{
+					$('defaultPayType').innerHTML = "点击设置";
+				}
+			}	
+	
+			
+			if(agent.alipayAccount){
+				$('alipayAccount').innerHTML = agent.alipayAccount;
+			}else{
+				$('alipayAccount').innerHTML = "点击设置";
+			}
+			
+			if(agent.bankAccount){
+				$('bankAccount').innerHTML = agent.bankAccount + " " +agent.bankName;
+			}else{
+				$('bankAccount').innerHTML = "点击设置";
+			}			
+		});
+	},
+	
+	showTaobaoAccount : function(agentId){
+		// 判断页面是否存在该元素，如不存在，则直接返回，避免报错
+		if (!$('taobaoAccount')) {
+			return false;
+		}
+		var params = {
+			dispatch : 'getTaobaoAccountForSetting',
+			key : 'TaobaoAccountAction.getTaobaoAccountForSetting'
+		};
+
+		var action = goMainLand('/TaobaoAccountAction.do');
+		Ajax.send(action, params, function() {	
+			var map = DB.get(params.key);
+			var code = map.code;
+			var taobaoAccount = map.taobaoAccount;
+			if(code != 0){
+				return;
+			}
+			if(taobaoAccount){
+				$('taobaoAccount').innerHTML = taobaoAccount.taobaoUserNick;
+			}else{
+				$('taobaoAccount').innerHTML = "点击设置";
+			}	
+		});
+	},
+	
+    getCheckCode : function(){
+		var inputButton = $('phoneNum');
+    	var phoneNum = inputButton.value.trim();
+    	var myreg = /^1\d{10}$/;
+    	if(!myreg.test(phoneNum)){
+    		PuLayer.alert('请输入有效的手机号码');
+    		inputButton.value = '';
+    		inputButton.focus();
+    		return false;
+    	}
+    	inputButton.readOnly = true;
+    	var params = {
+    		key : 'AgentAction.getCheckCode',
+    		phoneNum : phoneNum,
+    		dispatch : 'getCheckCode'	
+    	};
+    	var action = goMainLand('/AgentAction.do');
+    	Ajax.send(action, params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		if (code==0){
+    			time();
+    		} else if (code==-101){
+    			$('setPhoneContactServiceMsg').innerHTML = map.msg;
+    			$('setPhoneContactService').open();
+    		} else {
+    			PuLayer.alert(map.msg);
+    			inputButton.readOnly = false;
+    			return false;
+    		}
+    	});
+    },
+    
+    setPhone : function(){
+    	var code = $('code').value.trim();
+    	var phoneNum = $('phoneNum').value.trim();
+    	if(code== ''){
+    		PuLayer.alert("请输入验证码");
+    		return false;
+    	}
+    	if(phoneNum== ''){
+    		PuLayer.alert("请输入手机号码");
+    		return false;
+    	}
+    	var params = {
+    		key : 'AgentAction.setPhone',
+    		phoneNum : phoneNum,
+    		code : code,
+    		dispatch : 'setPhone'	
+    	};
+    	var cfmButton = $('cfmButton');
+    	var oldFunction = cfmButton.onclick;
+    	cfmButton.onclick = function(){};
+    	cfmButton.innerHTML = '提交中...';
+    	var action = goMainLand('/AgentAction.do');
+    	Ajax.send(action, params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		if(code == 0){
+    			if(fromPage==0){
+    				window.location.href = 'mine.jsp';
+    			}else if(fromPage==1){
+    				window.location.href = 'taoker-agent-bill-extract.jsp';
+    			}
+    		} else if (code==-101){
+    			$('setPhoneContactServiceMsg').innerHTML = map.msg;
+    			$('setPhoneContactService').open();
+    		} else {
+    			PuLayer.alert(map.msg);
+    			cfmButton.onclick = oldFunction;
+    			cfmButton.innerHTML = '确定';
+    		}
+    	});
+    }, 
+    
+    initDefaultPayType : function(){
+    	var params = {
+    		key : 'AgentAction.fetch',
+    		dispatch : 'fetch'	
+        };
+    	var action = goMainLand('/AgentAction.do');
+    	Ajax.send(action, params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		var agent = map.agent;
+    		if(code != 0){
+    			PuLayer.alert(map.msg);
+    			return false;
+    		}
+    		Util.checkRadio('extractType', agent.defaultPayType);
+    		if(!agent.alipayAccount){
+    			$('alipayTip').inline();
+    		}	
+    		if(!agent.bankAccount){
+    			$('bankTip').inline();
+    		}
+    	});    	
+    },
+    
+    setDefaultPayType : function(){
+    	var form = $('payType');
+    	var defaultPayType;
+    	
+    	var radio = document.getElementsByName("extractType");  
+	    for (i=0; i<radio.length; i++) {  
+	        if (radio[i].checked) {  
+	        	defaultPayType = radio[i].value;
+	        	break;
+	        }  
+	    }
+    	    
+    	if(defaultPayType==null){
+    		PuLayer.alert('请选择默认提现方式');
+    		return;
+    	}	
+    	var params = {
+    		key : 'AgentAction.setDefaultPayType',
+    		dispatch : 'setDefaultPayType',
+    		defaultPayType : defaultPayType
+    	};
+    	
+    	var action = goMainLand('/AgentAction.do');
+    	Ajax.send(action, params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		if(code == 0){
+    			window.location.href = 'taoker-agent-set.jsp';
+    		}else{
+    			PuLayer.alert(map.msg);
+    		}
+    	});
+    },
+    
+    initAlipay : function(){
+    	var params = {
+    		key : 'AgentAction.fetch',
+    		dispatch : 'fetch'	
+        };
+    	var action = goMainLand('/AgentAction.do');
+    	Ajax.send(action, params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		var agent = map.agent;
+    		if(code != 0){
+    			PuLayer.alert(map.msg);
+    			return false;
+    		}
+    		if(agent.alipayAccount){
+    			$('alipayAccount').value=agent.alipayAccount;
+    		}
+    		if(agent.alipayNickname){
+    			$('alipayNickname').value=agent.alipayNickname;
+    		}
+    	});    	
+    },
+    
+    setAlipay : function(){
+    	var alipayAccount = $('alipayAccount').value.trim();
+    	var alipayNickname = $('alipayNickname').value.trim();
+    	
+    	if(alipayAccount==''){
+    		PuLayer.alert('请填写支付宝账号');
+    		return false;
+    	}	
+    	
+    	if(alipayNickname==''){
+    		PuLayer.alert('请填写支付宝姓名');
+    		return false;
+    	}
+
+    	var params = {
+    		key : 'AgentAction.setAlipay',
+    		dispatch : 'setAlipay',
+    		alipayAccount : alipayAccount,
+    		alipayNickname : alipayNickname
+    	};
+    	
+    	var action = goMainLand('/AgentAction.do');
+    	Ajax.send(action, params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		if(code == 0){
+    			window.location.href = 'taoker-agent-set.jsp';
+    		}else{
+    			PuLayer.alert(map.msg);
+    		}
+    	});
+    },
+    
+    initBank : function(){
+    	var params = {
+    		key : 'AgentAction.fetch',
+    		dispatch : 'fetch'	
+        };
+    	var action = goMainLand('/AgentAction.do');
+    	Ajax.send(action, params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		var agent = map.agent;
+    		if(code != 0){
+    			PuLayer.alert(map.msg);
+    			return false;
+    		}
+    		if(agent.nameInBank){
+    			$('nameInBank').value=agent.nameInBank;
+    		}
+    		if(agent.bankAccount){
+    			$('bankAccount').value=agent.bankAccount;
+    		}
+    		if(agent.bankName){
+    			$('bankName').value=agent.bankName;
+    		}
+    	});    	
+    },
+    
+    setBank : function(){
+    	var bankAccount = $('bankAccount').value.trim();
+    	var nameInBank = $('nameInBank').value.trim();
+    	var bankName = $('bankName').value.trim();
+    	
+    	if(bankAccount==''){
+    		PuLayer.alert('请填写银行卡号');
+    		return false;
+    	}	
+    	
+    	if(nameInBank==''){
+    		PuLayer.alert('请填写姓名');
+    		return false;
+    	}
+    	
+    	if(bankName==''){
+    		PuLayer.alert('请填写开户银行');
+    		return false;
+    	}
+
+    	var params = {
+    		key : 'AgentAction.setBank',
+    		dispatch : 'setBank',
+    		bankAccount : bankAccount,
+    		nameInBank : nameInBank,
+    		bankName : bankName
+    	};
+    	
+    	var action = goMainLand('/AgentAction.do');
+    	Ajax.send(action, params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		if(code == 0){
+    			window.location.href = 'taoker-agent-set.jsp';
+    		}else{
+    			PuLayer.alert(map.msg);
+    		}
+    	});
+    },
+    
+    getCheckCodeForPassword : function(){
+		var inputButton = $('phoneNum');
+    	var phoneNum = inputButton.value.trim();
+    	var myreg = /^1\d{10}$/;
+    	if(!myreg.test(phoneNum)){
+    		PuLayer.alert('请输入有效的手机号码');    
+    		inputButton.value = '';
+    		inputButton.focus();
+    		return false;
+    	}
+    	inputButton.disabled = true;
+    	var params = {
+    		key : 'AgentAction.getCheckCodeForPassword',
+    		phoneNum : phoneNum,
+    		dispatch : 'getCheckCodeForPassword'	
+    	};
+    	Ajax.send('/AgentAction.do', params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		if(code==0){
+    			timeForPassword();
+    		}else{
+    			PuLayer.alert(map.msg);
+    			inputButton.disabled = false;
+    			return false;
+    		}
+    	});
+    },
+    
+    setPassword : function(){
+    	var code = $('code').value.trim();
+    	var phoneNum = $('phoneNum').value.trim();
+    	var password1 = $('password1').value.trim();
+    	var password2 = $('password2').value.trim();
+    	
+    	if(code== ''){
+    		PuLayer.alert("请输入验证码");
+    		return false;
+    	}
+    	if(phoneNum== ''){
+    		PuLayer.alert("请输入手机号码");
+    		return false;
+    	}
+    	if(password1 == '' || password2 == ''){
+    		PuLayer.alert("请输入新密码");
+    		return false;
+    	}
+    	if(password1 != password2){
+    		PuLayer.alert("两次密码输入不同");
+    		return false;
+    	}
+    	
+    	if(password1.length < 6){
+    		PuLayer.alert("密码至少6位");
+    		return false;
+    	}
+    	
+    	var params = {
+    		key : 'AgentAction.setPassword',
+    		phoneNum : phoneNum,
+    		password : password1,
+    		code : code,
+    		dispatch : 'setPassword'	
+    	};
+    	Ajax.send('/AgentAction.do', params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		if(code == 0){
+    			window.location.href = 'index.jsp';
+    		}
+    		else {
+    			PuLayer.alert(map.msg);
+    		}
+    	});
+    },
+    
+    getCheckCodeApp : function(){
+		var inputButton = $('phoneNum');
+    	var phoneNum = inputButton.value.trim();
+    	
+    	var myreg = /^1\d{10}$/;
+    	if(!myreg.test(phoneNum)){
+    		PuLayer.alert("请输入有效的手机号码");
+    		return false;
+    	}
+    	
+    	inputButton.readOnly = true;
+    	var params = {
+    		key : 'AgentAction.getCheckCodeApp',
+    		phoneNum : phoneNum,
+    		dispatch : 'getCheckCodeApp'	
+    	};
+    	Ajax.send('/AgentAction.do', params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		if(code==0){
+    			timeForAppReg();
+    		}else{
+    			PuLayer.alert(map.msg);
+    			inputButton.readOnly = false;
+    			return false;
+    		}
+    	});
+    }, 
+    
+    setPhoneApp : function(){
+    	var code = $('code').value.trim();
+    	var phoneNum = $('phoneNum').value.trim();
+    	var password = $('password').value.trim();
+    	var inviteCode = $('inviteCode').value.trim();
+    	var agentNickname = $('agentNickname').value.trim();
+    	
+    	if(code== ''){
+    		PuLayer.alert("请输入验证码");
+    		return false;
+    	}
+    	if(phoneNum== ''){
+    		PuLayer.alert("请输入手机号码");
+    		return false;
+    	}
+    	if(password == ''){
+    		PuLayer.alert("请输入密码");
+    		return false;
+    	}    	
+    	if(inviteCode == ''){
+    		PuLayer.alert("请输入邀请码");
+    		return false;
+    	} 
+    	if(agentNickname == ''){
+    		PuLayer.alert("请输入昵称");
+    		return false;
+    	} 
+		
+    	var params = {
+    		key : 'AgentAction.setPhoneApp',
+    		phoneNum : phoneNum,
+    		password : password,
+    		code : code,
+    		inviteCode : inviteCode,
+    		agentNickname : agentNickname,
+    		dispatch : 'setPhoneApp'	
+    	};
+    	Ajax.send('/AgentAction.do', params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		if(code == 0){
+    			window.location.href = 'index.jsp';
+    		}
+    		else {
+    			PuLayer.alert(map.msg);
+    		}
+    	});
+    }, 
+    
+    getAgentListForAdmin : function(contextPath){
+    	var container = $('agentContainer');	
+    	
+    	var params = {
+    		key : 'AgentAction.getAgentListForAdmin',
+    		dispatch : 'getAgentListForAdmin'	
+        };
+    	
+    	var action = goMainLand('/AgentAction.do');
+    	Ajax.send(action, params, function(){
+    		$('next-load').hide();
+    		var map = DB.get(params.key);
+			var t = $('tAgentItem');							
+			var arr = map.agentList;    		
+    		var code = map.code;
+    		if(code == 0){
+    			for (var i = 0; i < arr.length; i++) {
+    				var agent = arr[i];	
+    				agent.index = i;
+    				
+    				var thisMonthPayNum = agent.thisMonthPayNum == null ? 0 : agent.thisMonthPayNum;
+    				var thisMonthCommission = agent.thisMonthCommission == null ? 0 : agent.thisMonthCommission;
+    				var lastMonthPayNum = agent.lastMonthPayNum == null ? 0 : agent.lastMonthPayNum;
+    				var lastMonthCommission = agent.lastMonthCommission == null ? 0 : agent.lastMonthCommission;
+    				
+    				var thisMonthPayNumSelf = agent.thisMonthPayNumSelf == null ? 0 : agent.thisMonthPayNumSelf;
+    				var thisMonthCommissionSelf = agent.thisMonthCommissionSelf == null ? 0 : agent.thisMonthCommissionSelf;
+    				var lastMonthPayNumSelf = agent.lastMonthPayNumSelf == null ? 0 : agent.lastMonthPayNumSelf;
+    				var lastMonthCommissionSelf = agent.lastMonthCommissionSelf == null ? 0 : agent.lastMonthCommissionSelf;
+    				
+    				var thisMonthPayNumSub = thisMonthPayNum - thisMonthPayNumSelf;
+    				var thisMonthCommissionSub = thisMonthCommission - thisMonthCommissionSelf;
+    				var lastMonthPayNumSub = lastMonthPayNum - lastMonthPayNumSelf;
+    				var lastMonthCommissionSub = lastMonthCommission - lastMonthCommissionSelf;
+    				
+    				thisMonthPayNumSub = thisMonthPayNumSub < 0 ? 0 : limitDecimal2(thisMonthPayNumSub);
+    				thisMonthCommissionSub = thisMonthCommissionSub < 0 ? 0 : limitDecimal2(thisMonthCommissionSub);
+    				lastMonthPayNumSub = lastMonthPayNumSub < 0 ? 0 : limitDecimal2(lastMonthPayNumSub);
+    				lastMonthCommissionSub = lastMonthCommissionSub < 0 ? 0 : limitDecimal2(lastMonthCommissionSub);
+    				//合计
+					if(thisMonthPayNum){
+						agent.thisMonthPayNum = toThousands(thisMonthPayNum) + '单';
+					}else{
+						agent.thisMonthPayNum = 0;
+					}
+					
+					if(thisMonthCommission){
+						agent.thisMonthCommission = "￥" + thisMonthCommission;
+					}else{
+						agent.thisMonthCommission = 0;
+					}
+					
+					if(lastMonthPayNum){
+						agent.lastMonthPayNum = toThousands(lastMonthPayNum) + '单';
+					}else{
+						agent.lastMonthPayNum = 0;
+					}
+					
+					if(lastMonthCommission){
+						agent.lastMonthCommission = "￥" + lastMonthCommission;
+					}else{
+						agent.lastMonthCommission = 0;
+					}
+					
+					//个人
+					if(thisMonthPayNumSelf){
+						agent.thisMonthPayNumSelf = toThousands(thisMonthPayNumSelf) + '单';
+					}else{
+						agent.thisMonthPayNumSelf = 0;
+					}
+					
+					if(thisMonthCommissionSelf){
+						agent.thisMonthCommissionSelf = "￥" + thisMonthCommissionSelf;
+					}else{
+						agent.thisMonthCommissionSelf = 0;
+					}
+					
+					if(lastMonthPayNumSelf){
+						agent.lastMonthPayNumSelf = toThousands(lastMonthPayNumSelf) + '单';
+					}else{
+						agent.lastMonthPayNumSelf = 0;
+					}
+					
+					if(lastMonthCommissionSelf){
+						agent.lastMonthCommissionSelf = "￥" + lastMonthCommissionSelf;
+					}else{
+						agent.lastMonthCommissionSelf = 0;
+					}
+					
+    				//下级
+					if(thisMonthPayNumSub){
+						agent.thisMonthPayNumSub = toThousands(thisMonthPayNumSub) + '单';
+					}else{
+						agent.thisMonthPayNumSub = 0;
+					}
+					
+					if(thisMonthCommissionSub){
+						agent.thisMonthCommissionSub = "￥" + thisMonthCommissionSub;
+					}else{
+						agent.thisMonthCommissionSub = 0;
+					}
+					
+					if(lastMonthPayNumSub){
+						agent.lastMonthPayNumSub = toThousands(lastMonthPayNumSub) + '单';
+					}else{
+						agent.lastMonthPayNumSub = 0;
+					}
+					
+					if(lastMonthCommissionSub){
+						agent.lastMonthCommissionSub = "￥" + lastMonthCommissionSub;
+					}else{
+						agent.lastMonthCommissionSub = 0;
+					}
+					
+					if(!agent.agentHeadUrl){
+						agent.agentHeadUrl = contextPath + '/img/demo-user-0.jpg';
+					}	
+					
+					// 克隆对象
+					var clone = t.clone(agent);
+					// 加入页面
+					container.appendChild(clone);
+    			}
+    			
+    			$('theEnd').show();
+				// 延时加载图片
+				delayload( {
+					id : [ 'agentContainer' ],
+					src : '/img/loading300-2.gif',
+					isSquare : false
+				});	
+    		}
+    		else {
+    			PuLayer.alert(map.msg);
+    		}
+    	});
+    },
+    
+    fetchZbAgentList : function(){
+    	var container = $('agentContainer');	
+    	var t1 = $('tAgent1');
+    	var t2 = $('tAgent2');
+    	var t3 = $('tAgent3');
+    	
+    	var params = {
+    		key : 'AgentAction.fetchZbAgentList',
+    		dispatch : 'fetchZbAgentList'	
+        };
+    	var action = goMainLand('/AgentAction.do');
+    	Ajax.send(action, params, function(){
+    		var map = DB.get(params.key);
+			var t = $('tAgentItem');							
+			var arr = map.zbAgentList; 
+			var zbAgentNum = map.zbAgentNum;
+    		var code = map.code;
+       		
+    		if(code == 0){
+    			//先放入最右边一个
+    			var agent= arr[0];
+    			var clone = t2.clone(agent);
+				clone.child('em','agentNum').innerHTML = zbAgentNum;
+				container.appendChild(clone);
+				
+    			for (var i = arr.length-1; i >0 ; i--) {
+    				var clone;
+					var agent= arr[i];	
+    				if(i==arr.length-1){
+    					clone = t1.clone(agent);
+    				}	
+    				else{
+    					clone = t3.clone(agent);
+    				}
+					// 加入页面
+					container.appendChild(clone);
+    			}    			
+        	}
+    	});	
+    },
+
+    showForApp : function(){
+    	if(Sysolar.appType){
+    		var appType = Sysolar.appType;
+    		if(appType == 1){
+    			$('logoImg').src = '../img/applogo/zz-logo-200.png';
+    		}	
+    		else if(appType == 2){
+    			$('logoImg').src = '../img/applogo/duoshoumiao-logo.png';
+    		}	
+    		else if(appType == 3){
+    			$('logoImg').src = '../img/applogo/qzux-logo.png';
+    		}	
+    	}	
+    },
+    
+   fromAgent : function(fromAgentId){
+    	var params = {
+        		key : 'AgentAction.fetchForReg',
+        		dispatch : 'fetchForReg',
+        		agentId : fromAgentId
+         };
+    	Ajax.send('/AgentAction.do', params, function(){  
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		var agent = map.agent;
+    		if(code == 0){
+    			if(agent){
+    				$('fromAgent').value = '邀请人：'+agent.agentNickname;
+    			}
+    		}	
+    	});
+   },
+   
+   regPageAutoLogin : function(){
+	   	var params = {
+    		key : 'AgentAction.regPageAutoLogin',
+    		dispatch : 'regPageAutoLogin'	
+	    };
+    	Ajax.send('/AgentAction.do', params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		if(code == 0){
+    			window.location.href = '../am/index.jsp';
+    		}
+    	});	   	
+   },
+   
+   downloadApk : function(isWx){
+	   if(isWx){
+		   $('shareBox').show();
+	   }else{
+		   location.href = 'http://www.t67844.top/app/meizhuan_v103.apk';
+	   }	   
+   },
+   
+   fetchAssisImg : function() {
+		var params = {
+			dispatch : 'fetchForMine',
+			key : 'AgentAction.fetchForMine'
+		};
+		
+//		var action = '/AgentAction.do';
+		var action = goMainLand('/AgentAction.do');
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			var serviceImgUrl = map.serviceImgUrl;
+			if(code != 0){
+				return;
+			}
+			if(serviceImgUrl){
+				$('serviceImg').src = serviceImgUrl;
+				$('assistantQr').show();				
+			}	
+		});
+   },
+   
+   fetchListByAgentTeam : function(agentLevel, isRequest, orderOrPrivilege, achievement, contextPath){
+	    var searchAgentId = 0;	
+	    var searchAgentAccount = null;
+	    if(orderOrPrivilege == null){
+	    	orderOrPrivilege = 0;
+	    }
+	    if(achievement == null){
+	    	achievement = 0;
+	    }
+	    if(orderOrPrivilege == 0 && achievement == 0){
+	    	$('allType').className = 'on';
+	    	$('orderType').className = '';
+	    	$('privilegeType').className = '';
+	    	$('thisAchievementType').className = '';
+	    	$('lastAchievementType').className = '';
+	    	$('achievementContainer').className = '';
+	    	$('agentContainer').className = 'agentList';
+	    	$('totalOrderNumAndConfirmNum').show();
+	    }
+	    if(orderOrPrivilege == 1){
+	    	$('allType').className = '';
+	    	$('orderType').className = 'on';
+	    	$('privilegeType').className = '';
+	    	$('thisAchievementType').className = '';
+	    	$('lastAchievementType').className = '';
+	    	$('achievementContainer').className = '';
+	    	$('agentContainer').className = 'agentList';
+	    	$('totalOrderNumAndConfirmNum').show();
+	    }
+	    if(orderOrPrivilege == 2){
+	    	$('allType').className = '';
+	    	$('orderType').className = '';
+	    	$('privilegeType').className = 'on';
+	    	$('thisAchievementType').className = '';
+	    	$('lastAchievementType').className = '';
+	    	$('achievementContainer').className = '';
+	    	$('agentContainer').className = 'agentList';
+	    	$('totalOrderNumAndConfirmNum').show();
+	    }
+	    if(achievement == 1){
+	    	$('allType').className = '';
+	    	$('orderType').className = '';
+	    	$('privilegeType').className = '';
+	    	$('thisAchievementType').className = 'on';
+	    	$('lastAchievementType').className = '';
+	    	$('achievementContainer').className = 'mt9';
+	    	$('agentContainer').className = 'agentList';
+	    	$('totalOrderNumAndConfirmNum').hide();
+	    }
+	    if(achievement == 2){
+	    	$('allType').className = '';
+	    	$('orderType').className = '';
+	    	$('privilegeType').className = '';
+	    	$('thisAchievementType').className = '';
+	    	$('lastAchievementType').className = 'on';
+	    	$('achievementContainer').className = 'mt9';
+	    	$('agentContainer').className = 'agentList';
+	    	$('totalOrderNumAndConfirmNum').hide();
+	    }
+	    $('allType').getElementsByTagName("a")[0].onclick = function(){
+    		AgentLogic.fetchListByAgentTeam(agentLevel,1,0,0,contextPath)
+    	}
+	    $('orderType').getElementsByTagName("a")[0].onclick = function(){
+    		AgentLogic.fetchListByAgentTeam(agentLevel,1,1,0,contextPath)
+    	}
+	    $('privilegeType').getElementsByTagName("a")[0].onclick = function(){
+    		AgentLogic.fetchListByAgentTeam(agentLevel,1,2,0,contextPath)
+    	}
+	    $('thisAchievementType').getElementsByTagName("a")[0].onclick = function(){
+    		AgentLogic.fetchListByAgentTeam(agentLevel,1,0,1,contextPath)
+    	}
+	    $('lastAchievementType').getElementsByTagName("a")[0].onclick = function(){
+    		AgentLogic.fetchListByAgentTeam(agentLevel,1,0,2,contextPath)
+    	}
+	    
+	    $('next-load').show();
+	   	$('agentTeamLevel').value = agentLevel;
+	    var container = $('agentContainer');
+	    var containerForAchievement = $('achievementContainer');
+	    if(achievement == null){
+	    	achievement = 0;
+	    }
+	    var f = $('next-form');
+	    var currentPageNum = parseInt(f.currentPageNum.value);
+	    if(isRequest){
+	    	var childs=container.childNodes;    
+	    	for(var i=childs.length-1;i>=0;i--){    
+	    		container.removeChild(childs.item(i));    
+	    	}
+	    	var childsForAchievement = containerForAchievement.childNodes;
+	    	for(var i=childsForAchievement.length-1;i>=0;i--){    
+	    		containerForAchievement.removeChild(childsForAchievement.item(i));    
+	    	}
+	    	currentPageNum = 1;
+	    	if($('theEnded')){
+				$('theEnded').hide();
+			}
+	    }
+	    if(achievement > 0){
+	    	container = $('achievementContainer');
+	    	$('selfInfo').hide();
+	    }
+	    else{
+	    	$('selfInfo').show();
+	    }
+		var goodsList = container.getElementsByClassName("fansItem");
+	    var achievementList = containerForAchievement.getElementsByClassName("agentOrderItem agentRankItem");
+	    if(achievement > 0){
+		    if(achievementList.length == 0 && currentPageNum>0){
+		    	pageNum = currentPageNum;
+		   	}else{
+		   		pageNum = currentPageNum+1; 
+		   	}
+	    }
+	    else{
+		    if(goodsList.length==0 && currentPageNum>0){
+		   		pageNum = currentPageNum;
+		   	}else{
+		   		pageNum = currentPageNum+1; 
+		   	}
+	    }
+		
+		var totalPage = 1;
+		var pageSize = 50;
+		var params = {
+			dispatch : 'fetchListByAgentTeam',
+			key : 'AgentAction.fetchListByAgentTeam',
+			topAgentLevel: agentLevel,
+			searchAgentAccount : searchAgentAccount,
+			orderOrPrivilege : orderOrPrivilege,
+			achievement : achievement,
+			pageNum : pageNum,
+			pageSize : pageSize
+		};
+		var action = '/AgentAction.do';
+		Ajax.send(action, params, function(){
+			$('orderOrPrivilege').value = orderOrPrivilege;
+			$('achievement').value = achievement;
+			$('next-load').hide();
+			var map = DB.get(params.key);
+			var code = map.code;
+			var topTaokerId = map.agent.topTaokerId;
+			var privilegeNum = map.privilegeNum;
+			$('privilegeNum').innerHTML = '(' + privilegeNum + ')'
+			if(topTaokerId == null){
+				   topTaokerId = 0;
+		    }
+		    if(topTaokerId == 7456 || topTaokerId == 7483 || topTaokerId == 7706 || topTaokerId == 7945){
+		    	$('topQuanClass').hide();
+				$('topQuanClassByXia').inline();
+			    for(var i=1; i<9; i++){
+			    	$('firstTeam' + i + 'X').className = "";
+			    }
+			    for(var i=1; i<9; i++){
+			    	if(agentLevel == i){
+			    		$('firstTeam' + i + 'X').className = "on";
+			    	}
+			    }
+		    }
+		    else{
+		    	for(var i=1; i<9; i++){
+			    	$('firstTeam' + i).className = "";
+			    }
+			    for(var i=1; i<9; i++){
+			    	if(agentLevel == i){
+			    		$('firstTeam' + i).className = "on";
+			    	}
+			    }
+		    }
+			if(code == -1){
+				$('totalOrderNum').innerHTML = 0;
+				$('totalOrderConfirmNum').innerHTML = 0;
+				return false;
+			}
+			if(code == -2){
+				$('totalOrderNum').innerHTML = 0;
+				$('totalOrderConfirmNum').innerHTML = 0;
+				PuLayer.alert('您查询的用户不是您的下级');
+				return false;
+			}
+			if(code == -3){
+				$('totalOrderNum').innerHTML = 0;
+				$('totalOrderConfirmNum').innerHTML = 0;
+				PuLayer.alert('您查询的用户不存在');
+				return false;
+			}
+			var arr = map.agentList;
+			var agent = map.agent;
+			var t = $('fansItem');
+			if(achievement > 0){
+				t = $('achievementItem');
+			}
+			var totalAgentNum = map.totalAgentNum;
+			totalPage = map.totalPage;
+			
+			//显示淘客信息
+			$('totalOrderNum').innerHTML = map.totalOrderNum;
+			$('totalOrderConfirmNum').innerHTML = map.totalOrderConfirmNum;
+			
+			for(var i=0; i<arr.length; i++){
+				var sonAgent = arr[i];
+				sonAgent.agentCdate = new Date(sonAgent.agentCdate).format('yyyy-mm-dd HH:MM');
+				if(sonAgent.agentHeadUrl == null || sonAgent.agentHeadUrl == ''){
+					sonAgent.agentHeadUrl = contextPath + '/img/demo-user-0.jpg';
+				}
+				if(sonAgent.selfOrderNum == null){
+					sonAgent.selfOrderNum = 0;
+				}
+				if(sonAgent.selfOrderConfirmNum == null){
+					sonAgent.selfOrderConfirmNum = 0;
+				}
+				
+				//本月业绩
+				if(achievement == 1){
+					if(sonAgent.thisMonthCommission == null){
+						sonAgent.thisMonthCommission = 0.0;
+					}
+					if(sonAgent.thisMonthCommissionSelf == null){
+						sonAgent.thisMonthCommissionSelf = 0.0;
+					}
+					var yesterdayMoney = sonAgent.thisMonthCommission - sonAgent.thisMonthCommissionSelf;
+					sonAgent.yesterdayCommission = limitDecimal2Str(toDecimal2(yesterdayMoney));
+					if(sonAgent.thisMonthPayNum == null){
+						sonAgent.thisMonthPayNum = 0;
+					}
+					if(sonAgent.thisMonthPayNumSelf == null){
+						sonAgent.thisMonthPayNumSelf = 0;
+					}
+					sonAgent.yesterdayPayNum = sonAgent.thisMonthPayNum - sonAgent.thisMonthPayNumSelf;
+				}
+				else if(achievement == 2){
+					if(sonAgent.lastMonthCommission == null){
+						sonAgent.thisMonthCommission = 0.0;
+					}
+					else{
+						sonAgent.thisMonthCommission = sonAgent.lastMonthCommission;
+					}
+					if(sonAgent.lastMonthCommissionSelf == null){
+						sonAgent.thisMonthCommissionSelf = 0.0;
+					}
+					else{
+						sonAgent.thisMonthCommissionSelf = sonAgent.lastMonthCommissionSelf;
+					}
+					var yesterdayMoney = sonAgent.thisMonthCommission - sonAgent.thisMonthCommissionSelf;
+					sonAgent.yesterdayCommission = limitDecimal2Str(toDecimal2(yesterdayMoney));
+					if(sonAgent.lastMonthPayNum == null){
+						sonAgent.thisMonthPayNum = 0;
+					}
+					else{
+						sonAgent.thisMonthPayNum = sonAgent.lastMonthPayNum;
+					}
+					if(sonAgent.lastMonthPayNumSelf == null){
+						sonAgent.thisMonthPayNumSelf = 0;
+					}
+					else{
+						sonAgent.thisMonthPayNumSelf = sonAgent.lastMonthPayNumSelf;
+					}
+					sonAgent.yesterdayPayNum = sonAgent.thisMonthPayNum - sonAgent.thisMonthPayNumSelf;
+				}
+				
+				
+				var clone = t.clone(sonAgent);
+				
+				//设置topNum
+				if(achievement > 0){
+					var topPageNum = pageNum;
+					if(topPageNum < 1){
+						topPageNum = 1;
+					}
+					topNum = (topPageNum - 1) * pageSize + i + 1;
+					clone.child('em', 'topNum').innerHTML = 'TOP' + topNum + '：';
+				}
+				
+				// 加入页面
+				container.appendChild(clone);
+				var hrElement = document.createElement('hr');
+				container.appendChild(hrElement);
+				
+				if(achievement == 0){
+					if(sonAgent.selfOrderNum > 0){
+						$('orderNumEm' + sonAgent.agentId).inline();
+						$('orderNumSmall' + sonAgent.agentId).hide();
+					}
+					else{
+						$('orderNumEm' + sonAgent.agentId).hide();
+						$('orderNumSmall' + sonAgent.agentId).inline();
+					}
+					
+					if(sonAgent.selfOrderConfirmNum > 0){
+						$('confirmOrderNumI' + sonAgent.agentId).inline();
+						$('confirmOrderNumSmall' + sonAgent.agentId).hide();
+					}
+					else{
+						$('confirmOrderNumI' + sonAgent.agentId).hide();
+						$('confirmOrderNumSmall' + sonAgent.agentId).inline();
+					}
+				}
+			}
+			
+			if(pageNum >= totalPage){
+				if($('theEnded')){
+					$('theEnded').show();
+				}
+			}
+			
+			f.currentPageNum.value=pageNum;
+			
+			// 没有数据
+			if (totalAgentNum == 0) {
+				$('theEnded').show();
+			}
+		});
+  },
+  
+  fetchAgentInfo : function(){
+	   var params = {
+				dispatch : 'fetchForMine',
+				key : 'AgentAction.fetchForMine',
+	   };
+	   var action = '/AgentAction.do';
+	   Ajax.send(action, params, function(){
+		   	var map = DB.get(params.key);
+			var code = map.code;
+			if(code == -1){
+				PuLayer.alert(map.msg);
+				return false;
+			}
+			var agent = map.agent;
+			var teamNum = agent.teamNum;
+			var withdrawAmount;
+			if(agent == null){
+				teamNum = '0';
+				withdrawAmount = '0.00';
+			}
+			else{
+				withdrawAmount = agent.withdrawAmount ? toDecimal2(agent.withdrawAmount) : '0.00';
+			}
+			if(agent.teamNum == null){
+				teamNum = 0;
+			}
+			var nickName = map.nickname;
+			var headUrl = map.headerUrl;
+			
+			//显示代理信息
+			$('teamNum').innerHTML = teamNum;
+			$('userHeadUrl').src = headUrl;
+			$('userNickName').innerHTML = nickName;
+			$('userWithdrawAmount').innerHTML = withdrawAmount;
+			
+			params = {
+					dispatch : 'showFanliAgentNum',
+					key : 'AgentAction.showFanliAgentNum'
+		    };
+		    
+		    Ajax.send(action, params, function(){
+			   var map = DB.get(params.key);
+			   var code = map.code;
+			   var agentType = map.agentType;
+			   var showAgent = map.agent;
+				//根据不同的大客户,显示不用的数据
+			   var topTaokerId = showAgent.topTaokerId;
+			   if(topTaokerId == null){
+				   topTaokerId = 0;
+			   }
+				if(topTaokerId == 7456 || topTaokerId == 7483 || topTaokerId == 7706 || topTaokerId == 7945){
+					//夏总7456和钟总7483/7706/7945
+					$('topQuanClass').hide();
+					$('topQuanClassByXia').inline();
+					if(agentType < 1){
+						$('topQuanClassByXia').className = 'teamBarMenu';
+						for(var i=1; i<9; i++){
+					    	if(i > 1){
+					    		$('firstTeam' + i + 'X').hide();
+					    	}
+					    }
+					}
+					else if(0 < agentType && agentType < 7){
+						$('topQuanClassByXia').className = 'teamBarMenu';
+						for(var i=1; i<9; i++){
+					    	if(i > (agentType + 1)){
+					    		$('firstTeam' + i + 'X').hide();
+					    	}
+					    }
+					}
+					//钟总不显示圈9(v8)
+					if(topTaokerId == 7483 || topTaokerId == 7706 || topTaokerId == 7945){
+						$('topQuanClassByXia').className = 'teamBarMenu';
+						$('firstTeam8X').hide();
+					}
+				}
+//				else if(topTaokerId == 7483 || topTaokerId == 7706 || topTaokerId == 7945){
+//					//钟总
+//					$('topQuanClass').inline();
+//					$('topQuanClassByXia').hide();
+//					if(agentType < 1){
+//						$('topQuanClass').className = 'teamBarMenu';
+//						for(var i=1; i<9; i++){
+//					    	if(i > 2){
+//					    		$('firstTeam' + i).hide();
+//					    	}
+//					    }
+//					}
+//					else if(0 < agentType && agentType < 6){
+//						$('topQuanClass').className = 'teamBarMenu';
+//						for(var i=1; i<9; i++){
+//					    	if(i > (agentType + 2)){
+//					    		$('firstTeam' + i).hide();
+//					    	}
+//					    }
+//					}
+//				}
+				else{
+					//我们自己的
+					$('topQuanClass').inline();
+					$('topQuanClassByXia').hide();
+					if(agentType < 1){
+						$('topQuanClass').className = 'teamBarMenu';
+						for(var i=1; i<9; i++){
+					    	if(i > 2){
+					    		$('firstTeam' + i).hide();
+					    	}
+					    }
+					}
+				}
+			   if(topTaokerId == 7456 || topTaokerId == 7483 || topTaokerId == 7706 || topTaokerId == 7945){
+				   if(code == -1){
+					   $('Level1X').innerHTML = '(0)';
+					   $('Level2X').innerHTML = '(0)';
+					   $('Level3X').innerHTML = '(0)';
+					   $('Level4X').innerHTML = '(0)';
+					   $('Level5X').innerHTML = '(0)';
+					   $('Level6X').innerHTML = '(0)';
+					   $('Level7X').innerHTML = '(0)';
+					   $('Level8X').innerHTML = '(0)';
+				   }
+				   if(code == 0){
+					   $('Level1X').innerHTML = '(' + map.level1 + ')';
+					   $('Level2X').innerHTML = '(' + map.level2 + ')';
+					   $('Level3X').innerHTML = '(' + map.level3 + ')';
+					   $('Level4X').innerHTML = '(' + map.level4 + ')';
+					   $('Level5X').innerHTML = '(' + map.level5 + ')';
+					   $('Level6X').innerHTML = '(' + map.level6 + ')';
+					   $('Level7X').innerHTML = '(' + map.level7 + ')';
+					   $('Level8X').innerHTML = '(' + map.level8 + ')';
+				   }
+			   }
+			   else{
+				   if(code == -1){
+					   $('Level1').innerHTML = '(0)';
+					   $('Level2').innerHTML = '(0)';
+					   $('Level3').innerHTML = '(0)';
+					   $('Level4').innerHTML = '(0)';
+					   $('Level5').innerHTML = '(0)';
+					   $('Level6').innerHTML = '(0)';
+					   $('Level7').innerHTML = '(0)';
+					   $('Level8').innerHTML = '(0)';
+				   }
+				   if(code == 0){
+					   $('Level1').innerHTML = '(' + map.level1 + ')';
+					   $('Level2').innerHTML = '(' + map.level2 + ')';
+					   $('Level3').innerHTML = '(' + map.level3 + ')';
+					   $('Level4').innerHTML = '(' + map.level4 + ')';
+					   $('Level5').innerHTML = '(' + map.level5 + ')';
+					   $('Level6').innerHTML = '(' + map.level6 + ')';
+					   $('Level7').innerHTML = '(' + map.level7 + ')';
+					   $('Level8').innerHTML = '(' + map.level8 + ')';
+				   }
+			   }
+		    });
+	   });
+  },
+  
+  showPhoneNum : function(agentId){
+	  $('phoneNumBlurBlock_'+agentId).hide();
+	  $('phoneNumBlock_'+agentId).inline();
+  },
+  
+  getListByPhone : function(){
+	  //初始化
+	  $('selectMp').hide();
+	  $('mpSelector').innerHTML = "";
+	  getByPhoneStatus = 0;
+	  
+	  var phoneNum = $('phoneNum').value.trim(); 
+	  
+	  if(phoneNum != ''){
+			params = {
+				dispatch : 'getListByPhone',
+				key : 'AgentAction.getListByPhone',
+				phoneNum : phoneNum
+			};
+			var action = '/AgentAction.do';
+			Ajax.send(action, params, function(){
+				var map = DB.get(params.key);
+				var code = map.code;
+				if(code==0){
+					getByPhoneStatus = 1;
+					var agentArr = map.agentList;
+					if(agentArr.length>1){
+						$('selectMp').show();					
+						var option = new Option('请选择公众号', '0');
+						$('mpSelector').options.add(option);
+						for (var i = 0; i < agentArr.length; i++) {
+							var title = agentArr[i].mp.nickName;
+							if(title==null){
+								title = agentArr[i].taoker.taokerNickname;
+							}	
+							option = new Option(title, agentArr[i].phoneNum);					
+							$('mpSelector').options.add(option);
+						}						
+					}	
+				}else{
+					getByPhoneStatus = code;
+				}	
+			});
+	  }
+  },
+  
+ 
+	loginWithTaoker : function(){
+		var phoneNum = $('phoneNum').value.trim();
+		var password = $('password').value.trim();
+				
+		if(phoneNum == ''){
+			PuLayer.alert('请输入手机号码');
+			return false;
+		}
+		
+		if(password == ''){
+			PuLayer.alert('请输入登录密码');
+			return false;
+		}
+		
+		var mpSelector = $('mpSelector');
+		if(getByPhoneStatus==1){
+			if(mpSelector.options.length>0){
+				var index = mpSelector.selectedIndex; // 选中索引
+				var phoneNum_ = mpSelector.options[index].value; // 选中值
+				if(phoneNum_==0){
+					PuLayer.alert('请选择公众号');
+					return false;
+				}else{
+					phoneNum = phoneNum_;
+				}	
+			}
+		}else if(getByPhoneStatus==-1){
+			PuLayer.alert('系统错误，请联系管理员');
+			return false;
+		}else if(getByPhoneStatus==-2){
+			PuLayer.alert('手机号码错误，请重新填写');
+			return false;
+		}else if(getByPhoneStatus==0){
+			PuLayer.alert('您的网络不通畅，请稍等或刷新页面');
+			return false;
+		}
+		
+		var params = {
+			key : 'AgentAction.login',
+			dispatch : 'login',
+			account : phoneNum,
+			password : password
+		}
+		var loginButton = $('loginButton');
+		loginButton.innerHTML = '登录中...';
+		var oldFunction = loginButton.onclick;
+		loginButton.onclick = function(){};
+		var action = '/AgentAction.do';
+		Ajax.send(action, params, function(){
+			var map = DB.get(params.key);
+			var code = map.code;
+			if(code==0){
+				window.location.href = 'index.jsp';
+			}else{
+				loginButton.innerHTML = '登录';
+				loginButton.onclick = oldFunction;			
+				PuLayer.alert(map.msg);
+			}
+		});		
+	},
+	
+    setPasswordAndLogin : function(){
+    	var code = $('code').value.trim();
+    	var phoneNum = $('phoneNum').value.trim();
+    	var password = $('password').value.trim();
+    	
+    	if(code== ''){
+    		PuLayer.alert("请输入验证码");
+    		return false;
+    	}
+    	if(phoneNum== ''){
+    		PuLayer.alert("请输入手机号码");
+    		return false;
+    	}
+    	if(password == ''){
+    		PuLayer.alert("请输入新密码");
+    		return false;
+    	}   
+    	
+		var mpSelector = $('mpSelector');
+		if(getByPhoneStatus==1){
+			if(mpSelector.options.length>0){
+				var index = mpSelector.selectedIndex; // 选中索引
+				var phoneNum_ = mpSelector.options[index].value; // 选中值
+				if(phoneNum_==0){
+					PuLayer.alert('请选择公众号');
+					return false;
+				}else{
+					phoneNum = phoneNum_;
+				}	
+			}
+		}else if(getByPhoneStatus==-1){
+			PuLayer.alert('系统错误，请联系管理员');
+			return false;
+		}else if(getByPhoneStatus==-2){
+			PuLayer.alert('手机号码错误，请重新填写');
+			return false;
+		}else if(getByPhoneStatus==0){
+			PuLayer.alert('您的网络不通畅，请稍等或刷新页面');
+			return false;
+		}
+		
+    	var params = {
+    		key : 'AgentAction.setPassword',
+    		phoneNum : phoneNum,
+    		password : password,
+    		code : code,
+    		dispatch : 'setPassword'	
+    	};
+    	Ajax.send('/AgentAction.do', params, function(){
+    		var map = DB.get(params.key);
+    		var code = map.code;
+    		if(code == 0){
+    			window.location.href = 'index.jsp';
+    		}
+    		else {
+    			PuLayer.alert(map.msg);
+    		}
+    	});
+    },
+  
+    fetchListByFriendGroup : function(sonOrGrandSon, orderOrPrivilege, isFirst){
+		if(orderOrPrivilege == 1){
+			// 已出单
+			$('orderLi').className = 'on';
+			$('privilegeLi').className = '';
+			$('lookNoOrderLi').className = '';
+			$('regiterNoOrderIdLi').className = '';
+			$('ordersLi').className = '';
+        	$('grandsonNumBlock').hide();
+        	$('sonNumBlock').hide();
+        	$('agentOrderList').className='agentOrderList mt9';
+		}
+		else if(orderOrPrivilege == 2){
+			// 已特权
+			$('privilegeLi').className = 'on';
+			$('orderLi').className = '';
+			$('lookNoOrderLi').className = '';
+			$('regiterNoOrderIdLi').className = '';
+			$('ordersLi').className = '';
+        	$('grandsonNumBlock').hide();
+        	$('sonNumBlock').hide();
+        	$('agentOrderList').className='agentOrderList mt9';
+		}
+		else if(orderOrPrivilege == 5){
+			// 出几单
+			$('ordersLi').className = 'on';
+			$('orderLi').className = '';
+			$('privilegeLi').className = '';
+			$('lookNoOrderLi').className = '';
+			$('regiterNoOrderIdLi').className = '';
+			$('grandsonNumBlock').hide();
+        	$('sonNumBlock').hide();
+        	$('agentOrderList').className='agentOrderList mt9';
+		}
+		else if(orderOrPrivilege == 3){
+			// 已注册
+			$('privilegeLi').className = '';
+			$('orderLi').className = '';
+			$('lookNoOrderLi').className = '';
+			$('regiterNoOrderIdLi').className = 'on';
+			$('ordersLi').className = '';
+			if(sonOrGrandSon == 2){
+	        	$('sonNumBlock').hide();
+				AgentLogic.countSelfOrderGrandson();
+	    	}
+	    	else{
+	        	$('grandsonNumBlock').hide();
+	    		AgentLogic.countSelfOrderSon();
+	    	}
+			$('agentOrderList').className='agentOrderList';
+		}
+		if(sonOrGrandSon == 2){
+    		$('lookNoOrderLi').hide();
+    		$('topBox').className = 'top-cat-box top-cat-box-3';
+    	}
+    	else{
+    		$('lookNoOrderLi').show();
+    		$('topBox').className = 'top-cat-box top-cat-box-4';
+    	}
+    	var f = $('next-form');
+    	var container = $('agentContainer');
+		var currentPageNum = parseInt(f.currentPageNum.value);
+		if(isFirst){
+			currentPageNum = 0;
+			var childs = container.childNodes;
+			var childsLength = childs.length;
+			for(var i = 0; i < childsLength; i++) {
+				container.removeChild(childs[0]);
+			}
+		}
+		pageNum = currentPageNum+1; 
+		var totalPage = 1;
+		var pageSize = 50;
+		var params = {
+			dispatch : 'fetchListByFriendGroup',
+			key : 'AgentAction.fetchListByFriendGroup',
+			pageNum : pageNum,
+			pageSize : pageSize,
+			requestType : sonOrGrandSon,
+			orderOrPrivilege : orderOrPrivilege
+		};
+		
+		var action = goMainLand('/AgentAction.do');
+		Ajax.send(action, params, function() {
+			$('orderOrPrivilege').value = orderOrPrivilege;
+			var map = DB.get(params.key);
+			var t = $('tAgentItem');
+			var arr = map.agentList;
+			totalPage = map.totalPage;
+			var totalAgentNum = map.totalAgentNum;
+			var code = map.code;
+			if(code != 0){
+				return;
+			}
+			
+			if(pageNum==1){
+				$('allNum').innerHTML = '全部('+totalAgentNum+')';
+			}	
+			
+			for (var i = 0; i < arr.length; i++) {
+				var agent = arr[i];
+				
+				agent.agentCdate = new Date(agent.agentCdate).format('yyyy-mm-dd HH:MM');
+				if(!agent.teamNum){
+					agent.teamNum = 0;
+				}
+				
+				agent.phoneNumBlur = blurPhoneNum(agent.phoneNum);
+				agent.phoneNum = realPhoneNum(agent.phoneNum);	
+						
+				var clone = t.clone(agent);
+				if(agent.agentHeadUrl){
+					var headImg = clone.child('img', 'headUrl');	
+					headImg.setAttribute('_src', agent.agentHeadUrl);
+					//clone.child('img', 'headUrl').src = agent.agentHeadUrl;
+				}	
+				
+			//	clone.child('small', 'phoneAccount').innerHTML = '手机:'+(agent.phoneNum==null?'未设置':agent.phoneNum);				
+							
+				if(agent.selfOrderNum){
+					clone.child('em', 'hasSelfOrder').block();
+				}else{
+					clone.child('small', 'noSelfOrder').block();
+				}
+				
+				if(agent.selfOrderConfirmNum){
+					clone.child('i', 'hasSelfOrderConfirm').block();
+				}else{
+					clone.child('small', 'noSelfOrderConfirm').block();
+				}
+				
+				if(agent.agentPhoneVerifyStatus!=1){
+					clone.child('span', 'showPhoneNum').hide();
+					clone.child('span', 'agentId').block();
+				}else{
+					clone.child('span', 'phonNum').block();
+				}
+				
+				
+//				if(agent.mpUser.mpSubscribeStatus==-1){
+//					clone.child('span', 'cancelSubscribe').inline();
+//				}	
+				// 加入页面
+				container.appendChild(clone);
+			}	
+			
+			if(pageNum >= totalPage){
+				if($('theEnded')){
+					$('theEnded').show();
+				}
+			}			
+			f.currentPageNum.value=pageNum;
+			
+			// 没有数据
+			if (map.totalOrderNum == 0) {
+				$('theEnded').hide();
+			}
+			
+			// 延时加载图片
+			delayload( {
+				id : [ 'agentContainer' ],
+				src : '/img/demo-user-0.jpg',
+				isSquare : false
+			});
+			
+		});	
+	},
+	
+	showFourtotalNum : function(sonOrGrandSon){
+		var params = {
+				dispatch : 'showFourtotalNum',
+				key : 'AgentAction.showFourtotalNum',
+				sonOrGrandSon : sonOrGrandSon
+			};
+			
+		var action = goMainLand('/AgentAction.do');
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			if(code != 0){
+				return;
+			}
+			var lookNoOrder = map.lookNoOrder || 0;
+			var regiterNoOrder = map.regiterNoOrder || 0;
+			var order = map.order || 0;
+			var privilege = map.privilege || 0;
+			var orders = map.order || 0;
+			// 默认显示出2单
+			var orderNum = map.orderNum || 2;
+			$('ordersTitle').innerHTML = '出' + orderNum + '单';
+			$('lookNoOrder').innerHTML = '(' + lookNoOrder + ')';
+			$('regiterNoOrder').innerHTML = '(' + regiterNoOrder + ')';
+			$('order').innerHTML = '(' + order + ')';
+			$('privilege').innerHTML = '(' + privilege + ')';
+			$('orders').innerHTML = '(' + orders + ')';
+		});
+	}
+};
+
+var oldGetCodeFunc;
+var wait = 180;
+function time(){
+	if(wait == 0){
+		$('getCheckCode').onclick = oldGetCodeFunc;
+		$('countTime').innerHTML = '';
+		oldGetCodeFunc = null;
+		wait = 180;
+	}
+	else{
+		if(!oldGetCodeFunc){
+			oldGetCodeFunc = $('getCheckCode').onclick;
+			$('getCheckCode').onclick = function() {};
+		}
+		$('countTime').innerHTML = wait + '秒后可重试';
+		wait--;
+		setTimeout(function(){
+			time();
+			},
+		1000)
+	}
+}
+
+function timeForPassword(){
+	if(wait == 0){
+		$('getCheckCode').onclick = oldGetCodeFunc;
+		$('getCheckCode').value = '获取验证码';
+		oldGetCodeFunc = null;
+		wait = 180;
+	}
+	else{
+		if(!oldGetCodeFunc){
+			oldGetCodeFunc = $('getCheckCode').onclick;
+			$('getCheckCode').onclick = function() {};
+		}
+		$('getCheckCode').value = wait + '秒后可重试';
+		wait--;
+		setTimeout(function(){
+			timeForPassword();
+			},
+		1000)
+	}
+}
+
+function timeForAppReg(){
+	if(wait == 0){
+		$('getCheckCode').onclick = oldGetCodeFunc;
+		$('getCheckCode').value = '获取验证码';	
+		oldGetCodeFunc = null;
+		wait = 180;
+	}
+	else{
+		if(!oldGetCodeFunc){
+			oldGetCodeFunc = $('getCheckCode').onclick;
+			$('getCheckCode').onclick = function() {};
+		}
+		$('getCheckCode').value = wait + '秒后可重试';
+		wait--;
+		setTimeout(function(){
+			timeForAppReg();
+			},
+		1000)
+	}
+}
+

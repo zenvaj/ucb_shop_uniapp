@@ -1,0 +1,3858 @@
+var zbGoodsSeqeuenceTime;
+var currentGoods;
+var replaceImage;
+var goodsImgList = new Array();
+var goodsImgs = new Array();
+var goodsImgsIndex = 0;
+var goodsImgsStringBuilder = "";
+var selectedImgsList = new Array();
+var lastIndex = 0;
+
+AgentGoodsLogic = {
+	showInfo: function(goodsTbId, isOutsideGoods, contextPath, sellerId, taokerGoodsId){
+		if(!isOutsideGoods){// 默认不是系统外获取的商品（即goods表中的商品）
+			isOutsideGoods = 0;
+		}
+	// location.href=contextPath+"/am/index-item.jsp?goodsTbId="+goodsTbId+"&isOutsideGoods="+isOutsideGoods+"&sellerId="+sellerId+"&appId="+appId;
+		var href = contextPath+"/am/index-item.jsp?goodsTbId="+goodsTbId+"&isOutsideGoods="+isOutsideGoods+"&sellerId="+sellerId;
+		if(appId){
+			href += "&appId="+appId;
+		}
+		if(taokerGoodsId){// 自定义商品（taokerGoods表）
+			href += "&taokerGoodsId="+taokerGoodsId;
+		}
+		location.href=href;
+	},	
+	
+	showPddInfo: function(itemId, contextPath){
+		var href = contextPath+"/am/dd-item.jsp?itemId="+itemId;
+		if(appId){
+			href += "&appId="+appId;
+		}
+		location.href=href;
+	},
+	
+	showInfo4NewFree: function(goodsTbId, isOutsideGoods, contextPath, sellerId){
+		var params = {			
+			key : 'AgentAction.newFreeShowType',
+			dispatch : 'newFreeShowType'
+		};
+		var action = '/AgentAction.do';
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			if(code==0){
+				var href;
+				var type = map.type;
+				if(type==1){
+					href = "../am/index-single-free.jsp?goodsTbId="+goodsTbId+"&isOutsideGoods="+isOutsideGoods+"&sellerId="+sellerId;
+				}else{
+					href = "../am/index-item-free.jsp?goodsTbId="+goodsTbId+"&isOutsideGoods="+isOutsideGoods+"&sellerId="+sellerId;
+				}	
+				if(appId){
+					href += "&appId="+appId;
+				}
+				location.href=href;
+			}	
+		});		
+	},
+	
+	showPromotion : function(contextPath, isOutsideGoods){
+		var params = {			
+			dispatch : 'fetchWithMp',
+			key : 'AgentAction.fetchWithMp',
+			goodsTbId : currentGoods.goodsTbId
+		};
+		var action = goMainLand('/AgentAction.do');
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			if(code==0){// 自己有推广位
+				var agent = map.agent;
+				var taokerPidId = map.taokerPidId;					
+					
+				if(taokerPidId){
+					GoodsLogic.getKouling(taokerPidId, isOutsideGoods);
+					return;
+				}else{
+					$('tips_1').innerHTML = "推广位不足，请联系管理员";
+					$('puOpenPrompt').open();
+					return;
+				}
+			}else if(code==-1){// 自己无推广位，按照规则，匹配不到推广位
+				var mp = map.mp;
+				$('tips_1').innerHTML = map.msg;
+				$('tips_2').href = contextPath + '/am/taoker-agent-set-phone.jsp?appId='+mp.appid;
+				$('tips_2').innerHTML = "点击设置手机号码";
+				$('tips_2').inline();
+				$('puOpenPrompt').open();
+				return;
+			}else if(code==-5){// 自己无推广位，按照规则，匹配到推广位
+				var mp = map.mp;
+				var taokerPidId = map.taokerPidId;
+				// 口令
+				$('copyKeyAndroid').setAttribute('class', 'inputArea');
+				$('copyKeyIos').setAttribute('class', 'inputText');
+				GoodsLogic.getKoulingPlain(taokerPidId, isOutsideGoods);
+				
+				// 提示设置手机号
+				$('commission').innerHTML = '￥' + currentGoods.tkValue;
+				$('assignAgent').href = contextPath + '/am/taoker-agent-set-phone.jsp?appId='+mp.appid;
+				$('setPhone').show();
+			}else if(code==-6){// 需要回填订单号认领订单
+				var taokerPidId = map.taokerPidId;
+				if(taokerPidId){					
+					var showRenling = true;
+					GoodsLogic.getKouling(taokerPidId, isOutsideGoods, showRenling);
+					return;
+				}else{
+					$('tips_1').innerHTML = "没有设置默认推广位，请联系管理员";
+					$('puOpenPrompt').open();
+					return;
+				}
+			}else{
+				$('tips_1').innerHTML = map.msg;
+				$('puOpenPrompt').open();
+				return;
+			}	
+		});			
+		
+	},
+	
+	showPromotion2 : function(contextPath, isOutsideGoods, taokerPidId){
+		GoodsLogic.getKouling(taokerPidId, isOutsideGoods, null, 1);
+	},
+	
+	// QingTing工程 agent-item-share.jsp
+	showPromotionShare : function(isOutsideGoods, agentId, goodsTbId){
+		var params = {			
+			dispatch : 'fetchWithMp',
+			key : 'AgentAction.fetchWithMp',
+			agentId : agentId,
+			goodsTbId : goodsTbId
+		};
+		var action = C.mpServer + '/AgentAction.do';
+//		if(agentId == null){
+//			/*
+//			 * 2018年12月11日13:20:35
+//			 * 当agentId是空的时候,是在mp下访问该逻辑
+//			 * 必须去掉C.mpServer,否则会因为域名不一致导致服务器端取不到agent 
+//			 */ 
+//			action = '/AgentAction.do';
+//		}
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			if(code==0){// 自己有推广位
+				var agent = map.agent;
+				var taokerPidId = map.taokerPidId;
+				if(taokerPidId){
+					GoodsLogic.getKouling(taokerPidId, isOutsideGoods, null, 1);
+					return;
+				}
+			}else if(code==-6){// 需要回填订单号认领订单
+				if(agentId == null){
+					alert('推广位不足，请联系管理员');
+					return false;
+				}
+				var taokerPidId = map.taokerPidId;
+				if(taokerPidId){					
+					AgentGoodsLogic.showQrNoPid(agentId, goodsTbId, isOutsideGoods);
+					return;
+				}else{
+					$('tips_1').innerHTML = "没有设置默认推广位，请联系管理员";
+					$('puOpenPrompt').open();
+					return;
+				}
+			}else{
+				$('tips_1').innerHTML = map.msg;
+				$('puOpenPrompt').open();
+				return;
+			}	
+		});		
+	},
+	
+	showQrNoPid : function(agentId, goodsTbId, isOutsideGoods) {
+		var params = {			
+			dispatch : 'showQrNoPid',
+			key : 'AgentAction.showQrNoPid',
+			agentId : agentId,
+			goodsTbId : goodsTbId,
+			isOutsideGoods : isOutsideGoods
+		};
+		var action = C.mpServer + '/AgentAction.do';
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			var content = map.content;
+			if(code==0){
+				$('qrImg').src = C.mpServer + content + '?' + Math.random();
+				$('puKefu').open();
+			}
+		});
+	},	
+	
+	// 提示开通代理
+	assignNotify : function(contextPath, mp, taokerPidId, goods){
+		$('commission').innerHTML = '￥' + goods.tkValue;
+		$('assignAgent').href = contextPath + '/am/taoker-agent-set-phone.jsp?appId='+mp.appid;
+		
+		$('notAssignAgent').onclick = function(){
+			GoodsLogic.getKouling(taokerPidId, 0);
+			return false;
+		}	
+		$('puAssignPrompt').open();
+	},
+	
+	goodsPoster : function(domain, contextPath){
+		//从大陆服务器获取sharePidStatus
+		var paramsSon = {			
+				key : 'MpAction.jsSharePidStatus',
+				dispatch : 'jsSharePidStatus'
+		};
+		var actionSon = goMainLand('/MpAction.do');
+		Ajax.send(actionSon, paramsSon, function() {
+			var map = DB.get(paramsSon.key);
+			var code = map.code;
+			var sharePidStatus = 0;
+			if(code == 1){
+				sharePidStatus = map.sharePidStatus;
+			}
+			
+			
+			if(sharePidStatus==1){// 共享pid
+				var params = {			
+					dispatch : 'fetchWithMp',
+					key : 'AgentAction.fetchWithMp'
+				};
+//				var action = '/AgentAction.do';
+				var action = goMainLand('/AgentAction.do');
+				Ajax.send(action, params, function() {
+					var map = DB.get(params.key);
+					var code = map.code;
+					if(code==0){
+						domain = map.domain;
+						if(!domain){
+							$('tips_1').innerHTML = "没有设置域名";
+							$('puOpenPrompt').open();
+							return;
+						}
+						var agent = map.agent;
+						var agentId = agent.agentId;
+						var taokerId = agent.topTaokerId;
+						if(agentId != null){
+							AgentGoodsLogic.generatePoster(domain,contextPath,null,taokerId,agentId);
+						}else{
+							PuLayer.alert('创建用户身份失败');
+						}					
+					}else{
+						PuLayer.alert(map.msg);
+					}	
+				});
+			}else{// 固定pid
+				var params = {			
+					dispatch : 'fetchWithMp',
+					key : 'AgentAction.fetchWithMp'
+				};
+//				var action = '/AgentAction.do';
+				var action = goMainLand('/AgentAction.do');
+				Ajax.send(action, params, function() {
+					var map = DB.get(params.key);
+					var code = map.code;			
+					if(code==0){
+						domain = map.domain;
+						if(!domain){
+							$('tips_1').innerHTML = "没有设置域名";
+							$('puOpenPrompt').open();
+							return;
+						}
+						var agent = map.agent;
+						var taokerPidId = agent.taokerPidId;
+						var agentId = agent.agentId;
+						var taokerId = agent.topTaokerId;
+						if(taokerPidId){
+							AgentGoodsLogic.generatePoster(domain,contextPath,taokerPidId,taokerId,agentId);
+							return;
+						}else{
+							$('tips_1').innerHTML = "推广位不足，请联系管理员";
+							$('puOpenPrompt').open();
+							return;
+						}
+						return;
+					}else if(code==-5){
+						var mp = map.mp;
+						$('assignAgent2').href = contextPath + '/am/taoker-agent-set-phone.jsp?appId='+mp.appid;
+						$('puAssignPrompt2').open();
+						return;
+					}else{
+						$('tips_1').innerHTML = map.msg;
+						$('puOpenPrompt').open();
+						return;
+					}
+				});				
+			}
+		});
+		
+	},
+	
+	generatePoster : function(domain,contextPath,taokerPidId,taokerId,agentId){
+		var goodsTitle;
+		if(currentGoods.originalTitle){
+			goodsTitle = currentGoods.originalTitle;
+		}else{
+			goodsTitle = currentGoods.goodsTitle;
+		}	
+		
+		$('copyTitleButton').innerHTML = '复制标题<i></i>';
+		$('copyTitleAndroid').value = goodsTitle;
+		$('copyTitleIos').innerHTML = goodsTitle;
+		
+		if($('copyDescButton')){
+			$('copyDescButton').innerHTML = '复制文案<i></i>';
+		}
+		
+		var cl = "CHANGE_LINE";
+		var line = '----------';
+		var goodsFrom = currentGoods.goodsFrom;
+		var goodsFromStr = '';
+		if(goodsFrom == 1){
+			goodsFromStr = '淘宝';
+		}
+		else if(goodsFrom == 2){
+			goodsFromStr = '天猫';
+		}
+		else if(goodsFrom == 3){
+			goodsFromStr = '聚划算';
+		}
+		else if(goodsFrom == 10){
+			goodsFromStr = '拼多多';
+		}
+		else if(goodsFrom == 20){
+			goodsFromStr = '京东';
+		}
+		
+		var promotionText = currentGoods.goodsTitle + cl;
+		promotionText += line + cl;
+		promotionText += '券后￥' + currentGoods.floorPrice + '【优惠券' + currentGoods.quanValue + '元】' + cl;
+		promotionText += '原价￥' + currentGoods.goodsPrice + '【' + goodsFromStr + '】' + cl;
+		promotionText += line + cl;
+		if(currentGoods.goodsDesc){
+			promotionText += currentGoods.goodsDesc + cl;
+			promotionText += line + cl;
+		}
+//		promotionText += "长按图片->识别二维码->立即抢券";
+		promotionText += "长按识别二维码，复制口伶或网址，打开手机淘宝，领券下单[玫瑰]";
+			
+		$('copyDesc4Android').value = promotionText.replaceAll(cl, '\n');
+		$('copyDescIos').innerHTML = promotionText.replaceAll(cl, '<br/>');
+		
+//		var action = '/GoodsAction.do';
+		var action = goMainLand('/GoodsAction.do');
+		var isOutsideGoods =  currentGoods.isOutsideGoods == 1 ? 1 : 0;
+		var goodsTbId = currentGoods.goodsTbId;
+		var sellerId = currentGoods.sellerId;
+		var url = null;
+		
+		
+		//从大陆服务器获取sharePidStatus
+		var paramsSon = {			
+				key : 'MpAction.jsSharePidStatus',
+				dispatch : 'jsSharePidStatus'
+		};
+		var actionSon = goMainLand('/MpAction.do');
+		Ajax.send(actionSon, paramsSon, function() {
+			var map = DB.get(paramsSon.key);
+			var code = map.code;
+			var sharePidStatus = 0;
+			if(code == 1){
+				sharePidStatus = map.sharePidStatus;
+			}
+			
+			
+			if(sharePidStatus==1){
+				if(domain.indexOf('kuaizhan.com')>-1){
+					if(domain.indexOf('https')==-1){
+						domain = domain.replace('http', 'https');
+					}
+					url = domain + '?sai-'+goodsTbId+"-"+sellerId+"-"+agentId+"-"+taokerId+"-"+isOutsideGoods+'.htm';
+				}else{
+					var path = "/sai/"+goodsTbId+"-"+sellerId+"-"+agentId+"-"+taokerId+"-"+isOutsideGoods+".htm";
+//					path = Encrypt.base64encode(path);
+//					path = encodeURIComponent(path);			
+//					url = domain + '/' + path;
+					
+					url = domain + path;
+				}			
+			}else{
+				if(domain.indexOf('kuaizhan.com')>-1){
+					if(domain.indexOf('https')==-1){
+						domain = domain.replace('http', 'https');
+					}				
+					url = domain + '?ai-'+goodsTbId+"-"+sellerId+"-"+taokerPidId+"-"+taokerId+"-"+agentId+"-"+isOutsideGoods+".htm";
+				}else{
+					var path = "/ai/"+goodsTbId+"-"+sellerId+"-"+taokerPidId+"-"+taokerId+"-"+agentId+"-"+isOutsideGoods+".htm";
+//					path = Encrypt.base64encode(path);
+//					path = encodeURIComponent(path);			
+//					url = domain + '/' + path;
+					
+					url = domain + path;
+				}
+			}	
+			
+			var params = {
+				key : 'Goods.goodsPoster',
+				goodsTbId : goodsTbId,
+				scGoodsTbId : goodsTbId,
+				isOutsideGoods : isOutsideGoods,
+				userTableType : 2,
+				url : url,
+				dispatch : 'goodsPoster'
+			};
+			$('posterImg').src = contextPath + '/img/loading-max.gif';
+			$('holdInfo').show();
+			$('opInfo').hide();
+			
+	// if(Sysolar.appType){
+	// $('puGeneratePaper').style.position="fixed";
+	// $('puGeneratePaper').style.top="150px";
+	// }
+			$('puGeneratePaper').open();
+			
+			Ajax.send(action, params, function() {
+				var map = DB.get(params.key);
+				var code = map.code;
+				var content = map.content;
+				if(code != 0){
+					$('tips_1').innerHTML = map.msg;
+					$('puOpenPrompt').open();
+				}
+				else{
+					$('posterImg').src = C.zzServer + '/goodsPoster/' + content + '.jpg?' + Math.random();
+					$('holdInfo').hide();
+					if(Sysolar.appType){
+						$('btnDiv_app').show();
+						var div = $('shareDiv');
+						div.show();
+					}
+					else{
+						$('opInfo').show();
+						
+						// 站内商品
+						if($('btnDiv_1')){
+							$('btnDiv_1').show();
+						}
+						// 站外商品
+						if($('btnDiv_2')){
+							$('btnDiv_2').show();
+						}
+					}
+				}
+			});
+		});
+					
+	},	
+	
+	fetchShopUrl : function(contextPath){		
+		var params = {			
+			dispatch : 'fetchShopUrl',
+			key : 'AgentAction.fetchShopUrl'
+		};
+		var action = '/AgentAction.do';
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			if(code==0){
+				if(isEnhancedTaoker==1){
+					$('copyShopUrlAndroid').setAttribute('class', 'inputArea inputArea-2');
+					$('copyShopUrlIos').setAttribute('class', 'inputText inputText-2');
+				}	
+				$('copyShopUrlAndroid').value= "正在生成商城地址...";
+				$('copyShopUrlIos').innerHTML = "正在生成商城地址...";
+				
+				if(Sysolar.appType){
+			    	$('copyShopUrlButton').hide();
+					$('copyShopUrlButtonApp').show();
+				}
+				else{
+					$('copyShopUrlButtonApp').hide();
+					$('copyShopUrlButton').show();
+				}
+				
+				$('puShopUrl').open();
+				var shortUrl = map.shortUrl;
+				var shopUrl = map.shopUrl;
+				if(!shortUrl){
+					shortUrl = "短地址获取失败，请重试";
+				}else if(isEnhancedTaoker==1){
+					$('copyShopUrlAndroid').value= "粉丝福利优惠券商城，别的地方看不到哦！\n数万种优惠券任你选！每日更新，长期有效，建议大家收藏！欢迎转发。实实在在的帮你省钱！\n"+shortUrl;
+					$('copyShopUrlIos').innerHTML = "粉丝福利优惠券商城，别的地方看不到哦！<br/>数万种优惠券任你选！每日更新，长期有效，建议大家收藏！欢迎转发。实实在在的帮你省钱！<br/>"+shortUrl;
+				}else{
+					$('copyShopUrlAndroid').value= shortUrl;
+					$('copyShopUrlIos').innerHTML = shortUrl;
+				}				
+				$('shopLink').href = shopUrl;
+			}else if(code==-1){
+				var mp = map.mp;
+				$('tips_1').innerHTML = map.msg;
+				$('tips_2').href = contextPath + '/am/taoker-agent-set-phone.jsp?appId='+mp.appid;
+				$('tips_2').innerHTML = "点击设置手机号码";
+				$('tips_2').inline();
+				$('puOpenPrompt').open();
+				return;
+			}else{
+				$('tips_1').innerHTML = map.msg;
+				$('puOpenPrompt').open();
+				return;
+			}	
+		});					
+	},	
+	
+	zbList : function(taokerId) {    
+		var container = $('goodsContainer');
+		var f = $('next-form');
+		var currentPageNum = parseInt(f.currentPageNum.value);
+    	var goodsList = container.getElementsByClassName("live-item-box");
+    	if(goodsList.length==0 && currentPageNum>0){
+    		f.currentPageNum.value = parseInt(f.currentPageNum.value)-1;
+    		isBack = 1;
+    	}	
+    	currentPageNum = parseInt(f.currentPageNum.value);
+    	var pageNum = currentPageNum+1;
+    	$('next-load').show();	
+		var totalPage = 1;
+		var params = {			
+			key : 'GoodsAction.zbGoodsList',
+			dispatch : "zbGoodsList",
+			pageSize : 30,
+			pageNum : pageNum,
+			taokerId : taokerId
+		};
+		var action = C.qt2Server + '/l/GoodsAction.do';
+	// action = 'http://localhost/QingTing/l/GoodsAction.do';
+		Ajax.send(action, params, function() {
+			$('next-load').hide();			
+			var map = DB.get(params.key);
+			var code = map.code;
+			var arr = map.goodsList;
+			var now = map.now;
+			var totalPage = map.totalPage;
+			for (var i = 0; i < arr.length; i++) {
+				var goods = arr[i];
+				if(pageNum==1 && i==0){
+					zbGoodsSeqeuenceTime = goods.sequenceTime;
+				}	
+				var t;
+				if(goods.goodsTbId){
+					t = $('tGoodsItem');
+				}else{
+					t = $('tCustomerGoodsItem');
+				}	
+				
+				if(goods.hiqualityImageHref){
+					if(isNeedImgSubfix(goods.hiqualityImageHref)){
+						goods.imageHref = goods.hiqualityImageHref + '_310x310q90.jpg';
+					}
+					goods.imageHref = goods.hiqualityImageHref;
+				}else if(isNeedImgSubfix(goods.imageHref)){
+					goods.imageHref = goods.imageHref + '_310x310q90.jpg';
+				}
+				
+	            if(goods.sequenceTime){
+	            	var timeDiff = now-goods.sequenceTime;	            	
+	                if(i==0 && timeDiff<1000*60*60){
+	                    goods.sequenceTime='刚刚';
+	                }else if(timeDiff<1000*60*60) {
+	                    var minute = Math.ceil((now-goods.sequenceTime)/(1000*60));	                    
+	                    goods.sequenceTime=minute+"分钟前";
+	                }else{
+	                	goods.sequenceTime=new Date(parseInt(goods.sequenceTime)).format('HH:MM:SS');
+	                }
+	            }
+	            
+	            if(goods.tkValue){
+					goods.tkValuePrivilege = Math.floor(goods.tkValue * privilegeRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+					goods.tkValue = Math.floor(goods.tkValue * agentRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+	            }else{
+					goods.tkValue = 0;
+					goods.tkValuePrivilege = 0;
+				}
+	            
+				var clone = t.clone(goods);	
+				
+				if(goods.goodsTbId){
+		            if(goods.goodsFrom==2){
+		            	clone.child('i','icon-tmall-13').block();
+		            }
+	            	if(!goods.customerGoodsDesc){
+	            		clone.child('div','customerGoodsDesc').hide();
+	            	}		            
+				}else{// 自定义图片文案
+	            	if(!goods.customerImageHref){
+	            		clone.child('div','customerImage').hide();
+	            	}	
+	            	if(!goods.customerGoodsDesc){
+	            		clone.child('div','customerGoodsDesc').hide();
+	            	}	
+	            }
+				
+				if(goods.goodsTbId){// 是商品才显示佣金
+					if(privilegeRatio){
+						clone.child('h4', 'hasPrivilege').show();
+					}else{
+						clone.child('h4', 'noPrivilege').show();
+					}
+				}
+				
+				// 加入页面
+				container.appendChild(clone);
+			}
+			
+			// 下一页
+			var dom = $('next-page');
+			if(pageNum < totalPage){
+				dom.son('small').setHtml(pageNum + '/' + totalPage);
+				// dom.show();
+			}
+			else {
+				dom.hide();
+				if($('theEnded')){
+					$('theEnded').show();
+				}
+			} 
+			f.currentPageNum.value=pageNum;
+			// 延时加载图片
+			delayload( {
+				id : [ 'goodsContainer' ],
+				src : '/img/loading300-2.gif',
+				isSquare : false
+			});
+		});
+	},
+	
+	zbNewGoodsNum : function(taokerId) {
+		if(!zbGoodsSeqeuenceTime){
+			return;
+		}
+		
+		var params = {			
+			key : 'GoodsAction.zbNewGoods',
+			dispatch : "zbNewGoods",
+			taokerId : taokerId,
+			sequenceTime : zbGoodsSeqeuenceTime 
+		};
+		var action = C.qt2Server + '/l/GoodsAction.do';
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var newGoodsNum = map.newGoodsNum;
+			if(newGoodsNum>0){
+				$('newGoodsNum').innerHTML = newGoodsNum;
+				$('liveNewGoods').show();				
+			}	
+		});
+	},
+	
+	refreshPage : function(taokerId) {
+		zbGoodsSeqeuenceTime = null;
+		$('next-form').currentPageNum.value='0';
+		$('goodsContainer').innerHTML = '';
+		
+		AgentGoodsLogic.zbList(taokerId);
+		$('liveNewGoods').hide();			
+	},
+	
+	promotionGoodsList : function(type) {    
+		var container = $('goodsContainer');
+		var f = $('next-form');
+		var currentPageNum = parseInt(f.currentPageNum.value);
+    	var goodsList = container.getElementsByClassName("live-item-box");
+    	if(goodsList.length==0 && currentPageNum>0){
+    		f.currentPageNum.value = parseInt(f.currentPageNum.value)-1;
+    		isBack = 1;
+    	}	
+    	currentPageNum = parseInt(f.currentPageNum.value);
+    	var pageNum = currentPageNum+1;
+    	$('next-load').show();	
+		var totalPage = 1;
+		var params = {			
+			key : 'GoodsAction.promotionGoodsList',
+			dispatch : "promotionGoodsList",
+			pageSize : 30,
+			pageNum : pageNum,
+			type : type
+		};
+		
+		var action = C.qt2Server + '/l/GoodsAction.do';
+	// action = 'http://localhost/QingTing/l/GoodsAction.do';
+		Ajax.send(action, params, function() {
+			$('next-load').hide();			
+			var map = DB.get(params.key);
+			var code = map.code;
+			var arr = map.goodsList;
+			var now = map.now;
+			var totalPage = map.totalPage;
+			for (var i = 0; i < arr.length; i++) {
+				var goods = arr[i];
+				var t = $('tGoodsItem');			
+				
+				if(goods.hiqualityImageHref){
+					if(isNeedImgSubfix(goods.hiqualityImageHref)){
+						goods.imageHref = goods.hiqualityImageHref + '_310x310q90.jpg';
+					}
+					goods.imageHref = goods.hiqualityImageHref;
+				}else if(isNeedImgSubfix(goods.imageHref)){
+					goods.imageHref = goods.imageHref + '_310x310q90.jpg';
+				}
+				
+	            if(goods.orderCdate){
+	            	var timeDiff = now-goods.orderCdate;	            	
+	                if(i==0 && timeDiff<1000*60*60){
+	                    goods.time='刚刚出单';
+	                }else if(timeDiff<1000*60*60) {
+	                    var minute = Math.ceil((now-goods.orderCdate)/(1000*60));	                    
+	                    goods.time=minute+"分钟前出单";
+	                }else{
+	                	goods.time=new Date(parseInt(goods.orderCdate)).format('HH:MM:SS') + '出单';
+	                }
+	            }
+	           
+	            if(goods.tkValue){
+					goods.tkValuePrivilege = Math.floor(goods.tkValue * privilegeRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+					goods.tkValue = Math.floor(goods.tkValue * agentRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+	            }else{
+					goods.tkValue = 0;
+					goods.tkValuePrivilege = 0;
+				}
+	            
+	            if(agentRatio!=0 && goods.tkValue==0){// 没有佣金
+	            	continue;
+	            }	
+	            
+				var clone = t.clone(goods);	
+				
+	            if(goods.goodsFrom==2){
+	            	clone.child('i','icon-tmall-13').block();
+	            }
+	            
+				if(privilegeRatio){
+					clone.child('h4', 'hasPrivilege').show();
+				}else{
+					clone.child('h4', 'noPrivilege').show();
+				}
+				
+// if(goods.agentHeadUrl){
+// clone.child('img', 'headUrl').src = goods.agentHeadUrl;
+// clone.child('img', 'headUrl2').src = goods.agentHeadUrl;
+// }
+				
+				// 加入页面
+				container.appendChild(clone);
+			}
+			
+			// 下一页
+			var dom = $('next-page');
+			if(pageNum < totalPage){
+				dom.son('small').setHtml(pageNum + '/' + totalPage);
+				// dom.show();
+			}
+			else {
+				dom.hide();
+				if($('theEnded')){
+					$('theEnded').show();
+				}
+			} 
+			f.currentPageNum.value=pageNum;
+			// 延时加载图片
+			delayload( {
+				id : [ 'goodsContainer' ],
+				src : '/img/loading300-2.gif',
+				isSquare : false
+			});
+		});
+	},
+	
+	goodsFreePoster : function(domain, contextPath){
+		//从大陆服务器获取sharePidStatus
+		var paramsSon = {			
+				key : 'MpAction.jsSharePidStatus',
+				dispatch : 'jsSharePidStatus'
+		};
+		var actionSon = goMainLand('/MpAction.do');
+		Ajax.send(actionSon, paramsSon, function() {
+			var map = DB.get(paramsSon.key);
+			var code = map.code;
+			if(code == 1){
+				sharePidStatus = map.sharePidStatus;
+			}
+
+			if(sharePidStatus==1){// 共享pid
+				var params = {			
+					dispatch : 'fetchWithMp',
+					key : 'AgentAction.fetchWithMp'
+				};
+//				var action = '/AgentAction.do';
+				var action = goMainLand('/AgentAction.do');
+				Ajax.send(action, params, function() {
+					var map = DB.get(params.key);
+					var code = map.code;
+					if(code==0){
+						domain = map.domain;
+						if(!domain){
+							$('tips_1').innerHTML = "没有设置域名";
+							$('puOpenPrompt').open();
+							return;
+						}
+						var agent = map.agent;
+						var agentId = agent.agentId;
+						var taokerId = agent.topTaokerId;
+						if(agentId != null){
+							AgentGoodsLogic.generateFreePoster(domain,contextPath,null,taokerId,agentId);
+						}else{
+							PuLayer.alert('创建用户身份失败');
+						}					
+					}else{
+						PuLayer.alert(map.msg);
+					}	
+				});
+			}else{// 固定pid
+				var params = {			
+					dispatch : 'fetchWithMp',
+					key : 'AgentAction.fetchWithMp',
+					goodsTbId : currentGoods.goodsTbId
+				};
+//				var action = '/AgentAction.do';
+				var action = goMainLand('/AgentAction.do');
+				Ajax.send(action, params, function() {
+					var map = DB.get(params.key);
+					var code = map.code;			
+					if(code==0){
+						domain = map.domain;
+						if(!domain){
+							$('tips_1').innerHTML = "没有设置域名";
+							$('puOpenPrompt').open();
+							return;
+						}
+						var agent = map.agent;
+						var taokerPidId = agent.taokerPidId;
+						var agentId = agent.agentId;
+						var taokerId = agent.topTaokerId;
+						if(taokerPidId){
+							AgentGoodsLogic.generateFreePoster(domain,contextPath,taokerPidId,taokerId,agentId);
+							return;
+						}else{
+							$('tips_1').innerHTML = "推广位不足，请联系管理员";
+							$('puOpenPrompt').open();
+							return;
+						}
+						return;
+					}else if(code==-5){
+						var mp = map.mp;
+						$('assignAgent2').href = contextPath + '/am/taoker-agent-set-phone.jsp?appId='+mp.appid;
+						$('puAssignPrompt2').open();
+						return;
+					}else{
+						$('tips_1').innerHTML = map.msg;
+						$('puOpenPrompt').open();
+						return;
+					}
+				});				
+			}
+			
+		});
+		
+	},
+	
+	generateFreePoster : function(domain,contextPath,taokerPidId,taokerId,agentId){
+		var goodsTitle;
+		if(currentGoods.originalTitle){
+			goodsTitle = currentGoods.originalTitle;
+		}else{
+			goodsTitle = currentGoods.goodsTitle;
+		}	
+		
+		$('copyTitleButton').innerHTML = '复制标题<i></i>';
+		$('copyTitleAndroid').value = goodsTitle;
+		$('copyTitleButton').hide();
+		$('copyTitleIos').innerHTML = goodsTitle;
+		$('promptYj').hide();
+		
+		if($('copyDescButton')){
+			$('copyDescButton').removeClass('btn3');
+		}
+		if($('copyCloseButton')){
+			$('copyCloseButton').removeClass('btn3');
+		}
+		if($('copyDescButton')){
+			$('copyDescButton').innerHTML = '复制文案<i></i>';
+		}
+		
+		var cl = "CHANGE_LINE";
+		var line = '----------';
+		var goodsFrom = currentGoods.goodsFrom;
+		var goodsFromStr = '';
+		if(goodsFrom == 1){
+			goodsFromStr = '淘宝';
+		}
+		else if(goodsFrom == 2){
+			goodsFromStr = '天猫';
+		}
+		else if(goodsFrom == 3){
+			goodsFromStr = '聚划算';
+		}
+		else if(goodsFrom == 10){
+			goodsFromStr = '拼多多';
+		}
+		else if(goodsFrom == 20){
+			goodsFromStr = '京东';
+		}
+		
+		var promotionText = currentGoods.goodsTitle + cl;
+		promotionText += line + cl;
+		promotionText += '券后￥' + currentGoods.floorPrice + '【优惠券' + currentGoods.quanValue + '元】' + cl;
+		promotionText += '原价￥' + currentGoods.goodsPrice + '【' + goodsFromStr + '】' + cl;
+		promotionText += line + cl;
+		if(currentGoods.goodsDesc){
+			promotionText += currentGoods.goodsDesc + cl;
+			promotionText += line + cl;
+		}
+//		promotionText += "长按图片->识别二维码->立即抢券";
+		promotionText += "长按识别二维码，复制口伶或网址，打开手机淘宝，领券下单[玫瑰]";
+		
+		//2018年12月11日15:22:08 需求修改免单海报文案如下:
+		promotionText = '今日免单 ‼ 给大家送福利啦！' 
+					  + cl 
+					  + cl 
+					  + '参与"新人免单"活动，即可免费领取本商品！有疑问可找我[玫瑰]'
+					  + cl
+					  + cl 
+					  + '活动流程：①关注公众号 → ②领券下单 → ③等待收货 →  ④确认收货，平台返款 → ⑤提现';
+			
+		$('copyDesc4Android').value = promotionText.replaceAll(cl, '\n');
+		$('copyDescIos').innerHTML = promotionText.replaceAll(cl, '<br/>');
+		
+		var action = '/GoodsAction.do';
+		var isOutsideGoods =  currentGoods.isOutsideGoods == 1 ? 1 : 0;
+		var goodsTbId = currentGoods.goodsTbId;
+		var sellerId = currentGoods.sellerId;
+		
+		var url = null;
+		if(domain.indexOf('kuaizhan.com')>-1){
+			if(domain.indexOf('https')==-1){
+				domain = domain.replace('http', 'https');
+			}
+			url = domain + '?aif-'+goodsTbId+"-"+sellerId+"-"+agentId+"-"+taokerId+"-"+isOutsideGoods+'.htm';
+		}else{
+			var path = "/aif/"+goodsTbId+"-"+sellerId+"-"+agentId+"-"+taokerId+"-"+isOutsideGoods+".htm";
+//	        path = Encrypt.base64encode(path);
+//	        path = encodeURIComponent(path);            
+//	        url = domain + '/' + path;	
+	        
+	        url = domain + path;
+		}	
+
+		
+		var params = {
+			key : 'Goods.goodsPoster',
+			goodsTbId : goodsTbId,
+			scGoodsTbId : goodsTbId,
+			isOutsideGoods : isOutsideGoods,
+			userTableType : 2,
+			url : url,
+			posterType : 1,
+			dispatch : 'goodsPoster'
+		};
+		$('posterImg').src = contextPath + '/img/loading-max.gif';
+		$('holdInfo').show();
+		$('opInfo').hide();
+		
+		$('puGeneratePaper').open();
+		
+		Ajax.send(action, params, function() {
+			var map = DB.get(params.key);
+			var code = map.code;
+			var content = map.content;
+			if(code != 0){
+				$('tips_1').innerHTML = map.msg;
+				$('puOpenPrompt').open();
+			}
+			else{
+				$('posterImg').src = C.zzServer + '/goodsFreePoster/' + content + '.jpg?' + Math.random();
+				$('holdInfo').hide();
+				if(Sysolar.appType){
+					$('btnDiv_app').show();
+					var div = $('shareDiv');
+					div.show();
+				}
+				else{
+					$('opInfo').show();
+					
+					if($('btnDiv_1')){
+						$('btnDiv_1').show();
+					}
+					if($('btnDiv_2')){
+						$('btnDiv_2').show();
+					}
+				}
+			}
+		});			
+	}
+};
+
+GoodsLogic = {
+		// 商品海报跳转页面用
+		fetchItem2: function(contextPath, goodsTbId, isOutsideGoods){
+			var itemContainer = $('itemContainer');
+			var params = {			
+				key : 'GoodsAction.quanItem',
+				dispatch : 'quanItem',
+				goodsTbId : goodsTbId,
+				needRecommend : 0
+			};		
+			if(isOutsideGoods == 1){
+				params.dispatch = 'fetchItemForScp';
+			}
+			var action = C.qt2Server + '/l/GoodsAction.do';
+			Ajax.send(action, params, function() {
+				var map = DB.get(params.key);
+				var t = $('tItem');							
+				var goods = map.goods;
+				// 淘宝商品详情页标题修改为商品标题
+				if (goods.goodsTitle) {
+					document.title = goods.goodsTitle;
+				}
+				currentGoods = goods;// 缓存goods
+				
+				if(goods.goodsTbId){ // 如果存在该商品
+					document.title = '抢'+goods.quanValue+'元优惠券，'+goods.goodsTitle;
+//					if(goods.imageHref.indexOf("img.alicdn.com")>-1){ //img.alicdn.com 显示不出来
+//						goods.imageHref = goods.imageHref.replace('img.alicdn.com', 'gd2.alicdn.com') + '_310x310q90.jpg';
+//					}	
+//					else if(isNeedImgSubfix(goods.imageHref)){
+//						goods.imageHref = goods.imageHref + '_468x468q90s150.jpg';
+//					}
+
+					var clone = t.clone(goods);
+					if(goods.goodsFrom==2){
+						if (clone.child('i', 'icon-tmall-12')) {
+							clone.child('i', 'icon-tmall-12').block();
+						}
+					}	
+					var imgHref = clone.child('img', 'imgHref');
+					imgHref.setAttribute('src', goods.imageHref);
+					
+					if(!goods.monthOrder){
+						clone.child('small', 'monthOrder').hide();
+					}	
+					if(!goods.goodsDesc){
+						if(clone.child('div', 'goodsDesc')){
+							clone.child('div', 'goodsDesc').hide();
+						}
+					}
+					
+					itemContainer.appendChild(clone);
+				}else{// 库里不存在该商品，跳首页
+					location = contextPath + '/m/agent-item-error.jsp';
+				}
+			});
+		},
+
+		fetchList : function(navi, goodsType, sortType, queryStr, isAll) {   
+			if(queryStr!=null){
+				queryStr = queryStr.trim();
+			}
+			
+	    	var container = $('goodsContainer');
+	    	var f = $('next-form');
+	    	var currentPageNum = parseInt(f.currentPageNum.value);
+	    	var goodsList;
+	    	
+	    	if(navi=='index-time'){ // 限时好券
+	    		goodsList = container.getElementsByClassName("find-quan-item");
+	    	}else{
+	    		goodsList = container.getElementsByClassName("goodsItem");
+	    	}
+	    	if(goodsList.length==0 && currentPageNum>0){
+	    		f.currentPageNum.value = parseInt(f.currentPageNum.value)-1;
+	    		isBack = 1;
+	    	}	
+	    	currentPageNum = parseInt(f.currentPageNum.value);
+	    	var pageNum = currentPageNum+1;
+	    	
+			if (!goodsType || '' == goodsType) {
+				goodsType = null;
+			}
+		
+			var totalPage = 1;
+			var params = {			
+				key : 'GoodsAction.fetchList',
+				dispatch : "selectedGoodsList",
+				goodsType : goodsType,
+				sortType : sortType,
+				pageNum : pageNum,
+				requestFrom : 2,
+				pageSize : 50,
+				queryStr : queryStr,
+				isNeedCateNum : 0,
+				needTop : 0
+			};
+			if(isAll=='1'){
+				params.dispatch = 'goodsList';
+			}
+//			if(navi=='index-home'){
+//				params.needTop = 1;
+//			}	
+			if(navi=='index-hot'){
+				params.isForHot = 1;
+				params.orderLatest = 10;
+				params.monthOrderMin = 100;
+			}	
+			if(navi=='index-9k9'){
+				params.floorPriceMax = 9.9;
+			}
+			if(navi=='index-time'){
+				params.isTimeGoods = 1;
+				params.requestType = 3;
+			}
+			if(navi=='index-all-quan'){
+				params.dispatch = 'goodsList';
+//				params.needTop = 1;
+			}	
+			if(navi=='index-juhuasuan'){
+				params.promotionType = 1;
+			}
+			if(navi=='index-taoqianggou'){
+				params.promotionType = 2;
+			}
+			if(navi=='index-bigcoupon'){
+				params.quanValueMin = 100;
+			}
+			if(navi=='cat'){
+				params.goodsType = goodsType;	
+			}
+			if(navi=='index-search'){// 废弃
+				params.dispatch = "goodsList";
+				
+				// 兼容复制链接
+				// 【我剁手都要买的宝贝（欧普吸顶灯环形灯管T5-22WT6-40W三基色四针圆形光源28W32W38W48W），快来和我一起瓜分红I包】http://v.cvz5.com/h.FIy6fG
+				// 点击链接，再选择浏览器打开；或复制这条信息￥qKIW0TXnw5G￥后打开[表情]手淘[表情]
+				// 复制这条信息，打开一淘App即可看到【
+				// 男士纯色针织毛衣韩版半高领线衣秋冬季打底衫加厚外套上衣潮男装】￥XvlRG92z2t￥ 淘口令
+				// http://e22a.com/h.FFlzsZ?cv=XvlRG92z2t&sm=486014
+				// 【力勤A9七彩灯蓝牙音箱无线迷你小音响苹果便携手机电脑低音小钢炮】点击链接，再选择浏览器打开；或复制这条信息￥hijl0gE6uAs￥后打开手淘
+				
+				// 文本中解析出商品名称和短地址
+				var shortUrlArr = queryStr.match(/http[s]?:\/\/[\w\.\/\?%&=]+/);
+				var tklArr = queryStr.match(/((￥|《|€|\\$|₴|₰|¥|¢|₳|₤|£|\\()[a-zA-Z\\d]+(￥|《|€|\\$|₴|₰|¥|¢|₳|₤|£|\\)))|(【.+】.+[a-zA-Z\\d]{11})/);
+				if(shortUrlArr || tklArr){
+					var titleBegin = queryStr.indexOf("【");
+					var titleEnd = queryStr.indexOf("】");
+					if(titleBegin>-1 && titleEnd>-1 && titleEnd>titleBegin){				
+						queryStr = queryStr.substring(titleBegin+1, titleEnd);
+						
+						queryStr = queryStr.replace(/我剁手都要买的宝贝（/, "");
+						queryStr = queryStr.replace(/），快来和我一起瓜分红包/, "");
+						queryStr = queryStr.replace(/），快来和我一起瓜分红I包/, "");
+						queryStr = queryStr.replace(/【天猫超市】/, "");
+						
+						queryStr = queryStr.replace("这个#手聚App团购#宝贝不错:", "");
+						queryStr = queryStr.replace("(分享自@手机淘宝android客户端)", "");
+					}
+				}
+				
+				params.queryStr = queryStr;
+// GoodsLogic.loadGoodsList(params, navi);
+				if(queryStr.length>10){// 执行找券
+					GoodsLogic.loadScpGoodsList(params, navi);
+				}else{// 普通搜索
+					GoodsLogic.loadGoodsList(params, navi);
+				}
+			}else{
+				GoodsLogic.loadGoodsList(params, navi);
+			}
+				
+		},    	    
+
+		loadScpGoodsList : function(params, navi){
+			needAutoLoad = 0;
+	    	var container = $('scGoodsContainer');
+			// 加载数据
+			$('next-load').show();	
+			
+			var params2 = {			
+				key : 'TaokerAction.searchCoupon',
+				dispatch : "searchCoupon",
+				queryStr : params.queryStr
+			};
+			
+			var action = C.qt2Server + '/TaokerAction.do';
+			Ajax.send(action, params2, function() {
+				var map = DB.get(params2.key);
+				var code = map.code;
+				var arr = map.goodsList;
+				
+				if(code==0 && arr.length>0){// 找到券
+					var t = $('tScpGoodsItem');
+					// 遍历设置页面数据
+					for (var i = 0; i < arr.length; i++) {
+						var goods = arr[i];
+						if(goods.tkValue){
+							goods.tkValuePrivilege = Math.floor(goods.tkValue * privilegeRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+							goods.tkValue = Math.floor(goods.tkValue * agentRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+						}else{
+							goods.tkValue = 0.0;
+							goods.tkValuePrivilege = 0.0;
+						}					
+						
+						// 克隆对象
+						var	clone = t.clone(goods);
+						var goodsImg = clone.child('img', 'goodsImg');	
+						if(isNeedImgSubfix(goods.imageHref)){
+							goods.imageHref = goods.imageHref + '_310x310q90.jpg';
+						}
+						goodsImg.setAttribute('_src', goods.imageHref);
+						
+						if(goods.goodsFrom == 1) {
+							clone.child('i', 'icon-taobao-12').block();
+						}else if(goods.goodsFrom == 2) {
+							clone.child('i', 'icon-tmall-12').block();
+						}
+						
+						if(goods.quanValue == 0){
+							clone.child('em', 'nowPriceText').hide();
+							clone.child('small', 'oldPrice').hide();
+							clone.child('span', 'quanFlag').hide();
+						}
+						
+						// 加入页面
+						container.appendChild(clone);
+						
+						$('scpGoodsDiv_1').show();
+						$('scpGoodsNum').innerHTML = '共找到'+arr.length+'件匹配的商品';
+						if(arr.length>0){
+							$('scpGoodsDiv_2').show();
+						}	
+					}
+
+					$('next-load').hide();
+					
+					// 延时加载图片
+					delayload( {
+						id : [ 'scGoodsContainer' ],
+						src : '/img/loading300-2.gif',
+						isSquare : false
+					});				
+				}else{// 没找到券
+					GoodsLogic.loadGoodsList(params, navi);
+					$('scpGoodsDiv_3').show();
+				}	
+			});
+		},
+		
+		
+		loadGoodsList : function(params, navi){
+	    	var container = $('goodsContainer');
+	    	var f = $('next-form');
+	    	pageNum = params.pageNum;
+			// 加载数据
+			$('next-load').show();	
+			var action = C.qt2Server + '/l/GoodsAction.do';
+			Ajax.send(action, params, function() {
+				$('next-load').hide();
+				var map = DB.get(params.key);
+				var t = $('tGoodsItem');		
+				var tTG = $('tTimeGoods');	
+				var arr = map.goodsList;
+				var totalPage = map.totalPage;
+				var currentTime = map.currentTime;
+
+				// 没有数据
+				if (map.totalGoodsNum == 0) {
+					$('indexNoData').show();
+				}
+				
+				// 遍历设置页面数据			
+				for (var i = 0; i < arr.length; i++) {
+					var goods = arr[i];
+					if(pageNum==1 && i==0){
+						lastIndex = 0;
+					}
+					
+					if(goodsFilter(goods.goodsTitle)){
+						continue;
+					}
+					
+					goods.index = lastIndex % 2;
+					lastIndex++;
+					
+//					goods.index = i % 2;
+					
+					if(goods.tkValue){
+						goods.tkValuePrivilege = Math.floor(goods.tkValue * privilegeRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+						goods.tkValue = Math.floor(goods.tkValue * agentRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;						
+					}else{
+						goods.tkValue = 0.00;
+						goods.tkValuePrivilege = 0.00;
+					}
+					
+					goods.tkValue = limitDecimal2Str(toDecimal2(goods.tkValue));
+					goods.tkValuePrivilege = limitDecimal2Str(toDecimal2(goods.tkValuePrivilege));
+					goods.goodsPrice = limitDecimal2Str(toDecimal2(goods.goodsPrice));
+					goods.floorPrice = limitDecimal2Str(toDecimal2(goods.floorPrice));
+					
+					// 克隆对象
+					var clone;
+					if(navi=='index-time'){ // 限时好券
+						var timeLeft = Number(goods.recommendDate) + 1000*3600*24*7 - currentTime;
+						var leftMillsecond, day, hour, minute, second;
+						if(timeLeft>0){
+							day = Math.floor(timeLeft / (1000*3600*24));
+							day = day > 0 ? day : 1;// 不到1天算一天
+						}else{
+							day = 1;
+						}
+						goods.day = day;
+						
+						clone = tTG.clone(goods);
+						var goodsImg = clone.child('img', 'goodsImg');	
+						if(isNeedImgSubfix(goods.imageHref)){
+							goods.imageHref = goods.imageHref + '_310x310q90.jpg';
+						}
+						goodsImg.setAttribute('_src', goods.imageHref);
+						
+						if (goods.isNewSelected == 1) {
+							clone.child('img', 'newFlag').show();
+						}
+						
+						if(goods.goodsFrom == 1) {
+							clone.child('i', 'icon-taobao-12').block();
+						}else if(goods.goodsFrom == 2) {
+							clone.child('i', 'icon-tmall-12').block();
+						}
+					}else{
+						clone = t.clone(goods);
+						var goodsImg = clone.child('img', 'goodsImg');	
+						if(isNeedImgSubfix(goods.imageHref)){
+							goods.imageHref = goods.imageHref + '_310x310q90.jpg';
+						}
+						goodsImg.setAttribute('_src', goods.imageHref);
+
+						var topStatus = goods.topStatus;
+						var isNew = goods.isNew;
+						var monthOrder = goods.monthOrder;
+						if(topStatus==1){
+							clone.child('img', 'showHot').show();
+						}else if (isNew == 1) {
+							clone.child('img', 'showNew').show();
+						}
+						
+						if(navi=='index-hot'){
+							clone.child('div', 'hotSaleBox').show();
+						}
+						
+						if(!monthOrder){
+							clone.child('small', 'monthOrderNum').hide();
+						}
+						
+						if(goods.goodsFrom == 1) {
+							clone.child('i', 'icon-taobao-12').block();
+						}else if(goods.goodsFrom == 2) {
+							clone.child('i', 'icon-tmall-12').block();
+						}						
+						
+						if(privilegeRatio){
+							clone.child('div', 'hasPrivilege').show();
+						}else{
+							clone.child('div', 'noPrivilege').show();
+						}						
+					}
+
+					// 加入页面
+					container.appendChild(clone);
+				}
+
+				// 下一页
+				var dom = $('next-page');
+				if(pageNum < totalPage){
+					dom.son('small').setHtml(pageNum + '/' + totalPage);
+					// dom.show();
+				}
+				else {
+					dom.hide();
+					if($('theEnded')){
+						$('theEnded').show();
+					}
+				} 
+				f.currentPageNum.value=pageNum;
+				// 延时加载图片
+				delayload( {
+					id : [ 'goodsContainer' ],
+					src : '/img/loading300-2.gif',
+					isSquare : false
+				});
+		
+			});
+		},
+		
+		selfGoodsList : function(taokerId){
+	    	var container = $('goodsContainer');
+	    	var f = $('next-form');
+	    	var currentPageNum = parseInt(f.currentPageNum.value);
+	    	var goodsList = container.getElementsByClassName("goodsItem");
+	    
+	    	if(goodsList.length==0 && currentPageNum>0){
+	    		f.currentPageNum.value = parseInt(f.currentPageNum.value)-1;
+	    		isBack = 1;
+	    	}	
+	    	currentPageNum = parseInt(f.currentPageNum.value);
+	    	var pageNum = currentPageNum+1;
+	    	
+			// 加载数据
+			$('next-load').show();	
+			
+			var params = {			
+				key : 'GoodsAction.selfGoodsList',
+				dispatch : "selfGoodsList",
+				taokerId : taokerId,
+				pageNum : pageNum,
+				pageSize : 50
+			};
+			
+			var action = C.qt2Server + '/l/GoodsAction.do';
+			Ajax.send(action, params, function() {
+				$('next-load').hide();
+				var map = DB.get(params.key);
+				var t = $('tGoodsItem');	
+				var arr = map.taokerGoodsList;
+				var totalPage = map.totalPage;
+
+				// 没有数据
+				if (map.totalGoodsNum == 0) {
+					$('indexNoData').show();
+				}
+				
+				// 遍历设置页面数据
+				for (var i = 0; i < arr.length; i++) {
+					var taokerGoods = arr[i];
+					var goods = taokerGoods.goods;
+					goods.index = i % 2;
+					
+					if(goods.tkValue){
+						goods.tkValuePrivilege = Math.floor(goods.tkValue * privilegeRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+						goods.tkValue = Math.floor(goods.tkValue * agentRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;						
+					}else{
+						goods.tkValue = 0.00;
+						goods.tkValuePrivilege = 0.00;
+					}
+					
+					goods.tkValue = limitDecimal2Str(toDecimal2(goods.tkValue));
+					goods.tkValuePrivilege = limitDecimal2Str(toDecimal2(goods.tkValuePrivilege));
+					goods.goodsPrice = limitDecimal2Str(toDecimal2(goods.goodsPrice));
+					goods.floorPrice = limitDecimal2Str(toDecimal2(goods.floorPrice));
+					
+					// 优先使用自定义
+					if(taokerGoods.customerGoodsTitle){
+						goods.goodsTitle = taokerGoods.customerGoodsTitle;
+					}
+					if(taokerGoods.customerGoodsDesc){
+						goods.goodsDesc = taokerGoods.customerGoodsDesc;
+					}
+					
+					goods.taokerGoodsId = taokerGoods.taokerGoodsId;
+					
+					// 克隆对象
+					var clone = t.clone(goods);
+					var goodsImg = clone.child('img', 'goodsImg');	
+					if(isNeedImgSubfix(goods.imageHref)){
+						goods.imageHref = goods.imageHref + '_310x310q90.jpg';
+					}
+					goodsImg.setAttribute('_src', goods.imageHref);
+
+					var monthOrder = goods.monthOrder;
+					
+					if(!monthOrder){
+						clone.child('small', 'monthOrderNum').hide();
+					}
+					
+					if(goods.goodsFrom == 1) {
+						clone.child('i', 'icon-taobao-12').block();
+					}else if(goods.goodsFrom == 2) {
+						clone.child('i', 'icon-tmall-12').block();
+					}
+					
+					if(privilegeRatio){
+						clone.child('div', 'hasPrivilege').show();
+					}else{
+						clone.child('div', 'noPrivilege').show();
+					}
+
+					// 加入页面
+					container.appendChild(clone);
+				}
+
+				// 下一页
+				var dom = $('next-page');
+				if(pageNum < totalPage){
+					dom.son('small').setHtml(pageNum + '/' + totalPage);
+					// dom.show();
+				}
+				else {
+					dom.hide();
+					if($('theEnded')){
+						$('theEnded').show();
+					}
+				} 
+				f.currentPageNum.value=pageNum;
+				// 延时加载图片
+				delayload( {
+					id : [ 'goodsContainer' ],
+					src : '/img/loading300-2.gif',
+					isSquare : false
+				});
+			});
+		},	
+		
+		materialGoodsList : function(navi, cate){
+			var materialId = 8267;
+			if(navi=='index-gaoyong'){
+				if(cate=='1'){
+					materialId = 8209; 
+				}else if(cate=='2'){
+					materialId = 8267; 
+				}else if(cate=='3'){
+					materialId = 8326; 
+				}else if(cate=='4'){
+					materialId = 8268; 
+				}else if(cate=='5'){
+					materialId = 8335; 
+				}else if(cate=='6'){
+					materialId = 8337; 
+				}else if(cate=='7'){
+					materialId = 8338; 
+				}else if(cate=='8'){
+					materialId = 8330; 
+				}else if(cate=='9'){
+					materialId = 8328; 
+				}else if(cate=='10'){
+					materialId = 8332; 
+				}else if(cate=='11'){
+					materialId = 8334; 
+				}	
+			}else if(navi=='index-hot-promotion'){
+				if(cate=='1'){
+					materialId = 7779; 
+				}else if(cate=='2'){
+					materialId = 7780; 
+				}else if(cate=='3'){
+					materialId = 7781; 
+				}else if(cate=='4'){
+					materialId = 7782; 
+				}else if(cate=='5'){
+					materialId = 7783; 
+				}else if(cate=='6'){
+					materialId = 7784; 
+				}else if(cate=='7'){
+					materialId = 7785; 
+				}else if(cate=='8'){
+					materialId = 7787; 
+				}else if(cate=='9'){
+					materialId = 7788; 
+				}else if(cate=='10'){
+					materialId = 7789; 
+				}else if(cate=='11'){
+					materialId = 7790; 
+				}				
+			}else if(navi=='index-hot-sale'){
+				if(cate=='1'){
+					materialId = 7792; 
+				}else if(cate=='2'){
+					materialId = 7843; 
+				}else if(cate=='3'){
+					materialId = 7849; 
+				}else if(cate=='4'){
+					materialId = 7851; 
+				}else if(cate=='5'){
+					materialId = 7852; 
+				}else if(cate=='6'){
+					materialId = 7853; 
+				}else if(cate=='7'){
+					materialId = 7854; 
+				}else if(cate=='8'){
+					materialId = 7855; 
+				}else if(cate=='9'){
+					materialId = 7856; 
+				}else if(cate=='10'){
+					materialId = 7857; 
+				}else if(cate=='11'){
+					materialId = 7858; 
+				}				
+			}else if(navi=='brand'){
+				materialId = 8286;
+			}else if(navi=='index-presale'){
+				materialId = 8452;
+			}	
+			
+	    	var container = $('goodsContainer');
+	    	var f = $('next-form');
+	    	var currentPageNum = parseInt(f.currentPageNum.value);
+	    	var goodsList = container.getElementsByClassName("goodsItem");
+	    
+	    	if(goodsList.length==0 && currentPageNum>0){
+	    		f.currentPageNum.value = parseInt(f.currentPageNum.value)-1;
+	    		isBack = 1;
+	    	}	
+	    	currentPageNum = parseInt(f.currentPageNum.value);
+	    	var pageNum = currentPageNum+1;
+	    	
+			// 加载数据
+			$('next-load').show();	
+			
+			var params = {			
+				key : 'TaokerAction.materialGoodsList',
+				dispatch : "materialGoodsList",
+				materialId : materialId,
+				pageNum : pageNum,
+				pageSize : 50
+			};
+			
+			var action = C.qt2Server + '/TaokerAction.do';
+			Ajax.send(action, params, function() {
+				$('next-load').hide();
+				var map = DB.get(params.key);
+				var code = map.code;
+				var arr = map.goodsList;
+				var t = $('tGoodsItem');
+						
+				// 遍历设置页面数据
+				for (var i = 0; i < arr.length; i++) {
+					var goods = arr[i];
+					goods.index = i % 2;
+					
+					if(goods.tkValue){
+						goods.tkValuePrivilege = Math.floor(goods.tkValue * privilegeRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+						goods.tkValue = Math.floor(goods.tkValue * agentRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+					}else{
+						goods.tkValue = 0.0;
+						goods.tkValuePrivilege = 0.0;
+					}	
+					
+					goods.tkValue = limitDecimal2Str(toDecimal2(goods.tkValue));
+					goods.tkValuePrivilege = limitDecimal2Str(toDecimal2(goods.tkValuePrivilege));
+					goods.goodsPrice = limitDecimal2Str(toDecimal2(goods.goodsPrice));
+					goods.floorPrice = limitDecimal2Str(toDecimal2(goods.floorPrice));
+									
+					// 克隆对象
+					var clone = t.clone(goods);
+					var goodsImg = clone.child('img', 'goodsImg');	
+					if(isNeedImgSubfix(goods.imageHref)){
+						goods.imageHref = goods.imageHref + '_310x310q90.jpg';
+					}
+					goodsImg.setAttribute('_src', goods.imageHref);
+					
+					if(goods.goodsFrom == 1) {
+						clone.child('i', 'icon-taobao-12').block();
+					}else if(goods.goodsFrom == 2) {
+						clone.child('i', 'icon-tmall-12').block();
+					}				
+					
+					if(privilegeRatio){
+						clone.child('div', 'hasPrivilege').show();
+					}else{
+						clone.child('div', 'noPrivilege').show();
+					}
+
+					// 加入页面
+					container.appendChild(clone);
+					
+					if(i == arr.length -1 && i % 2 == 0){//如果接口返回单数个商品，最后一个商品呈现两次
+						goods.index = 1;
+						clone = t.clone(goods);
+						var goodsImg = clone.child('img', 'goodsImg');	
+						
+						goodsImg.setAttribute('_src', goods.imageHref);
+						
+						if(goods.goodsFrom == 1) {
+							clone.child('i', 'icon-taobao-12').block();
+						}else if(goods.goodsFrom == 2) {
+							clone.child('i', 'icon-tmall-12').block();
+						}				
+						
+						if(privilegeRatio){
+							clone.child('div', 'hasPrivilege').show();
+						}else{
+							clone.child('div', 'noPrivilege').show();
+						}						
+						
+						container.appendChild(clone);
+					}	
+				}
+
+				// 下一页				
+				if(arr.length == 0){
+					if($('theEnded')){
+						$('theEnded').show();
+					}					
+				}	
+				f.currentPageNum.value=pageNum;
+				// 延时加载图片
+				delayload( {
+					id : [ 'goodsContainer' ],
+					src : '/img/loading300-2.gif',
+					isSquare : false
+				});
+			});
+		},
+		
+		combinedSearch: function(navi, sortType, queryStr){
+			queryStr = queryStr.trim();
+			if(queryStr==''){
+				return;
+			}
+			
+			//从大陆服务器获取佣金比例
+			var params = {
+	    			dispatch : 'jsGetDefalutRatio',
+	    			key : 'AgentAction.jsGetDefalutRatio'
+			};
+
+			var action = goMainLand('/AgentAction.do');
+			Ajax.send(action, params, function() {
+				var map = DB.get(params.key);
+				var code = map.code;
+				var mamaRatio = 0.0;
+				var ddRatio = 0.0;
+				var jdRatio = 0.0;
+				var agentRatio = 0.0;
+				var privilegeRatio = 0.0;
+				if(code == 1){
+					mamaRatio = map.mamaRatio;
+					ddRatio = map.ddRatio;
+					jdRatio = map.jdRatio;
+					agentRatio = map.agentRatio;
+					privilegeRatio = map.privilegeRatio;
+				}
+				if(navi == 'index-inner'){
+					GoodsLogic.searchInnerGoods(sortType, queryStr, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio);
+				}else if(navi == 'index-taobao'){
+					GoodsLogic.searchTaobaoGoods(sortType, queryStr, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio);
+				}else if(navi == 'index-duoduo'){
+					GoodsLogic.searchPDDGoods(sortType, queryStr, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio);
+				}else if(navi == 'index-jd'){
+					GoodsLogic.searchJdGoods(sortType, queryStr, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio);
+				}
+			});
+			
+		},
+		
+		searchInnerGoods: function(sortType, queryStr, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio){
+			var queryStr_ = GoodsLogic.extractQueryStr(queryStr);
+	    	var container = $('goodsContainer');
+	    	var f = $('next-form');
+	    	var currentPageNum = parseInt(f.currentPageNum.value);
+	    	var goodsList = container.getElementsByClassName("goodsItem");
+	    	if(goodsList.length==0 && currentPageNum>0){
+	    		f.currentPageNum.value = parseInt(f.currentPageNum.value)-1;
+	    		currentPageNum = parseInt(f.currentPageNum.value);
+	    	}	
+	    	
+	    	var pageNum = currentPageNum+1;
+			// 加载数据
+			$('next-load').show();	
+			var params = {			
+				key : 'GoodsAction.fetchList',
+				dispatch : "goodsList",
+				sortType : sortType,
+				pageNum : pageNum,
+				requestFrom : 2,
+				pageSize : 50,
+				queryStr : queryStr_,
+				isNeedCateNum : 0,
+				needTop : 0
+			};
+			var action = C.qt2Server + '/l/GoodsAction.do';
+			Ajax.send(action, params, function() {
+				$('next-load').hide();
+				var map = DB.get(params.key);
+				var t = $('tGoodsItem');
+				var arr = map.goodsList;
+				var totalPage = map.totalPage;
+				var currentTime = map.currentTime;
+
+				// 没有数
+				if (map.totalGoodsNum == 0) {
+					$('indexNoData').show();
+				}
+				
+				// 遍历设置页面数据
+				for (var i = 0; i < arr.length; i++) {
+					var goods = arr[i];
+					goods.index = i % 2;
+					
+					if(goods.tkValue){
+						goods.tkValuePrivilege = Math.floor(goods.tkValue * privilegeRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+						goods.tkValue = Math.floor(goods.tkValue * agentRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+					}else{
+						goods.tkValuePrivilege = 0;
+						goods.tkValue = 0;
+					}
+					
+					// 克隆对象
+					var clone = t.clone(goods);
+					var goodsImg = clone.child('img', 'goodsImg');	
+					if(isNeedImgSubfix(goods.imageHref)){
+						goods.imageHref = goods.imageHref + '_310x310q90.jpg';
+					}
+					goodsImg.setAttribute('_src', goods.imageHref);
+
+					var topStatus = goods.topStatus;
+					var isNew = goods.isNew;
+					var monthOrder = goods.monthOrder;
+					if(topStatus==1){
+						clone.child('img', 'showHot').show();
+					}else if (isNew == 1) {
+						clone.child('img', 'showNew').show();
+					}
+					
+					if(!monthOrder){
+						clone.child('small', 'monthOrderNum').hide();
+					}
+					
+					if(goods.goodsFrom == 1) {
+						clone.child('i', 'icon-taobao-12').block();
+					}else if(goods.goodsFrom == 2) {
+						clone.child('i', 'icon-tmall-12').block();
+					}
+					
+					if(privilegeRatio){
+						clone.child('div', 'hasPrivilege').show();
+					}else{
+						clone.child('div', 'noPrivilege').show();
+					}					
+
+					// 加入页面
+					container.appendChild(clone);
+				}
+			
+				if(pageNum >= totalPage){
+					if($('theEnded')){
+						$('theEnded').show();
+					}
+				}
+				 
+				f.currentPageNum.value=pageNum;
+				// 延时加载图片
+				delayload( {
+					id : [ 'goodsContainer' ],
+					src : '/img/loading300-2.gif',
+					isSquare : false
+				});
+		
+			});
+		},
+		
+		searchTaobaoGoods: function(sortType, queryStr, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio){	
+			queryStr = GoodsLogic.repairShareText(queryStr);
+			var queryStr_ = GoodsLogic.extractQueryStr(queryStr);
+	    	var container = $('scGoodsContainer');
+			// 加载数据
+			$('next-load').show();	
+			
+			var params = {			
+				key : 'TaokerAction.searchCoupon',
+				dispatch : "searchCoupon",
+				queryStr : queryStr,
+				sortType : sortType,
+				topTaokerId : topTaokerId
+			};			
+			
+			var action = C.qt2Server + '/TaokerAction.do';
+			Ajax.send(action, params, function() {
+				if(goodsTitle){
+					$('queryStr').value = goodsTitle;
+				}
+				
+				var map = DB.get(params.key);
+				var code = map.code;
+				var arr = map.goodsList;
+				if(code==0 && arr.length>0){// 找到券
+					var t = $('tScpGoodsItem');
+					// 遍历设置页面数据
+					for (var i = 0; i < arr.length; i++) {
+						var goods = arr[i];
+						if(goods.tkValue){
+							goods.tkValuePrivilege = Math.floor(goods.tkValue * privilegeRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+							goods.tkValue = Math.floor(goods.tkValue * agentRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;
+						}else{
+							goods.tkValuePrivilege = 0;
+							goods.tkValue = 0;
+						}					
+						
+						// 克隆对象
+						var	clone = t.clone(goods);
+						var goodsImg = clone.child('img', 'goodsImg');	
+						if(isNeedImgSubfix(goods.imageHref)){
+							goods.imageHref = goods.imageHref + '_310x310q90.jpg';
+						}
+						goodsImg.setAttribute('_src', goods.imageHref);
+						
+						if(goods.goodsFrom == 1) {
+							clone.child('i', 'icon-taobao-12').block();
+						} else if(goods.goodsFrom == 2) {
+							clone.child('i', 'icon-tmall-12').block();
+						}
+						
+						if(goods.quanValue == 0){
+							clone.child('em', 'nowPriceText').hide();
+							clone.child('small', 'oldPrice').hide();
+							clone.child('span', 'quanFlag').hide();
+							clone.child('span', 'grayFlag').show();
+						}
+						
+						if(privilegeRatio){
+							clone.child('div', 'hasPrivilege').block();
+						}else{
+							clone.child('div', 'noPrivilege').block();
+						}
+						
+						if(goods.shopName) {
+							clone.child('small', 'shopName').show();
+						}
+						
+						// 加入页面
+						container.appendChild(clone);						
+						
+						if(arr.length>0){
+							$('scpGoodsTips1').show();
+						}else{
+							$('scpGoodsTips2').show();
+						}	
+					}
+
+					$('next-load').hide();
+					
+					// 延时加载图片
+					delayload( {
+						id : [ 'scGoodsContainer' ],
+						src : '/img/loading300-2.gif',
+						isSquare : false
+					});				
+				}else{// 没找到券
+					$('next-load').hide();
+					$('scpGoodsTips2').show();
+				}	
+			});	
+		},
+		
+		searchPDDGoods: function(sortType, queryStr, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio){
+			var queryStr_ = GoodsLogic.extractQueryStrDD(queryStr);
+			
+	    	if(queryStr_.match(/^\d+$/)){
+	    		GoodsLogic.searchPDDForId(sortType, queryStr_, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio);
+	    	}else{
+	    		queryStr_ = GoodsLogic.extractQueryStr(queryStr);// 兼容淘宝复制标题
+	    		GoodsLogic.searchPDDForTitle(sortType, queryStr_, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio);
+	    	}
+		},	
+		
+		searchPDDForTitle: function(sortType, queryStr, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio){
+	    	var container = $('ddGoodsContainer');
+			// 加载数据
+			$('next-load').show();
+			
+			var f = $('next-form');
+			var currentPageNum = parseInt(f.currentPageNum.value);
+			var goodsList = container.getElementsByClassName("tDDGoodsItem");
+			
+	    	if(goodsList.length==0 && currentPageNum>0){
+	    		f.currentPageNum.value = parseInt(f.currentPageNum.value)-1;
+	    		currentPageNum = parseInt(f.currentPageNum.value);
+	    	}	
+	    	
+	    	var pageNum = currentPageNum+1;
+
+			var totalPage = 1;
+			var params = {			
+				key : 'DDGoodsAction.goodsListOffical',
+				dispatch : "goodsListOffical",
+				queryStr : queryStr,
+				sortType : sortType,
+				hasCoupon : 'false',
+				pageSize : 50,
+				pageNum : pageNum
+			};
+			
+			// 加载数据
+			$('next-load').show();	
+			var action = C.qt2Server + '/DDGoodsAction.do';
+			Ajax.send(action, params, function() {	
+				$('next-load').hide();
+				var map = DB.get(params.key);
+				var t = $('tDDGoodsItem');			
+				var arr = map.goodsList;
+				var totalPage = map.totalPage;
+				
+				// 没有数据
+				if (map.totalGoodsNum == 0) {
+					$('noDDGoodsTips').show();
+				}
+				
+				// 遍历设置页面数据
+				for (var i = 0; i < arr.length; i++) {
+					var goods = arr[i];
+					goods.index = i % 2;
+					
+					if(goods.tkValue){
+						goods.tkValuePrivilege = Math.floor(goods.tkValue * privilegeRatio * ((100-ddRatio) / 100) * C.pddSplit) / 100;
+						goods.tkValue = Math.floor(goods.tkValue * agentRatio * ((100-ddRatio) / 100) * C.pddSplit) / 100;
+					}else{
+						goods.tkValue = 0.00;
+						goods.tkValuePrivilege = 0.00;
+					}
+					
+					goods.tkValue = limitDecimal2Str(toDecimal2(goods.tkValue));
+					goods.tkValuePrivilege = limitDecimal2Str(toDecimal2(goods.tkValuePrivilege));
+					goods.goodsPrice = limitDecimal2Str(toDecimal2(goods.goodsPrice));
+					goods.floorPrice = limitDecimal2Str(toDecimal2(goods.floorPrice));
+					
+					var clone = t.clone(goods);
+						
+					var goodsImg = clone.child('img', 'goodsImg');	
+					goodsImg.setAttribute('_src', goods.imageHref);
+					
+					if(privilegeRatio){
+						clone.child('div', 'hasPrivilege').block();
+					}else{
+						clone.child('div', 'noPrivilege').block();
+					}
+					
+					// 加入页面
+					container.appendChild(clone);
+				}
+				
+				if(pageNum >= totalPage){
+					if($('theEnded')){
+						$('theEnded').show();
+					}
+				}	
+
+				f.currentPageNum.value=pageNum;
+				// 延时加载图片
+				delayload( {
+					id : [ 'ddGoodsContainer' ],
+					src : '/img/loading300-2.gif',
+					isSquare : false
+				});
+			});
+		},
+		
+		searchPDDForId: function(sortType, itemId, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio){			
+	    	var container = $('ddGoodsContainer');
+			// 加载数据
+			$('next-load').show();	
+			
+			var params = {			
+				key : 'DDGoodsAction.fetchItemOffical',
+				dispatch : 'fetchItemOffical',
+				itemId : itemId
+			};
+			var action = C.qt2Server + '/DDGoodsAction.do';
+			Ajax.send(action, params, function() {
+				$('next-load').hide();
+				var map = DB.get(params.key);
+				var t = $('tDDGoodsItem');
+				var goods = map.goods;
+				if(goods){
+					if(goods.tkValue){
+						goods.tkValuePrivilege = Math.floor(goods.tkValue * privilegeRatio) / 100;
+						goods.tkValue = Math.floor(goods.tkValue * agentRatio) / 100;
+					}else{
+						goods.tkValuePrivilege = 0;
+						goods.tkValue = 0;
+					}
+					goods.goodsPrice = toDecimal2(goods.goodsPrice);
+					goods.floorPrice = toDecimal2(goods.floorPrice);
+
+					// 克隆对象
+					var clone = t.clone(goods);
+					var goodsImg = clone.child('img', 'goodsImg');	
+					
+					goodsImg.setAttribute('_src', goods.imageHref);
+
+					if(privilegeRatio){
+						clone.child('div', 'hasPrivilege').block();
+					}else{
+						clone.child('div', 'noPrivilege').block();
+					}
+					
+					// 加入页面
+					container.appendChild(clone);
+					
+					// 延时加载图片
+					delayload( {
+						id : [ 'ddGoodsContainer' ],
+						src : '/img/loading300-2.gif',
+						isSquare : false
+					});
+					
+				}else{// 没搜到
+					$('noDDGoodsTips').show();
+				}	
+			});
+		},
+		
+		searchJdGoods: function(sortType, queryStr, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio){
+			var queryStr_ = GoodsLogic.extractQueryStrJd(queryStr);
+			
+	    	if(queryStr_.match(/^\d+$/)){
+	    		GoodsLogic.searchJdForId(queryStr_);
+	    	}else{
+	    		GoodsLogic.searchJdForTitle(sortType, queryStr_, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio);
+	    	}
+		},	
+
+		searchJdForTitle: function(sortType, queryStr, mamaRatio, ddRatio, jdRatio, agentRatio, privilegeRatio){
+	    	var container = $('jdGoodsContainer');
+			// 加载数据
+			$('next-load').show();
+			
+			var f = $('next-form');
+			var currentPageNum = parseInt(f.currentPageNum.value);
+			var goodsList = container.getElementsByClassName("find-quan-item");
+			
+	    	if(goodsList.length==0 && currentPageNum>0){
+	    		f.currentPageNum.value = parseInt(f.currentPageNum.value)-1;
+	    		currentPageNum = parseInt(f.currentPageNum.value);
+	    	}	
+	    	
+	    	var pageNum = currentPageNum+1;
+
+			var totalPage = 1;
+			var params = {			
+				key : 'JDGoodsAction.goodsList',
+				dispatch : "goodsList",
+				queryStr : queryStr,
+				sortType : sortType,
+				pageSize : 50,
+				pageNum : pageNum
+			};			
+			
+			// 加载数据
+			$('next-load').show();	
+			var action = C.qt2Server + '/JDGoodsAction.do';
+			Ajax.send(action, params, function() {	
+				$('next-load').hide();
+				var map = DB.get(params.key);
+				var t = $('tJdGoodsItem');			
+				var arr = map.goodsList;
+				var totalPage = map.totalPage;
+				
+				// 没有数据
+				if (map.totalGoodsNum == 0) {
+					$('noJdGoodsTips').show();
+				}
+				
+				// 遍历设置页面数据
+				for (var i = 0; i < arr.length; i++) {
+					var goods = arr[i];
+					goods.index = i % 2;
+					goods.isOutsideGoods = 0;
+					
+					if(goods.tkValue){
+						goods.tkValuePrivilege = Math.floor(goods.tkValue * privilegeRatio * ((100-jdRatio) / 100) * C.jdSplit) / 100;
+						goods.tkValue = Math.floor(goods.tkValue * agentRatio * ((100-jdRatio) / 100) * C.jdSplit) / 100;
+					}else{
+						goods.tkValue = 0.00;
+						goods.tkValuePrivilege = 0.00;
+					}
+
+					goods.tkValue = limitDecimal2Str(toDecimal2(goods.tkValue));
+					goods.tkValuePrivilege = limitDecimal2Str(toDecimal2(goods.tkValuePrivilege));
+					goods.goodsPrice = limitDecimal2Str(toDecimal2(goods.goodsPrice));
+					goods.floorPrice = limitDecimal2Str(toDecimal2(goods.floorPrice));
+					
+					var clone = t.clone(goods);
+						
+					var goodsImg = clone.child('img', 'goodsImg');	
+					goodsImg.setAttribute('_src', goods.imageHref);
+					
+					if(!goods.quanValue){
+						clone.child('em', 'nowPriceText').hide();
+						clone.child('small', 'oldPrice').hide();
+						clone.child('span', 'quanFlag').hide();
+					}
+					
+					if(privilegeRatio){
+						clone.child('div', 'hasPrivilege').block();
+					}else{
+						clone.child('div', 'noPrivilege').block();
+					}
+					
+					// 加入页面
+					container.appendChild(clone);
+				}
+				
+				if(pageNum >= totalPage){
+					if($('theEnded')){
+						$('theEnded').show();
+					}
+				}	
+
+				f.currentPageNum.value=pageNum;
+				// 延时加载图片
+				delayload( {
+					id : [ 'jdGoodsContainer' ],
+					src : '/img/loading300-2.gif',
+					isSquare : false
+				});
+			});
+		},		
+		
+		searchJdForId: function(itemId) {
+			var params = {			
+				key : 'JDGoodsAction.getByItemId',
+				dispatch : 'getByItemId',
+				itemId : itemId
+			};
+			var action = C.qt2Server + '/JDGoodsAction.do';
+			Ajax.send(action, params, function() {
+				var map = DB.get(params.key);					
+				var code = map.code;
+				if(code==0){
+					var goods = map.goods;
+					var isOutsideGoods = map.isOutsideGoods;
+					window.location.href = 'jd-item.jsp?itemId='+itemId+'&isOutsideGoods=1';
+				}
+			});			
+		},
+		
+		repairShareText: function(queryStr) {
+	        var tklArr = queryStr.match(/这段描述[a-zA-Z\d]+后到/);
+	        if(tklArr){
+	        	queryStr = queryStr.replace(/这段描述/, "这段描述￥");
+	        	queryStr = queryStr.replace(/后到/, "￥后到");
+	        }	
+	        return queryStr;  
+		},
+		
+		extractQueryStr: function(queryStr) {
+			// 兼容复制链接
+			// 【我剁手都要买的宝贝（欧普吸顶灯环形灯管T5-22WT6-40W三基色四针圆形光源28W32W38W48W），快来和我一起瓜分红I包】http://v.cvz5.com/h.FIy6fG
+			// 点击链接，再选择浏览器打开；或复制这条信息￥qKIW0TXnw5G￥后打开[表情]手淘[表情]
+			// 复制这条信息，打开一淘App即可看到【 男士纯色针织毛衣韩版半高领线衣秋冬季打底衫加厚外套上衣潮男装】￥XvlRG92z2t￥
+			// 淘口令 http://e22a.com/h.FFlzsZ?cv=XvlRG92z2t&sm=486014
+			// 【力勤A9七彩灯蓝牙音箱无线迷你小音响苹果便携手机电脑低音小钢炮】点击链接，再选择浏览器打开；或复制这条信息￥hijl0gE6uAs￥后打开手淘
+			// 【这个#手聚App团购#宝贝不错:车载吸尘器汽车车内车用专用强力大功率家用两用迷你小型手持干湿(分享自@手机淘宝android客户端)】http://m.tb.cn/h.3ZuZbc6
+			// 点击链接，再选择浏览器咑閞；或復·制这段描述€nKRS0Dqt3hC€后到淘♂寳♀
+			// 怡康01烟具雾化器专用雾化芯【单个装】大功率
+			
+			queryStr = GoodsLogic.repairShareText(queryStr);
+			
+			// 文本中解析出商品名称
+			var tklArr = queryStr.match(/((￥|《|€|\\$|₴|₰|¥|¢|₳|₤|\\()[a-zA-Z\\d]+(￥|《|€|\\$|₴|₰|¥|¢|₳|₤|\\)))|(【.+】.+[a-zA-Z\\d]{11})/);
+			var tmShortUrl = queryStr.match(/http[s]?:\/\/zmnxbc.com\/s\/\w+\?tm=\w+/);
+			if(tklArr){
+				var titleBegin = queryStr.indexOf("【");
+				var titleEnd = queryStr.lastIndexOf("】");
+				if(titleBegin>-1 && titleEnd>-1 && titleEnd>titleBegin){				
+					queryStr = queryStr.substring(titleBegin+1, titleEnd);
+					
+					queryStr = queryStr.replace(/我剁手都要买的宝贝（/, "");
+					queryStr = queryStr.replace(/），快来和我一起瓜分红包/, "");
+					queryStr = queryStr.replace(/），快来和我一起瓜分红I包/, "");
+					queryStr = queryStr.replace(/【天猫超市】/, "");
+					
+					queryStr = queryStr.replace("这个#手聚App团购#宝贝不错:", "");
+					queryStr = queryStr.replace("(分享自@手机淘宝android客户端)", "");
+				}
+				return queryStr;
+			}else if(tmShortUrl){
+				var titleBegin = queryStr.indexOf("【");
+				var titleEnd = queryStr.lastIndexOf("】");
+				if(titleBegin>-1 && titleEnd>-1 && titleEnd>titleBegin){
+					queryStr = queryStr.substring(titleBegin+1, titleEnd);
+				}	
+				return queryStr;
+			}	
+			
+			// http://mobile.yangkeduo.com/goods2.html?goods_id=6394972&ts=1523178493309&refer_share_id=457637c67eaa4b7383f53bde69356459&refer_share_uid=&refer_share_channel=message&from=singlemessage
+			// http://m.pin18pin.com/goods.html?goods_id=948274525
+			var ddUrl = queryStr.match(/goods_id=\d+/);
+			if(ddUrl){
+				queryStr = ddUrl[0].replace(/goods_id=/, "");
+				return queryStr;
+			}	
+			return queryStr;
+		},	
+		
+		extractQueryStrDD: function(queryStr) {			
+			// http://mobile.yangkeduo.com/goods2.html?goods_id=6394972&ts=1523178493309&refer_share_id=457637c67eaa4b7383f53bde69356459&refer_share_uid=&refer_share_channel=message&from=singlemessage
+			// http://m.pin18pin.com/goods.html?goods_id=948274525
+			var ddUrl = queryStr.match(/goods_id=\d+/);
+			if(ddUrl){
+				queryStr = ddUrl[0].replace(/goods_id=/, "");
+				return queryStr;
+			}	
+			return queryStr;
+		},	
+		
+		extractQueryStrJd: function(queryStr) {			
+			var jdUrl = queryStr.match(/(sku=\d+)|(product\/\d+)|(\d+\.html)|(id=\d+)/);
+			if(jdUrl){
+				queryStr = jdUrl[0].replace(/(sku=)|(product\/)|(\.html)|(id=)/, "");
+				return queryStr
+			}
+			return queryStr;
+		},
+		
+		fetchItem: function(contextPath, goodsTbId, isOutsideGoods, taokerGoodsId){
+			var itemContainer = $('itemContainer');
+			itemContainer.innerHTML="";
+			var params = {			
+				key : 'GoodsAction.quanItem',
+				dispatch : 'quanItem',
+				goodsTbId : goodsTbId,
+				needRecommend : 0
+			};
+			if(isOutsideGoods == 1){
+				params.dispatch = 'fetchItemForScp';
+			}
+			
+			if(taokerGoodsId){
+				params.dispatch = 'fetchItemForTaokerGoods';
+				params.taokerGoodsId = taokerGoodsId;
+			}
+			
+			var action = C.qt2Server + '/l/GoodsAction.do';
+			Ajax.send(action, params, function() {
+				var map = DB.get(params.key);
+				var t = $('tItem');							
+				var goods = map.goods;
+				
+				//从大陆服务器获取各个佣金比率
+				var paramsSon = {			
+						key : 'AgentAction.jsGetDefalutRatio',
+						dispatch : 'jsGetDefalutRatio'
+				};
+				var actionSon = goMainLand('/AgentAction.do');
+				Ajax.send(actionSon, paramsSon, function() {
+					var agentRatio = 0.0;
+					var defaultAgentRatio = 0.0;
+					var mamaRatio = 0.0;
+					var privilegeRatio = 0.0;
+					var zjRatio = 0.0;
+					var appExtendRatio = 0.0;
+					
+					var map = DB.get(paramsSon.key);
+					var code = map.code;
+					if(code == 1){
+						agentRatio = map.agentSelfRatio;
+						defaultAgentRatio = map.agentRatio;
+						mamaRatio = map.mamaRatio;
+						privilegeRatio = map.privilegeRatio;
+						zjRatio = map.zjRatio;
+						appExtendRatio = map.appExtendRatio;
+					}
+					
+					
+					// 淘宝商品详情页标题修改为商品标题
+					if (goods.goodsTitle) {
+						document.title = goods.goodsTitle;
+					}
+					currentGoods = goods;// 缓存goods
+					if(isOutsideGoods == 1){
+						currentGoods.isOutsideGoods = 1;
+					}	
+					if(goods.goodsTbId){ // 如果库里存在该商品
+						var showPrivilegeRatio = false;
+//						if(goods.imageHref.indexOf("img.alicdn.com")>-1){ //img.alicdn.com 显示不出来
+//							goods.imageHref = goods.imageHref.replace('img.alicdn.com', 'gd2.alicdn.com') + '_310x310q90.jpg';
+//						}	
+//						else if(isNeedImgSubfix(goods.imageHref)){
+//							goods.imageHref = goods.imageHref + '_468x468q90s150.jpg';
+//						}
+						
+						// 购买按钮默认显示：领券购买，如果没有券，则显示立即购买
+						var buyBtn = $('buyBtn');
+						if (buyBtn && goods.quanValue == 0) {
+							buyBtn.innerText = '立即抢购';
+						}
+						
+						if(goods.tkValue){
+							if(privilegeRatio){// 配置了特权佣金
+								showPrivilegeRatio = true;
+							}
+							
+							//订单页面跳转，传了revenueExpected，且比goods.tkValue小
+							if(revenueExpected != -1 && revenueExpected < goods.tkValue){
+								goods.tkValue = revenueExpected;
+							}	
+							
+							goods.tkValueDefault = Math.floor(goods.tkValue * defaultAgentRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100; 
+							goods.tkValuePrivilege = Math.floor(goods.tkValue * privilegeRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100; 
+							goods.tkValueZj = Math.floor(goods.tkValue * zjRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100; 
+							goods.tkValueApp = Math.floor(goods.tkValue * (agentRatio+appExtendRatio) * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;	
+							goods.tkValue = Math.floor(goods.tkValue * agentRatio * ((100-mamaRatio) / 100) * C.tbSplit ) / 100;							
+							
+							goods.tkValueDefault = toDecimal2(goods.tkValueDefault);
+							goods.tkValuePrivilege = toDecimal2(goods.tkValuePrivilege);
+							goods.tkValueZj = toDecimal2(goods.tkValueZj);
+							goods.tkValueApp = toDecimal2(goods.tkValueApp);
+							goods.tkValue = toDecimal2(goods.tkValue);
+							
+							if(agentRatio > privilegeRatio){// 本人佣金高于特权佣金
+								goods.tkValuePrivilege = goods.tkValue;
+							}
+						}
+						
+						goods.goodsPrice = toDecimal2(goods.goodsPrice);
+						goods.floorPrice = toDecimal2(goods.floorPrice);
+						
+						GoodsLogic.showNewFreeEntry(goods.floorPrice);
+						
+						var clone = t.clone(goods);
+						if(goods.goodsFrom==1){
+							clone.child('i', 'icon-taobao-12').block();
+						} else if(goods.goodsFrom==2){
+							clone.child('i', 'icon-tmall-12').block();
+						}
+						var imgHref = clone.child('img', 'imgHref');
+						imgHref.setAttribute('src', goods.imageHref);
+						
+						if(!goods.monthOrder){
+							clone.child('small', 'monthOrder').hide();
+						}
+						if(!goods.goodsDesc){
+							clone.child('div', 'goodsDesc').hide();
+						}
+						if(!goods.tkValue){
+							clone.child('small', 'zhuanFlag').hide();
+						}
+						
+						if(zjRatio && agentRatio >= zjRatio){
+							// 总监用户
+							clone.child('p', 'zjRatio').block();
+							if(appExtendRatio){
+								//有app佣金加成
+								clone.child('small', 'appCommission3').block();
+							}
+						} else if (privilegeRatio && agentRatio >= privilegeRatio) {
+							// 特权用户
+							if (zjRatio) {
+								// 配置了总监佣金
+								clone.child('p', 'applyZj').block();
+							} else {
+								clone.child('p', 'privilegeRatio').block();
+								if(appExtendRatio){
+									//有app佣金加成
+									clone.child('small', 'appCommission2').block();
+								}
+							}
+						} else if (privilegeRatio && agentRatio < privilegeRatio) {
+							// 非特权用户
+							clone.child('p', 'privilegeRatio').block();
+							clone.child('small', 'applyPrivilege').block();
+						} else {
+							clone.child('p', 'defaultRatio').block();
+							if(appExtendRatio){
+								//有app佣金加成
+								clone.child('small', 'appCommission1').block();
+							}
+						}
+						
+						itemContainer.appendChild(clone);
+
+					}else{// 库里不存在该商品
+						location = contextPath + '/am/agent-item-error.jsp';
+					}
+					GoodsLogic.imgPress('mastGoodsImg', goodsTbId);
+					
+				});
+				
+			});
+		},
+		
+		// 判断是否已收藏
+		checkIsFavorite: function(itemId, isOutsideGoods) {
+			// 如果页面没有收藏功能，则直接返回
+			var favoriteBtn = $('favoriteBtn');
+			if (!favoriteBtn) return false;
+			// 请求接口获取数据
+//			var action = '/FavoriteAction.do';
+			var action = goMainLand('/FavoriteAction.do');
+			var params = {
+				dispatch: 'isFavorite',
+				key: 'FavoriteAction.isFavorite',
+				itemId: itemId,
+				isOutsideGoods: isOutsideGoods,
+			}
+			Ajax.send(action, params, function() {
+				var map = DB.get(params.key);
+				if (map.code == 0 && map.isFavorite) {
+					// 已收藏
+					favoriteBtn.className = 'on';
+				}
+			});
+		},
+		
+		// 切换收藏状态
+		switchFavorite: function() {
+			// 如果页面未缓存商品信息，则直接返回
+			if (!currentGoods) return false;
+			
+			var itemId = '';
+			if (currentGoods.goodsFrom == 1 || currentGoods.goodsFrom == 2) {
+				// 淘宝天猫商品
+				itemId = currentGoods.goodsTbId;
+			} else if (currentGoods.goodsFrom == 10 || currentGoods.goodsFrom == 20) {
+				// 拼多多京东商品
+				itemId = currentGoods.itemId;
+			} else {
+				// 其它来源商品
+				console.error('商品来源未知');
+				return false;
+			}
+			// 判断是否已收藏
+			var isFavorite = $('favoriteBtn').classList.contains('on');
+			if(isFavorite) {
+				// 已收藏，取消收藏
+//				var action = '/FavoriteAction.do';
+				var action = goMainLand('/FavoriteAction.do');
+				var params = {
+					dispatch: 'delete',
+					key: 'FavoriteAction.delete',
+					itemId: itemId,
+					goodsFrom: currentGoods.goodsFrom,
+					isOutsideGoods: currentGoods.isOutsideGoods,
+				}
+				Ajax.send(action, params, function() {
+					var map = DB.get(params.key);
+					if (map.code == 0) {
+						// 取消收藏成功
+						toast.info({msg: '已取消收藏', bottom: true});
+						var favoriteBtn = $('favoriteBtn');
+						if (favoriteBtn) {
+							favoriteBtn.className = '';
+						}
+					} else {
+						PuLayer.alert(map.msg);
+						return;
+					}
+				});
+			} else {
+				// 未收藏，加入收藏
+//				var action = '/FavoriteAction.do';
+				var action = goMainLand('/FavoriteAction.do');
+				var params = {
+					dispatch: 'add',
+					key: 'FavoriteAction.add',
+					itemId: itemId,
+					goodsFrom: currentGoods.goodsFrom,
+					isOutsideGoods: currentGoods.isOutsideGoods,
+					goodsTitle: currentGoods.goodsTitle,
+					imageHref: currentGoods.imageHref,
+					goodsPrice: currentGoods.goodsPrice || 0,
+					floorPrice: currentGoods.floorPrice || 0,
+					quanValue: currentGoods.quanValue || 0,
+				}
+				Ajax.send(action, params, function() {
+					var map = DB.get(params.key);
+					if (map.code == 0) {
+						toast.info({msg: '收藏成功', bottom: true});
+						// 收藏成功
+						var favoriteBtn = $('favoriteBtn');
+						if (favoriteBtn) {
+							favoriteBtn.className = 'on';
+						}
+					} else {
+						PuLayer.alert(map.msg);
+						return;
+					}
+				});
+			}
+		},
+		
+		// 淘宝商品详情页显示新人免单入口
+		showNewFreeEntry: function(floorPrice) {
+			// 获取入口元素
+			var entryEl = $('newFreeEntry');
+			// 如果页面内没有入口元素，则直接返回
+			if (!entryEl) return false;
+			// 请求数据
+			var params = {			
+				dispatch : 'showNewFree',
+				key : 'GoodsAction.showNewFree',
+				floorPrice: floorPrice,
+			};
+//			var action = '/GoodsAction.do';
+			var action = goMainLand('/GoodsAction.do');
+			Ajax.send(action, params, function() {
+				var map = DB.get(params.key);
+				if(map.code == 0 && map.showNewFree) {
+					// 显示入口
+					$('newFreeEntry').style.display = 'flex';
+					$('newFreeEntry').appendClass('new-free-entry-animate');
+				}
+			});
+		},
+		
+		imgPress : function(domId, goodsTbId){
+			if(Sysolar.appType){
+				var hammertime = new Hammer($(domId));
+				hammertime.on("press", function (e) {
+					var x = e.center.x;
+					var y = e.center.y;
+					var menuDom = $('puSaveImgMenu'); 
+					menuDom.open();
+					$('menuSaveImg').onclick = function(){
+						GoodsLogic.savePoster(domId, goodsTbId);
+						PuLayer.close();
+					}
+					$('menuShareToFriend').onclick = function(){
+						GoodsLogic.wxShareToFriend(domId, goodsTbId);
+						PuLayer.close();
+					}
+				});
+			}
+		},
+		
+		getKouling: function(taokerPidId, isOutsideGoods, showRenling, isPlainKouling) {			
+			var goods = currentGoods;// 取出缓存goods
+			$('copyKeyAndroid').value= "正在生成口令...";
+			$('copyKeyIos').innerHTML = "正在生成口令...";
+			$('copyButton').hide();
+			if($('renlingTip')){
+				$('renlingTip').hide();
+			}			
+			
+			$('puKouling').open();
+			
+			var params = {			
+					dispatch : 'quanMinKouling',
+					key : 'TaokerAction.quanMinKouling',
+					goodsTbId : goods.goodsTbId,
+					taokerPidId : taokerPidId
+			};
+			
+			if(isOutsideGoods == 1){// 高佣接口获取的商品
+				params.dispatch = 'searchCouponKl';
+			}	
+
+			var action = C.qt2Server + '/TaokerAction.do';
+			Ajax.send(action, params, function() {
+				var map = DB.get(params.key);
+				var code = map.code;
+				var cl = "CHANGE_LINE";
+				if(code==0){					
+					var twoInOneKouling = map.twoInOneKouling;
+					var promotionText = null;
+					if(isPlainKouling==1){
+						promotionText = twoInOneKouling;
+					}else{
+						var platform = goods.goodsFrom==1?"淘宝":"天猫";
+						
+						var promotionText = goods.goodsTitle + cl
+						+"----------" + cl
+						+"券后￥"+goods.floorPrice+"【优惠券"+goods.quanValue+"元】" + cl
+						+"原价￥"+goods.goodsPrice+"【"+platform+"】" + cl
+						+"----------" + cl;
+						
+						if(goods.goodsDesc){
+							promotionText += "推荐理由："  +goods.goodsDesc + cl + "----------" + cl;
+						}
+						
+						promotionText += twoInOneKouling+"复制这条信息，打开手机淘宝即可领券";
+					}
+					
+					var hasCouponDom = $('puKouling').child('h6', 'hasCoupon');
+					var noCouponDom = $('puKouling').child('h6', 'noCoupon');
+					if(goods.quanValue){
+						if(hasCouponDom){
+							hasCouponDom.show();
+						}
+					}else{
+						if(noCouponDom){
+							noCouponDom.show();
+						}
+					}	
+					$('copyKeyAndroid').value= promotionText.replaceAll(cl, '\n').replaceAll('<br/>', '\n');
+					$('copyKeyIos').innerHTML = promotionText.replaceAll(cl, '<br/>');
+				    if (window.Clipboard && Clipboard.isSupported()) {
+				        $('copyButton').show();
+				    }
+			
+				    if(showRenling && $('renlingTip')){
+				    	$('renlingTip').show();
+				    }	
+				    
+				    if(Sysolar.appType){
+				    	if($('hasCoupon')){
+				    		$('hasCoupon').hide();
+				    	}
+				    	if($('copyButtonApp')){
+				    		$('copyButtonApp').show();
+				    	}	
+				    	$('copyButton').hide();						
+					}
+					else{
+				    	if($('copyButtonApp')){
+				    		$('copyButtonApp').hide();
+				    	}						
+						$('copyButton').show();
+					}
+				}else{
+					$('copyKeyAndroid').value= map.msg;
+					$('copyKeyIos').innerHTML = map.msg;
+				}	
+			});		
+		},	
+		
+		getKoulingPlain: function(taokerPidId, isOutsideGoods) {
+			var goods = currentGoods;// 取出缓存goods
+			$('copyKeyAndroid').value= "正在生成口令...";
+			$('copyKeyIos').innerHTML = "正在生成口令...";
+			$('copyButton').hide();
+						
+			$('puKouling').open();
+			
+			var params = {			
+					dispatch : 'quanMinKouling',
+					key : 'TaokerAction.quanMinKouling',
+					goodsTbId : goods.goodsTbId,
+					taokerPidId : taokerPidId
+			};
+			
+			if(isOutsideGoods == 1){// 高佣接口获取的商品
+				params.dispatch = 'searchCouponKl';
+			}	
+
+			action = C.qt2Server + '/TaokerAction.do';
+			Ajax.send(action, params, function() {
+				var map = DB.get(params.key);
+				var code = map.code;
+				if(code==0){
+					var twoInOneKouling = map.twoInOneKouling;
+					$('copyKeyAndroid').value= twoInOneKouling;
+					$('copyKeyIos').innerHTML = twoInOneKouling;
+				    if (window.Clipboard && Clipboard.isSupported()) {
+				        $('copyButton').show();
+				    }
+				    
+				    if(Sysolar.appType){
+						$('copyButton').hide();
+						$('copyButtonApp').show();
+					}
+					else{
+						$('copyButton').show();
+					}
+				}else{
+					$('copyKeyAndroid').value= map.msg;
+					$('copyKeyIos').innerHTML = map.msg;
+				}	
+			});		
+		},
+		
+//		showTuwen: function(json) {
+//			if((json.ret)[0].indexOf('成功')>-1){			
+//				$('taobao-img-load').hide();
+//				var container = $('imageContainer');	
+//				var t = $('tImageItem');
+//				var images = json.data.images;
+//				for (var i = 0; i < images.length; i++) {
+//					var image= {			
+//						imageHref : ''
+//					};
+//			// image.imageHref = images[i] + '_468x468q90s150.jpg';
+//					image.imageHref = images[i];
+//					var clone = t.clone(image);
+//					var taobaoImg = clone.child('img', 'taobaoImg');
+//					taobaoImg.setAttribute('_src', image.imageHref);
+//					taobaoImg.setAttribute('id', 'goodsImg'+(i+1));
+//					container.appendChild(clone);
+//					GoodsLogic.imgPress(taobaoImg.id, taobaoImg.id);
+//				}	
+//				
+//				// 延时加载图片
+//				delayload( {
+//					id : [ 'imageContainer' ],
+//					src : '/img/loading-max.gif',
+//					isSquare : false
+//				});
+//			}		
+//		},
+		
+		showTuwen: function(json) {
+			if((json.ret)[0].indexOf('成功')>-1){			
+				$('taobao-img-load').hide();
+				var container = $('imageContainer');	
+				var t = $('tImageItem');
+				var imageStr = json.data.pcDescContent;
+				
+				
+				var images = imageStr.match(/src=".+?"/g);
+				
+				for (var i = 0; i < images.length; i++) {
+					
+					
+					var image= {			
+						imageHref : ''
+					};
+			
+					var imageHref = images[i].replace(/src="/, "").replace(/"/, "");
+					if(imageHref.indexOf("https")==-1){
+						imageHref = "https:"+ imageHref;
+					}	
+					
+					if(imageHref.indexOf("assets.alicdn.com")>-1){
+						continue;						
+					}
+					
+					var goodsImgBin = {
+		        			// 图片地址
+		        			src: imageHref,
+		        			// 是否为主图
+		        			isMain: false
+						};
+					goodsImgList.push(goodsImgBin);
+					
+					image.imageHref = imageHref;
+					var clone = t.clone(image);
+					var taobaoImg = clone.child('img', 'taobaoImg');
+					taobaoImg.setAttribute('_src', image.imageHref);
+					taobaoImg.setAttribute('id', 'goodsImg'+(i+1));
+					container.appendChild(clone);
+					GoodsLogic.imgPress(taobaoImg.id, taobaoImg.id);
+				}	
+				
+				// 延时加载图片
+				delayload( {
+					id : [ 'imageContainer' ],
+					src : '/img/loading-max.gif',
+					isSquare : false
+				});
+			}		
+		},
+		
+		showImgList: function(goodsTbId) {
+			var params = {			
+				dispatch : 'getGoodsInfoByAPI',
+				key : 'GoodsAction.getGoodsInfoByAPI',
+				goodsTbId : goodsTbId
+			};
+
+			action = C.qt2Server + '/l/GoodsAction.do';
+			
+			Ajax.send(action, params, function() {
+				$('taobao-img-load').hide();
+				
+				var map = DB.get(params.key);
+				var code = map.code;
+				if(code==0){
+					var container = $('imageContainer');	
+					var t = $('tImageItem');
+					var images = map.goods.imgList;
+					for (var i = 0; i < images.length; i++) {
+						var image= {			
+							imageHref : ''
+						};
+		
+						image.imageHref = images[i];
+						var clone = t.clone(image);
+						var taobaoImg = clone.child('img', 'taobaoImg');
+						taobaoImg.setAttribute('_src', image.imageHref);
+						taobaoImg.setAttribute('id', 'goodsImg'+(i+1));
+						container.appendChild(clone);
+						GoodsLogic.imgPress(taobaoImg.id, taobaoImg.id);						
+					}
+					
+					// 延时加载图片
+					delayload( {
+						id : [ 'imageContainer' ],
+						src : '/img/loading-max.gif',
+						isSquare : false
+					});					
+				}
+			});	
+		},
+		
+		showDDInfo: function(itemId){
+			location.href="../am/dd-item.jsp?itemId="+itemId;
+		},
+		
+		showJdInfo: function(itemId, isOutsideGoods){	
+			location.href="../am/jd-item.jsp?itemId="+itemId+"&isOutsideGoods="+isOutsideGoods;
+		},
+		
+		evaluateList : function(goodsTbId, sellerId) {
+			var f = $('next-form');
+	    	var currentPageNum = parseInt(f.currentPageNum.value);
+	    	var pageNum = currentPageNum+1;
+			var totalPage = 1;
+			// 加载数据
+			$('next-load').show();	
+			var params = {
+				callback : 'GoodsLogic.evaluateCallback',
+				itemId : goodsTbId,
+				currentPage : pageNum,
+				pageSize : 20,
+				sellerId : sellerId
+			};
+			var url = 'https://rate.tmall.com/list_detail_rate.htm';
+			Ajax.send(url, params, function() {
+			});
+		},
+		
+		evaluateCallback : function(json) {
+			$('next-load').hide();		
+			var f = $('next-form');
+			var container = $('evaluateContainer');
+			var t = $('tEvaluateItem');
+			
+			var rateDetail = json.rateDetail;
+			if(!rateDetail){
+				return;
+			}
+			var paginator = rateDetail.paginator;
+			var totalPage = paginator.lastPage;	
+			var pageNum = paginator.page;
+			var rateList = rateDetail.rateList;
+			for (var i = 0; i < rateList.length; i++) {
+				var rate = rateList[i];
+				rate.nickname = rate.displayUserNick;
+				rate.orderTime = rate.rateDate + " " + rate.auctionSku;
+				rate.orderEvaluate = rate.rateContent;			
+				var clone = t.clone(rate);
+				
+				// 加入页面
+				container.appendChild(clone);
+			}
+			// 下一页
+			var dom = $('next-page');
+			if(pageNum < totalPage){
+				dom.son('small').setHtml(pageNum + '/' + totalPage);
+				dom.show();
+			}
+			else {
+				$('evaluateEnd').show();			
+				dom.hide();
+			} 
+			f.currentPageNum.value=pageNum;
+		},	
+		
+		showTuwenDiv : function() {
+			$('tuwenDiv').show();
+			$('evaluateDiv').hide();
+			$('tuwenLi').setAttribute('class', 'on');
+			
+			var evaluateLi = $('evaluateLi');
+			if (evaluateLi) {
+				evaluateLi.setAttribute('class', '');
+			}
+		},
+		
+		showEvaluateDiv : function() {
+			$('tuwenDiv').hide();
+			$('evaluateDiv').show();
+			$('tuwenLi').setAttribute('class', '');
+			
+			var evaluateLi = $('evaluateLi');
+			if (evaluateLi) {
+				evaluateLi.setAttribute('class', 'on');
+			}
+		},
+		
+		getQrCode: function(zzUserId){
+			var params = {			
+				key : 'ZzUserSceneAction.getUserQr',
+				dispatch : 'getUserQr',
+				zzUserId : zzUserId
+			};
+			var action = '/QuanUserSceneAction.do';
+			Ajax.send(action, params, function() {
+				var content = DB.get(params.key);
+				if(content!=-1){
+					content = content.replace(/\/mnt/, "");
+					$('serviceQr').src = C.qt2Server + content;
+					$('qrImg').src = C.qt2Server + content + "?" +Date.parse(new Date());
+					// $('qrCode').show();
+				}
+			});
+		},
+		
+		savePoster : function(imgDomId, goodsTbId){
+			var dom = $(imgDomId);
+			var url = dom.src;
+			api.download({
+			    url: url,
+			    savePath: 'fs://' + goodsTbId + '.jpg',
+			    report: true,
+			    cache: false,
+			    allowResume: true
+			}, function(ret, err) {
+			    if (ret.state == 1) {
+			    	api.saveMediaToAlbum({
+			    	    path: ret.savePath
+			    	}, function(ret, err) {
+			    	    if (ret && ret.status) {
+			    	    	api.toast({
+					            msg: '保存成功',
+					            duration: 2000,
+					            location: 'bottom'
+					        });
+			    	    } 
+			    	    else {
+			    	    	api.toast({
+					            msg: '保存失败:' + err.msg,
+					            duration: 2000,
+					            location: 'bottom'
+					        });
+			    	    }
+			    	});
+			    }
+			    else {
+			    	
+			    }
+			});
+		},
+		
+		wxShareToTimeline : function(domId, goodsTbId){
+			// 分享朋友圈, 忽略标题, 只发文案和图片
+			var dom = $(domId);
+			var url = dom.src;
+			
+			
+			var desc = '';
+// var descCheck = $('paper-check-text').checked;
+// if(descCheck){
+			if($('copyDesc4Android')){
+				desc = $('copyDesc4Android').value;
+			}
+// }
+			
+			var wx = api.require('wx');
+			api.download({
+			    url: url,
+			    savePath: 'fs://' + goodsTbId + '.jpg',
+			    report: true,
+			    cache: false,
+			    allowResume: true
+			}, function(ret, err) {
+			    if (ret.state == 1) {
+			    	if(Sysolar.IOSPhoneType == 1){
+			    		var shareAction = api.require('shareAction');
+			    		shareAction.share({
+			    			images: [ret.savePath],
+			    			type: 'image'
+			    		});
+// var inShare = api.require('inShare');
+// inShare.shareImgsTo({
+// imgPaths : ret.savePath,
+// // description : desc,
+// sendPattern : 'ALL',
+// app : 'wxFriend'
+// },function(ret,err){
+// if(ret.status){
+// }
+// else{
+// alert(ret.errorMessage);
+// }
+// });
+					}
+			    	else{
+//				    	wx.shareMutableImg({
+//				    	    description: desc,
+//				    	    imgs: [ret.savePath]
+//				    	});
+				    	
+//						var shareAction = api.require('shareAction');
+//						shareAction.share({
+//							path: ret.savePath,
+//			    			type: 'image'
+//			    		});
+			    		
+					wx.shareImage({
+			    	    apiKey: 'wx9eac637b6766feca',
+			    	    scene: 'timeline',
+			    	    thumb: '',
+			    	    contentUrl: ret.savePath
+			    	}, function(ret, err) {
+			    	    if (ret.status) {
+			    	    } else {
+			    	    }
+			    	});
+						return;
+				    	
+// wx.shareImage({
+// apiKey: 'wx9ef2cedb60ca4746',
+// scene: 'timeline',
+// thumb: ret.savePath,
+// contentUrl: ret.savePath
+// }, function(ret, err) {
+// if (ret.status) {
+// alert('分享成功');
+// } else {
+// alert(err.code);
+// }
+// });
+				    	
+// weiXin.sendRequest({
+// scene: 'timeline',
+// contentType: 'image',
+// title: '测试用标题',
+// description: '测试用内容',
+// thumbUrl: 'fs://'+ret.savePath,
+// contentUrl: 'fs://'+ret.savePath
+// }, function(ret, err) {
+// if (ret.status) {
+// api.alert({ title: '发表微信', msg: '发表成功', buttons: ['确定'] });
+// } else {
+// api.alert({
+// title: '发表失败',
+// msg: err.msg,
+// buttons: ['确定']
+// });
+// }
+// });
+				    }
+		    	}
+			    else {
+			    	
+			    }
+			});
+		},
+		
+		wxShareToFriend : function(domId, goodsTbId){
+			// 分享好友, 标题,文案,图片每个调用一次分享
+			var dom = $(domId);
+			var url = dom.src;
+			GoodsLogic.inShareImg(url, goodsTbId);
+		},
+		
+		inShareImg : function(url, goodsTbId){
+			var inShare = api.require('inShare');
+			api.download({
+				url : url,
+				savePath : 'fs://' + goodsTbId + '.jpg',
+				report : true,
+				cache : false,
+				allowResume: true
+			}, function(ret, err) {
+				if (ret.state == 1) {
+					if(typeof Sysolar.appVersion != 'undefined' && Sysolar.appVersion == '1_3'){
+						var wx = api.require('wx');
+						wx.shareImage({
+				    	    apiKey: 'wx9eac637b6766feca',
+				    	    scene: 'session',
+				    	    thumb: '',// ret.savePath,
+				    	    contentUrl: ret.savePath
+				    	}, function(ret, err) {
+				    	    if (ret.status) {
+				    	        // alert('分享成功');
+				    	    } else {
+				    	        // alert(err.code);
+				    	    }
+				    	});
+					}
+					else{
+						if(Sysolar.IOSPhoneType == 1){
+							inShare.shareImgsTo({
+								imgPaths : ret.savePath,
+								sendPattern : 'ALL',
+								app : 'wxFriend'            
+							},function(ret,err){
+								if(ret.status){
+								}
+								else{
+									alert(ret.errorMessage);
+								}
+							});
+						}
+						if(Sysolar.ANDPhoneType == 1){
+							inShare.shareImgsTo({
+								imgPaths : ret.savePath,
+								sendPattern : 'ONLY',
+								app : 'wxFriend'            
+							},function(ret,err){
+								if(ret.status){
+									alert(JSON.stringify(ret));
+								}
+								else{
+									alert(ret.errorMessage);
+								}
+							});
+						}
+						return;
+					}
+				}
+				else {
+					
+				}
+			});
+		},
+		
+		longPress : function(){
+// $('queryStr').value = '';
+			// 长按
+			if(Sysolar.appType){
+				if(Sysolar.IOSPhoneType == 1){
+					return;
+				}
+				var hammertime = new Hammer($('queryStr'));
+				hammertime.on("press", function (e) {
+					var clipBoard = api.require('clipBoard');
+					clipBoard.get(function(ret, err) {
+					    if (ret) {
+					    	$('queryStr').value = '';
+					        $('queryStr').value = ret.value;
+					        searchGoods();
+					    } else {
+					        alert(JSON.stringify(err));
+					    }
+					});
+				});
+			}
+		},
+		
+		copyTitle : function(){
+			App.copyValue($('copyTitleAndroid').value);
+		},
+		
+		copyDesc : function(){
+			var value = $('copyDesc4Android').value;
+			value = value.replace(/(^\s*)|(\s*$)/g, '');
+			value = value.replace(/<br\/>/g, '\n');
+			value = value.replace(/<br>/g, '\n');
+			App.copyValue(value);
+		},
+		
+		copyTkl : function(){
+			App.copyValue($('copyKeyAndroid').value);
+			PuLayer.close();
+		},
+		
+		copyTklOpenTb : function(){
+			App.copyValue($('copyKeyAndroid').value);
+			PuLayer.close();
+			if(Sysolar.IOSPhoneType == 1){
+				api.openApp({
+				    iosUrl: 'taobao://', 
+				});
+			}
+			else{
+				api.openApp({
+				    androidPkg: 'com.taobao.taobao',
+				    mimeType: 'text/html'
+				}, function(ret, err) {
+				    if (ret) {
+				    	api.toast({
+				            msg: '复制成功',
+				            duration: 2000,
+				            location: 'bottom'
+				        });
+				    } else {
+// alert(JSON.stringify(err));
+				    	alert("打开应用失败,请检查是否已经安装：手机淘宝App");
+				    }
+				});
+			}
+		},
+		
+		copyTMNWOpenTb : function(){
+			if(Sysolar.IOSPhoneType == 1){
+				App.copyValue($('copyKeyIos').innerHTML);
+			}
+			else{
+				App.copyValue($('copyKeyAndroid').value);
+				api.openApp({
+				    androidPkg: 'com.taobao.taobao',
+				    mimeType: 'text/html'
+				}, function(ret, err) {
+				    if (ret) {
+				    	api.toast({
+				            msg: '复制成功',
+				            duration: 2000,
+				            location: 'bottom'
+				        });
+				    } else {
+// alert(JSON.stringify(err));
+				    	alert("打开应用失败,请检查是否已经安装：手机淘宝App");
+				    }
+				});
+			}
+		},
+		
+		copyShopUrl : function(){
+			App.copyValue($('copyShopUrlAndroid').value);
+		},
+		
+		copyInviteMsg : function(){
+			App.copyValue($('copyDescAndroid').value);
+		},
+		
+// copyAndriodLink : function(){
+// App.copyValue('http://www.t67844.top/app/meizhuan_v101.apk');
+// },
+		
+		copyLoginLink : function(){
+			App.copyValue('http://www.mega-dongsheng.com');
+		},
+		
+		createInvitePoster : function(showAppReg){
+			$('waitMsg').show();
+			
+			$('puInvitePaper').open();
+			var params = {
+				width : 400,
+				height : 400,
+				x : 62,
+				y : 1472,
+				showAppReg : showAppReg,
+				key : 'Goods.meizhuanInvitePoster',
+				dispatch : 'meizhuanInvitePoster'
+			};
+			
+			Ajax.send('/GoodsAction.do', params, function() {
+				var map = DB.get(params.key);
+				var code = map.code;
+				var content = map.content;
+				if(code == -1){
+					alert(content);
+					return false;
+				}
+				else if(code == -2){
+					alert(content);
+					window.location.href = '/am/taoker-agent-set-phone.jsp';
+				}
+				else{
+					$('waitMsg').hide();
+					$('meizhuanInvitePoster').src = '/meizhuanInvitePoster/' + content + '.jpg?' + Math.random();
+				}
+				
+				if(Sysolar.appType){
+					$('pressPrompt').hide();
+					$('webBtsCopy').hide();
+					$('webBtsNotCopy').hide();
+					$('appShareBts').show();
+					$('appBtsCopy').show();
+					
+					if(showAppReg){
+						
+						//换复制邀请码按钮
+						$('appCopyBtn').innerHTML = '复制邀请码';
+						$('appCopyBtn').onclick = function(){
+							
+							var params = {
+								key : 'Agent.getInviteCode',
+								dispatch : 'getInviteCode'
+							};
+								
+							Ajax.send('/AgentAction.do', params, function() {
+								var map = DB.get(params.key);
+								var code = map.code;
+								var content = map.content;
+								var inviteCode = map.inviteCode;
+								if(code == 1){
+									$('copyDescAndroid').value = inviteCode;
+									App.copyValue($('copyDescAndroid').value);
+									return false;
+								}
+								else{
+									alert(content);
+								}
+							});
+							return false;
+							
+						}
+					}
+				}
+				else{
+					$('appShareBts').hide();
+					$('appBtsCopy').hide();
+					$('pressPrompt').show();
+					if (window.Clipboard && Clipboard.isSupported()) {
+						$('webBtsNotCopy').hide();
+						$('webBtsCopy').show();
+		                var titleBtn = $('copyWAButton');         
+		                var clipboard = new Clipboard(titleBtn, {
+		                    text : function() {
+		                        return $('copyDescAndroid').value || "";
+		                    }
+		                });
+		                clipboard.on("success", function(e) {
+		                    e.clearSelection();
+		                    titleBtn.innerHTML = '已复制<i></i>';
+		                });
+		                
+		            }
+					else{// 不显示复制按钮
+	                     $('webBtsCopy').hide();
+		                 $('webBtsNotCopy').show();
+		            } 
+				}
+			});	
+		},
+		
+		clipBoardToSession : function(clipBoardValue, isMyself){
+			var params = {
+				clipBoardValue : clipBoardValue,
+				key : 'Goods.clipBoardToSession',
+				isMyself : isMyself,
+				dispatch : 'clipBoardToSession'
+			};
+			Ajax.send('/GoodsAction.do',params,function(){
+				var result = DB.get(params.key);
+				if(result > 0){
+				   // 查询内容不同,弹窗
+					$('toSearch').href = '../am/index-search.jsp?queryStr=' + clipBoardValue;
+	                $('clipBoardValue').innerHTML = decodeURIComponent(clipBoardValue);
+	                $('puKeySearch').open();
+				}
+				else{
+				   // 查询内容相同,不弹窗
+				}
+			});
+		},
+		
+		fetchListNewFree : function() {    	
+	    	var container = $('goodsContainer');
+	    	var f = $('next-form');
+	    	var currentPageNum = parseInt(f.currentPageNum.value);
+	    	var goodsList = container.getElementsByClassName("find-quan-item");
+	
+	    	if(goodsList.length==0 && currentPageNum>0){
+	    		f.currentPageNum.value = parseInt(f.currentPageNum.value)-1;
+	    		isBack = 1;
+	    	}	
+	    	currentPageNum = parseInt(f.currentPageNum.value);
+	    	var pageNum = currentPageNum+1;
+		
+			var totalPage = 1;
+			var params = {			
+				key : 'GoodsAction.goodsList',
+				dispatch : "goodsList",
+				goodsFrom : 2,
+				floorPriceMax : newFreeThreshold,
+				tkRateMin : newFreeCommissionRatio,
+				sortType : 1,
+				pageNum : pageNum,
+				requestFrom : 2,
+				pageSize : 50,				
+				isNeedCateNum : 0,
+				needTop : 0
+			};
+
+			// 加载数据
+			$('next-load').show();	
+			var action = C.qt2Server + '/l/GoodsAction.do';
+			Ajax.send(action, params, function() {
+				$('next-load').hide();
+				var map = DB.get(params.key);
+				var t = $('tGoodsItem');
+				var arr = map.goodsList;
+				var totalPage = map.totalPage;
+
+				// 没有数据
+				if (map.totalGoodsNum == 0) {
+					$('indexNoData').show();
+				}
+				
+				// 遍历设置页面数据
+				for (var i = 0; i < arr.length; i++) {
+					var goods = arr[i];
+					if(goods.goodsTbId=='540790849058'){
+						continue;
+					}
+					goods.index = i % 2;
+					if(goods.quanLimitPrice>goods.goodsPrice){
+						continue;
+					}	
+			
+					goods.goodsPrice = limitDecimal2Str(toDecimal2(goods.goodsPrice));
+					goods.floorPrice = limitDecimal2Str(toDecimal2(goods.floorPrice));
+					
+					// 克隆对象
+					var clone = t.clone(goods);
+					var goodsImg = clone.child('img', 'goodsImg');	
+					if(isNeedImgSubfix(goods.imageHref)){
+						goods.imageHref = goods.imageHref + '_310x310q90.jpg';
+					}
+					goodsImg.setAttribute('_src', goods.imageHref);
+					
+					if(goods.goodsFrom == 1) {
+						clone.child('i', 'icon-taobao-12').block();
+					}else if(goods.goodsFrom == 2) {
+						clone.child('i', 'icon-tmall-12').block();
+					}
+
+					// 加入页面
+					container.appendChild(clone);
+				}
+
+				// 下一页
+				var dom = $('next-page');
+				if(pageNum >= totalPage){
+					$('theEnded').show();
+				}
+			 
+				f.currentPageNum.value=pageNum;
+				// 延时加载图片
+				delayload( {
+					id : [ 'goodsContainer' ],
+					src : '/img/loading300-2.gif',
+					isSquare : false
+				});
+			});
+		},
+		
+//		wxShareToCircle : function(goodsTbId, bgId, description, bgType, isFriend, phoneNum, weixinVer){
+//			BigtkGoodsLogic.copyBgText(bgId, 'null', 1);
+//			var dom = $('puSubmiting');
+//			dom.open();
+//			bigtkGoodsImgs.length = 0;
+//			bgImgsIndex = 0;
+//			bgImgsStringBuilder = "";
+//			var firstEndUrl = "";
+//			if(bgType == 1){
+//				//获取商品海报需要的url
+//				var params = {
+//						goodsTbId : goodsTbId,
+//						isOutsideGoods : 0,
+//						key : 'Goods.fetchTBPosterUrl',
+//						dispatch : 'fetchTBPosterUrl'
+//				};
+//				Ajax.send('/GoodsAction.do', params, function() {
+//					var map = DB.get(params.key);
+//					var code = map.code;
+//					var msg = map.msg;
+//					if(code != 0){
+//						alert(msg);
+//						return false;
+//					}
+//					else{
+//						firstEndUrl = map.url;
+//						//生成商品海报
+//						params = {
+//								key : 'Goods.goodsPoster',
+//								goodsTbId : goodsTbId,
+//								scGoodsTbId : goodsTbId,
+//								isOutsideGoods : 0,
+//								userTableType : 2,
+//								url : firstEndUrl,
+//								dispatch : 'goodsPoster'
+//						};
+//						Ajax.send('/GoodsAction.do', params, function() {
+//							var map = DB.get(params.key);
+//							var code = map.code;
+//							var content = map.content;
+//							if(code != 0){
+//								alert("生成海报异常,请截图联系管理员");
+//								return false;
+//							}
+//							else{
+//								firstEndUrl = C.zzServer + '/goodsPoster/' + content + '.jpg?' + Math.random();
+//								//下载图片
+//								var imgFatherDom = $('btkImgContainer' + bgId);
+//								var imgsSize = imgFatherDom.getElementsByTagName("img").length;
+//								if(bgType == 1){
+//									bigtkGoodsImgs[0] = firstEndUrl;
+//									var h = 1;
+//									for(var i=1; i<imgsSize+1; i++){
+//										var url = imgFatherDom.getElementsByTagName("img")[i-1].src;
+//										if(url.indexOf('QiangGuangLe') > -1){
+//											continue;
+//										}
+//										bigtkGoodsImgs[h] = url;
+//										h++;
+//									}
+//								}
+//								else{
+//									var h = 0;
+//									for(var i=0; i<imgsSize; i++){
+//										var url = imgFatherDom.getElementsByTagName("img")[i].src;
+//										if(url.indexOf('QiangGuangLe') > -1){
+//											continue;
+//										}
+//										bigtkGoodsImgs[h] = url;
+//										h++;
+//									}
+//									bigtkGoodsImgs[h] = firstEndUrl;
+//								}
+//								BigtkGoodsLogic.downLoadImgs(bgId, description, isFriend, phoneNum, weixinVer, BigtkGoodsLogic.shareImgs);	
+//							}
+//						});
+//					}
+//				});
+//			}
+//			else{
+//				var params = {
+//						width : 400,
+//						height : 400,
+//						x : 70,
+//						y : 1480,
+//						key : 'Goods.meizhuanInvitePoster',
+//						dispatch : 'meizhuanInvitePoster'
+//				};
+//
+//				Ajax.send('/GoodsAction.do', params, function() {
+//					var map = DB.get(params.key);
+//					var code = map.code;
+//					var content = map.content;
+//					if(code != 0){
+//						alert('系统错误,请截图联系管理员:' + content);
+//						return false;
+//					}
+//					else{
+//						$('invitePoster').src = '/meizhuanInvitePoster/' + content + '.jpg?' + Math.random();
+//						firstEndUrl = $('invitePoster').src;
+//						//下载图片
+//						var imgFatherDom = $('btkImgContainer' + bgId);
+//						var imgsSize = imgFatherDom.getElementsByTagName("img").length;
+//						if(bgType == 1){
+//							bigtkGoodsImgs[0] = firstEndUrl;
+//							var h = 1;
+//							for(var i=1; i<imgsSize+1; i++){
+//								var url = imgFatherDom.getElementsByTagName("img")[i-1].src;
+//								if(url.indexOf('QiangGuangLe') > -1){
+//									continue;
+//								}
+//								bigtkGoodsImgs[h] = url;
+//								h++;
+//							}
+//						}
+//						else{
+//							var h = 0;
+//							for(var i=0; i<imgsSize; i++){
+//								var url = imgFatherDom.getElementsByTagName("img")[i].src;
+//								if(url.indexOf('QiangGuangLe') > -1){
+//									continue;
+//								}
+//								bigtkGoodsImgs[h] = url;
+//								h++;
+//							}
+//							bigtkGoodsImgs[h] = firstEndUrl;
+//						}
+//						BigtkGoodsLogic.downLoadImgs(bgId, description, isFriend, phoneNum, weixinVer, BigtkGoodsLogic.shareImgs);	
+//					}
+//				});
+//			}
+//		},
+		
+		wxShareToCircle : function(goodsTbId, isFriend, phoneNum, weixinVer){
+			goodsImgs.length = 0;
+			selectedImgsList.length = 0;
+			goodsImgsIndex = 0;
+			goodsImgsStringBuilder = "";
+			
+			//删除手机本地海报邀请图片文件夹
+//			apiready = function () {
+//				var fs = api.require('fs');
+//				fs.rmdirSync({
+//				    path: 'fs://shareHB'
+//				}, function(ret, err) {
+//				    if (ret.status) {
+//				    } else {
+//				    }
+//				});
+//			}
+			
+			// 获取用户已选择图片的数量
+//        	getSelectImgSrc(goodsImgList.length);
+        	for (var i = 0; i < goodsImgList.length; i++) {
+        		var el = $('posterImg' + i);
+        		if (hasClass(el, 'on')) {
+        			var src = el.getElementsByTagName("img")[0].src;
+        			selectedImgsList.push(src);
+        		}
+        	}
+			
+			var h = 0;
+			for(var i=0; i<selectedImgsList.length; i++){
+				var url = selectedImgsList[i];
+				goodsImgs[h] = url;
+				h++;
+			}
+			GoodsLogic.downLoadImgs(goodsTbId, isFriend, phoneNum, weixinVer, GoodsLogic.shareImgs);
+		},
+		
+		downLoadImgs : function(goodsTbId, isFriend, phoneNum, weixinVer, callback){
+			if(goodsImgsIndex >= goodsImgs.length){
+				callback(goodsTbId, isFriend, phoneNum, weixinVer);
+				return;
+			}
+			var url = goodsImgs[goodsImgsIndex];
+			var savePath = 'fs://shareHB/' + goodsTbId + '-' + goodsImgsIndex + '.jpg';
+			if(url.indexOf('goodsPoster') > -1){
+				savePath = 'fs://shareHB/' + goodsTbId + '-main' + '-' + goodsImgsIndex + '.jpg';
+			}
+			api.download({
+				url : url,
+				savePath : savePath,
+				report : true,
+				cache : false,
+				allowResume: true
+			}, function(ret, err) {
+				if(ret){
+					if (ret.state == 1) {
+						if(isFriend == 0 && weixinVer == 1){
+							api.saveMediaToAlbum({
+//								groupName : 'bbbbbb',
+								path: savePath,
+					    	}, function(ret, err) {
+					    	    if (ret && ret.status) {
+					    	    } 
+					    	    else {
+					    	    }
+					    	});
+						}
+						//分享多图地址
+						if(goodsImgsStringBuilder == ""){
+							goodsImgsStringBuilder = savePath;
+						}
+						else{
+							var newImgPath = savePath;
+							if(goodsImgsStringBuilder.indexOf(newImgPath) < 0){
+								goodsImgsStringBuilder = goodsImgsStringBuilder + ',' + savePath;
+							}
+						}
+						
+						goodsImgsIndex++;
+						GoodsLogic.downLoadImgs(goodsTbId, isFriend, phoneNum, weixinVer, callback);
+					}
+					else{
+					}
+				}
+				else{
+					alert(JSON.stringify(err));
+				}
+			});
+		},
+		
+		shareImgs : function(goodsTbId, isFirend, phoneNum, weixinVer){
+			var imgs = goodsImgsStringBuilder;
+			var imgsArr = imgs.split(",");
+			var resultArr = new Array();
+			var mainImg;
+			var mainIndex = 0;
+			for(var i=1; i<imgsArr.length; i++){
+				if(imgsArr[i].indexOf('main') > -1){
+					mainImg = imgsArr[i];
+					mainIndex = i;
+					resultArr.push(imgsArr[mainIndex]);
+					break;
+				}
+			}
+			
+			//调整图片顺序
+			for(var i=0; i<imgsArr.length; i++){
+				if(i != mainIndex){
+					resultArr.push(imgsArr[i]);
+				}
+			}
+			
+			PuLayer.close();
+			if(Sysolar.appType){
+				if(Sysolar.IOSPhoneType == 1){
+					if(isFirend){
+		    			var shareAction = api.require('shareAction');
+			    		shareAction.share({
+			    			images: resultArr,
+			    			type: 'image'
+			    		});
+					}
+					else{
+						if(weixinVer == 1){
+			    			//调起苹果App
+			    			api.openApp({
+			    			    iosUrl: 'weixin://', //打开微信的，其中weixin为微信的URL Scheme
+			    			    appParam: {
+			    			    	"from":"timeline"
+			    			    }
+			    			});
+			    		}
+			    		else{
+			    			var shareAction = api.require('shareAction');
+				    		shareAction.share({
+				    			images: resultArr,
+				    			type: 'image'
+				    		});
+			    		}
+					}
+				}
+				if(Sysolar.ANDPhoneType == 1){
+					var inShare = api.require('inShare');
+					if(isFirend){
+						var shareAction = api.require('shareAction');
+						shareAction.share({
+			    			images: resultArr,
+			    			type: 'image'
+			    		});
+					}
+					else{
+						if(weixinVer == 1){
+							inShare.shareImgsTo({
+								imgPaths : resultArr[0],
+								sendPattern : 'ONLY',
+								app : 'wxCircle'          
+							},function(ret,err){
+								if(ret.status){
+								}
+								else{
+								}
+							});
+						}
+						else{
+							inShare.shareImgsTo({
+								imgPaths : imgs,
+								sendPattern : 'ONLY',
+								app : 'wxCircle'          
+							},function(ret,err){
+								if(ret.status){
+									alert(JSON.stringify(ret));
+								}
+								else{
+									alert(ret.errorMessage);
+								}
+							});
+						}
+					}
+				}
+				
+			}
+		},
+		
+		savePoster2 : function(goodsTbId){
+			var dom = $('wrapper');
+			dom = dom.child('div','swiper-slide swiper-slide-active').child('div','img-wrap')
+			var domId = dom.id;
+			dom = dom.child('img','poster');
+			var url = dom.src;
+			api.download({
+			    url: url,
+			    savePath: 'fs://' + goodsTbId + '-' + domId + '.jpg',
+			    report: true,
+			    cache: false,
+			    allowResume: true
+			}, function(ret, err) {
+			    if (ret.state == 1) {
+			    	api.saveMediaToAlbum({
+			    	    path: ret.savePath
+			    	}, function(ret, err) {
+			    	    if (ret && ret.status) {
+			    	    	api.toast({
+					            msg: '保存成功',
+					            duration: 2000,
+					            location: 'bottom'
+					        });
+			    	    } 
+			    	    else {
+			    	    	api.toast({
+					            msg: '保存失败:' + err.msg,
+					            duration: 2000,
+					            location: 'bottom'
+					        });
+			    	    }
+			    	});
+			    }
+			    else {
+			    	
+			    }
+			});
+		}
+};
