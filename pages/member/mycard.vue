@@ -72,7 +72,8 @@
 							<view v-if="item.trade_info.kuaijie.enable" v-for="(item1, index1) in item.trade_info.kuaijie.enable" :key="'kuaijie-'+index1" style="line-height: 80rpx; margin-top: 5rpx;">
 								<text class=" bg-gray" >{{ item1.show_name }}</text> --
 								<text class=" line-blue" @click="ShowTradeInfo(item1.id)" >查看详情</text> -- 
-								<text class=" line-green" @click="easyPayCreate(item1.id,item.id)" >交易</text> 
+								<text v-if="item1.is_sign===1" class="line-green" @click="easyPayCreate(item1.id,item.id)" >交易</text> 
+								<text v-if="item1.is_sign===0"  class="line-green" @tap="jihuo(item1.id,item.id)" data-target="DialogModal1">激活通道</text>
 							</view>
 							<!-- 按顺序对应第二个的内容 -->
 
@@ -465,7 +466,7 @@
 	created() {
 		console.log('onLoad 状态===============》');
 		this.$Request.postP('/bank/bag',{
-			"bank_type": "xyk"
+			"type": "xyk"
 		}).then(res => {
 			console.log(res);
 			this.options = res.data;
@@ -480,11 +481,13 @@
 	methods: { 
 		easyPayCreate(trade_id,bank_id){
 			//快捷支付
-			if(!this.money){
+			console.log(this.money)
+			if(this.money <= 0){
 				uni.showToast({
 					title: '请输入消费金额！',
 					icon: 'none'
 				});
+				return;
 			}
 			this.$queue.showLoading("请稍后...");
 			this.$Request.postP('/easyPayCreate',{
@@ -534,7 +537,7 @@
 			uni.hideLoading();
 		},
 		jihuo(planid,cardid){
-			this.$queue.showLoading("正在发送验证码...");
+			//this.$queue.showLoading("正在发送验证码...");
 			this.trade_id =planid;
 			this.bank_id = cardid;
 			this.$Request.postP('/pay/bankSign',{
@@ -542,7 +545,18 @@
 				    "bank_id": cardid //银行卡id
 			}).then(res => {
 				console.log(res);
-				if (res.status === 10000) { 
+				if (res.status === 10000) {
+					console.log('is_sign_auto')
+					if(res.data.is_sign_auto == 1){
+						uni.showToast({
+							title: '激活通道成功！',
+							icon: 'none'
+						});
+						uni.redirectTo({
+						    'url':'/pages/member/mycard'
+						});
+						return;
+					}
 					this.signOrderid = res.data.hnapayOrderId;
 					uni.showToast({
 						title: '短信发送成功！',

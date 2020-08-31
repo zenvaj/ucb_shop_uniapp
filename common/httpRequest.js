@@ -291,7 +291,8 @@ module.exports = {
 	    let token = uni.getStorageSync("token");
 	    let tokenP = uni.getStorageSync("tokenP");
 	    if (tokenP) {
-			console.log(tokenP+url);
+			console.log(tokenP);
+			console.log(url);
 			console.log(header);
 			console.log(data);
 			return new Promise((succ, error) => {

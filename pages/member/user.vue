@@ -114,7 +114,8 @@
 				</view>
 			</view>
 
-			<view class="tui-box tui-tool-box" @tap="href(7)">
+			<!-- <view class="tui-box tui-tool-box" @tap="href(7)"> -->
+			<view class="tui-box tui-tool-box" >
 				<view class="tui-cell-header"><view class="tui-cell-title">常用工具</view></view>
 				<view class="tui-order-list tui-flex-wrap">
 					<view class="tui-tool-item" @click="navToLogins('/pages/member/yaoqing')">
