@@ -220,8 +220,25 @@ export default {
 			const _self = this; 
 			const PPOCR = uni.requireNativePlugin('PP-BaiduOCR');  
 			PPOCR.CustomOrder({ "order": 111 }, result => {
-				// console.log(result);
-				_self.card_no = result.data.result.bank_card_number.replace(/\s+/g,"");
+				//console.log(result);
+				if(result.data.result){
+					console.log(result.data);
+					_self.card_no = result.data.result.bank_card_number.replace(/\s+/g,"");
+				}else if(result.msg){
+					console.log(result.msg);
+					var dataRead = result.msg.split('\n');
+					console.log(dataRead);//：
+					var card_no_tmp = dataRead.some((item,i)=>{
+						var info_tmp = item.split('：');
+						console.log(info_tmp);
+						if(info_tmp[0] == '卡号'){
+							_self.card_no = info_tmp[1].replace(/\s+/g,"");
+						}
+					})
+					
+					//_self.card_no = result.data.result.bank_card_number.replace(/\s+/g,"");
+				}
+				//_self.card_no = result.data.result.bank_card_number.replace(/\s+/g,"");
 				if (result.imgbase64) {
 					_self.bitmapsave(result.imgbase64, 'setcardp');
 				}

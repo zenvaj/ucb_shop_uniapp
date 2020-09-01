@@ -9,7 +9,7 @@
 							<view>
 								<view class="hd">
 									<text class="info">{{ item.bankname }}</text>
-									<view class="wrap" @click.stop="moveStopTo"><text class="cuIcon-settings" style="color: #ffffff;" ></text></view>
+									<view class="wrap" @click.stop="moveStopTo(item.id,$event)"><text class="cuIcon-settings" style="color: #ffffff;" ></text></view>
 								</view>
 
 								<view class="main">{{ item.banknumber }}</view>
@@ -193,6 +193,7 @@
 			isFlag: true,
 			selectKey: null,
 			navBarButton: false,
+			active_card_id:0,
 			trade: [], //通道
 			// 当前样式
 			target: 0,
@@ -200,266 +201,28 @@
 			thisindex: 0,
 			data1:[
 				{
-					title:'创建群聊',
-					cuIcon:'cuIcon-home', 
+					title:'删除',
+					cuIcon:'cuIcon-card', 
 					disabled:true
 				},
 				{
-					title:'加好友/群',
-					icon:'../../static/tianjiahaoyou.png'
+					title:'修改',
+					cuIcon:'cuIcon-card', 
 				},
-				{
-					title:'扫一扫',
-					icon:'../../static/scan_icon.png'
-				},
-				{
-					title:'面对面快传',
-					icon:'../../static/zhifeiji.png'
-				},
-				{
-					title:'收付款',
-					icon:'../../static/shoufukuan.png'
-				}
+				// {
+				// 	title:'扫一扫',
+				// 	icon:'../../static/scan_icon.png'
+				// },
+				// {
+				// 	title:'面对面快传',
+				// 	icon:'../../static/zhifeiji.png'
+				// },
+				// {
+				// 	title:'收付款',
+				// 	icon:'../../static/shoufukuan.png'
+				// }
 			],
-			options:[ {
-				"id": 5,
-				"type": "信用卡",
-				"bankname": "建设银行",
-				"banknumber": "632222222111111",
-				"username": "姜振华",
-				"mobile": "18611111111",
-				"idcard": "370282198804283217",
-				"cvv2_or_": "333",
-				"exp_or_": "202509",
-				"plan_info": {
-					"count_plan_all": 0,
-					"sum_plan_all": 0,
-					"count_plan_ok": 0,
-					"sum_plan_ok": 0,
-					"count_plan_bad": 0,
-					"sum_plan_bad": 0,
-					"count_plan_work": 0,
-					"sum_plan_work": 0
-				},
-				"trade_info": {
-					"daihuan": {
-						"daihuan_yue": [{
-							"id": 3,
-							"trade_name": "环迅",
-							"show_name": "环迅就是牛",
-							"type": ["快捷无卡", "代还"],
-							"is_sign": 0
-						}],
-						"daihuan_kongka": [{
-							"id": 2,
-							"trade_name": "新生",
-							"show_name": "新生就是牛",
-							"type": ["备付金空卡代还"],
-							"is_sign": 0
-						},{
-							"id": 2,
-							"trade_name": "新生",
-							"show_name": "新生就是牛",
-							"type": ["备付金空卡代还"],
-							"is_sign": 1
-						},{
-							"id": 2,
-							"trade_name": "新生",
-							"show_name": "新生就是牛",
-							"type": ["备付金空卡代还"],
-							"is_sign": 0
-						},{
-							"id": 2,
-							"trade_name": "新生",
-							"show_name": "新生就是牛",
-							"type": ["备付金空卡代还"],
-							"is_sign": 1
-						}, {
-							"id": 1,
-							"trade_name": "首信易",
-							"show_name": "首信易就是牛",
-							"type": ["快捷无卡", "代还", "备付金空卡代还", "授信空卡代还"],
-							"is_sign": 1
-						}],
-						"unable": [{
-							"id": 4,
-							"trade_name": "首信易 易商旅",
-							"show_name": "易商旅就是牛",
-							"type": ["快捷无卡", "代还"],
-							"is_sign": 0
-						}]
-					},
-					"kuaijie": {
-						"enable": [{
-							"id": 3,
-							"trade_name": "环迅",
-							"show_name": "环迅就是牛",
-							"type": ["快捷无卡", "代还"],
-							"is_sign": 0
-						}, {
-							"id": 1,
-							"trade_name": "首信易",
-							"show_name": "首信易就是牛",
-							"type": ["快捷无卡", "代还", "备付金空卡代还", "授信空卡代还"],
-							"is_sign": 0
-						}],
-						"unable": [{
-							"id": 4,
-							"trade_name": "首信易 易商旅",
-							"show_name": "易商旅就是牛",
-							"type": ["快捷无卡", "代还"],
-							"is_sign": 0
-						}]
-					}
-				}
-				}, {
-					"id": 7,
-					"type": "信用卡",
-					"bankname": "建设银行",
-					"banknumber": "632222222111113",
-					"username": "姜振华",
-					"mobile": "18611111111",
-					"idcard": "370282198804283217",
-					"cvv2_or_": "333",
-					"exp_or_": "202509",
-					"plan_info": {
-						"count_plan_all": 0,
-						"sum_plan_all": 0,
-						"count_plan_ok": 0,
-						"sum_plan_ok": 0,
-						"count_plan_bad": 0,
-						"sum_plan_bad": 0,
-						"count_plan_work": 0,
-						"sum_plan_work": 0
-					},
-					"trade_info": {
-						"daihuan": {
-							"daihuan_yue": [{
-								"id": 3,
-								"trade_name": "环迅",
-								"show_name": "环迅就是牛",
-								"type": ["快捷无卡", "代还"],
-								"is_sign": 1
-							}],
-							"daihuan_kongka": [{
-								"id": 2,
-								"trade_name": "新生",
-								"show_name": "新生就是牛",
-								"type": ["备付金空卡代还"],
-								"is_sign": 1
-							}, {
-								"id": 1,
-								"trade_name": "首信易",
-								"show_name": "首信易就是牛",
-								"type": ["快捷无卡", "代还", "备付金空卡代还", "授信空卡代还"],
-								"is_sign": 1
-							}],
-							"unable": [{
-								"id": 4,
-								"trade_name": "首信易 易商旅",
-								"show_name": "易商旅就是牛",
-								"type": ["快捷无卡", "代还"],
-								"is_sign": 0
-							}]
-						},
-						"kuaijie": {
-							"enable": [{
-								"id": 3,
-								"trade_name": "环迅",
-								"show_name": "环迅就是牛",
-								"type": ["快捷无卡", "代还"],
-								"is_sign": 1
-							}, {
-								"id": 1,
-								"trade_name": "首信易",
-								"show_name": "首信易就是牛",
-								"type": ["快捷无卡", "代还", "备付金空卡代还", "授信空卡代还"],
-								"is_sign": 1
-							}],
-							"unable": [{
-								"id": 4,
-								"trade_name": "首信易 易商旅",
-								"show_name": "易商旅就是牛",
-								"type": ["快捷无卡", "代还"],
-								"is_sign": 0
-							}]
-						}
-					}
-				}, {
-					"id": 9,
-					"type": "信用卡",
-					"bankname": "建设银行",
-					"banknumber": "632222222111114",
-					"username": "姜振华",
-					"mobile": "18611111111",
-					"idcard": "370282198804283217",
-					"cvv2_or_": "333",
-					"exp_or_": "202509",
-					"plan_info": {
-						"count_plan_all": 0,
-						"sum_plan_all": 0,
-						"count_plan_ok": 0,
-						"sum_plan_ok": 0,
-						"count_plan_bad": 0,
-						"sum_plan_bad": 0,
-						"count_plan_work": 0,
-						"sum_plan_work": 0
-					},
-					"trade_info": {
-						"daihuan": {
-							"daihuan_yue": [{
-								"id": 3,
-								"trade_name": "环迅",
-								"show_name": "环迅就是牛",
-								"type": ["快捷无卡", "代还"],
-								"is_sign": 0
-							}],
-							"daihuan_kongka": [{
-								"id": 2,
-								"trade_name": "新生",
-								"show_name": "新生就是牛",
-								"type": ["备付金空卡代还"],
-								"is_sign": 0
-							}, {
-								"id": 1,
-								"trade_name": "首信易",
-								"show_name": "首信易就是牛",
-								"type": ["快捷无卡", "代还", "备付金空卡代还", "授信空卡代还"],
-								"is_sign": 0
-							}],
-							"unable": [{
-								"id": 4,
-								"trade_name": "首信易 易商旅",
-								"show_name": "易商旅就是牛",
-								"type": ["快捷无卡", "代还"],
-								"is_sign": 0
-							}]
-						},
-						"kuaijie": {
-							"enable": [{
-								"id": 3,
-								"trade_name": "环迅",
-								"show_name": "环迅就是牛",
-								"type": ["快捷无卡", "代还"],
-								"is_sign": 0
-							}, {
-								"id": 1,
-								"trade_name": "首信易",
-								"show_name": "首信易就是牛",
-								"type": ["快捷无卡", "代还", "备付金空卡代还", "授信空卡代还"],
-								"is_sign": 0
-							}],
-							"unable": [{
-								"id": 4,
-								"trade_name": "首信易 易商旅",
-								"show_name": "易商旅就是牛",
-								"type": ["快捷无卡", "代还"],
-								"is_sign": 0
-							}]
-						}
-					}
-				},
-				]
+			options:[ ]
 		};
 	},
 	
@@ -474,9 +237,9 @@
 		});
 	},
 	onNavigationBarButtonTap: function() {
-		console.log('kkkk');
+		//console.log('kkkk');
 		this.navBarButton = !this.navBarButton;
-		console.log(this.navBarButton);
+		//console.log(this.navBarButton);
 	},
 	methods: { 
 		easyPayCreate(trade_id,bank_id){
@@ -609,6 +372,7 @@
 			this.modalName = "Image";
 		},
 		tapPopup(e){
+			console.log(this.active_card_id,e);
 			uni.showToast({
 				title:e.title,
 				icon:'none'
@@ -644,16 +408,17 @@
 			}
 			console.log(this.navBarButton);
 		},
-		moveStopTo(e) { 
+		moveStopTo(active_card_id,e) { 
 			this.x = e.detail.x-40;
 			this.y = e.detail.y+10;
 			// this.x = e.touches[0].clientX;
 			// this.y = e.touches[0].clientY;
-			this.value1=!this.value1
+			this.value1 = !this.value1
+			this.active_card_id = active_card_id
 			console.log(e);
 		},
 		moveHandleStop: function() {
-			console.log('111');
+			//console.log('111');
 		},
 		selListItem(index, aaa) {
 			// //当显示其中一个时，点击另一个，整体闭合
@@ -1005,8 +770,9 @@ swiper-item {
 	padding: 1rpx;
 }
 .cu-form-group .title {
-		min-width: calc(4em + 15px);
-		height: 40rpx;
-	}
+	min-width: calc(4em + 15px);
+	height: 40rpx;
+}
+
 	
 </style>

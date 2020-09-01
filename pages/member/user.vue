@@ -232,8 +232,8 @@ export default {
 		if (a) {
 			this.isEnable = a;
 		}
-		console.log(a);
-		console.log(this.isEnable);
+		//console.log(a);
+		//console.log(this.isEnable);
 		let userId = this.$queue.getData('userId');
 		if (userId) {
 			this.getUserInfo(userId);
