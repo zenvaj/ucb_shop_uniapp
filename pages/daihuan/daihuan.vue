@@ -178,10 +178,18 @@
 						 this.money_or_ =  res.data.money_or_;
 						 this.daymark_or_ = res.data.daymark_or_;
 						 this.dayjob_or_ = res.data.dayjob_or_;
+						 
+						 //选择日期的确定，明日开始，到最低还款日截至
+						 let yy = new Date().getFullYear();
+						 let mm = new Date().getMonth() + 1;
+						 let dd = new Date().getDate();
+						 this.startDate = yy + "-" + mm +"-"+dd;
+						 this.endDate = yy + "-" + mm +"-"+this.dayjob_or_;
 					}else{
 						 
 					}
-				}); 
+				});
+			
 		},
 		methods: {
 			bindMultiPickerColumnChange: function(e) {
@@ -252,6 +260,7 @@
 						})
 						.then(res => { 
 							uni.hideLoading();
+							
 							if (res.status === 10000) {
 								 uni.showModal({
 								 	title: '提示',

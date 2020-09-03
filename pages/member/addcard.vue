@@ -173,9 +173,9 @@ export default {
 		let auth = this.$queue.getData('auth');
 		console.log(auth);
 		if(auth!=1){
-		uni.navigateTo({
-			url: '/pages/public/login' 
-		});
+			uni.navigateTo({
+				url: '/pages/public/login' 
+			});
 		}
 		this.card_idno = this.$queue.getData('idcard'); 
 		this.card_name = this.$queue.getData('realName'); 

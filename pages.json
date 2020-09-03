@@ -432,6 +432,18 @@
 			}
 		},
 		{
+			"path": "pages/daihuan/daihuanxiangqing",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"navigationBarTitleText": "计划详情",
+				"enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none",
+					"titleNView": true
+				}
+			}
+		},
+		{
 			"path": "pages/member/cxkAdd",
 			"style": {
 				"navigationBarTextStyle": "black",

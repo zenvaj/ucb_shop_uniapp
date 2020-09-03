@@ -52,12 +52,11 @@
 		</view>
 		<view v-for="(item, index) in list" :key="index" class="item">
 				<view class="solids-bottom " style="color: #333333;font-size: 32upx; overflow: hidden;text-overflow: ellipsis;white-space:nowrap">
-				交易类型 ： 新生				 日期：
+				类型 ： {{item.type}} 日期： {{item.time}}
 				{{ item.title }}
 				</view>
-				<view style="color: #666666;font-size: 28upx;margin-top: 10upx;">{{ item.content }}</view>
-				<view style="color: #666666;font-size: 28upx;margin-top: 10upx;">{{ item.content }}</view>
-				<view style="color: #666666;font-size: 28upx;margin-top: 10upx;">{{ item.content }}</view>
+				<view style="color: #666666;font-size: 28upx;margin-top: 10upx;">{{ item.des }};￥{{ item.money }}</view>
+				<view style="color: #666666;font-size: 28upx;margin-top: 10upx;">{{ item.from }}</view>
 		
 				<!-- <view style="margin-top: 10upx;color: #999999;font-size: 28upx;text-align: right;">{{ item.createAt }}</view> -->
 		</view>
@@ -97,18 +96,7 @@
 						totalElements: 0
 					}
 				],
-				list:[
-					{
-						title:"tite",
-						content:"sssss",
-						createAt:"20200611"
-					},
-					{title:"tite",
-						content:"sssss",
-						createAt:"20200611"},
-					{title:"tite",
-						content:"sssss",
-						createAt:"20200611"}  ],
+				list:[],
 				isshow:true , 
 				selected:{},
 				isFixtop: {
@@ -175,7 +163,7 @@
 				let that = this;
 				let number = 10;
 				let token = this.$queue.getData('token');
-				this.$Request.postP('/pay/bankSignConfirm',{
+				this.$Request.postP('/order/detail',{
 					"type": this.type,  //分润 奖金 提现 快捷 代还进账 代还出账
 					"time_start": this.starDate,
 					"time_end": this.endDate,
@@ -184,7 +172,7 @@
 					"num": number
 				}).then(res => {
 					console.log(res);
-					 if (res.status === 0) {
+					 if (res.status === 10000) {
 					 	res.data.forEach(d => {
 					 		this.list.push(d);
 					 	});

@@ -202,13 +202,12 @@
 			data1:[
 				{
 					title:'删除',
-					cuIcon:'cuIcon-card', 
-					disabled:true
+					cuIcon:'cuIcon-card'
 				},
-				{
-					title:'修改',
-					cuIcon:'cuIcon-card', 
-				},
+				// {
+				// 	title:'修改',
+				// 	cuIcon:'cuIcon-card', 
+				// },
 				// {
 				// 	title:'扫一扫',
 				// 	icon:'../../static/scan_icon.png'
@@ -372,11 +371,58 @@
 			this.modalName = "Image";
 		},
 		tapPopup(e){
-			console.log(this.active_card_id,e);
-			uni.showToast({
-				title:e.title,
-				icon:'none'
-			})
+			console.log(this.active_card_id);
+			if(this.active_card_id <= 0 || !this.active_card_id){
+				uni.showToast({
+					title:'操作银行卡信息错误',
+					icon:'none'
+				})
+				return;
+			}
+			this.$Request.postP('/bank/detail',{
+				"bank_id":this.active_card_id
+			}).then(res => {
+				console.log(res);
+				if(res.data.plan_info.count_plan_work > 0){
+					uni.showToast({
+						title:'有正在执行的计划，不能执行此次操作。请关闭计划重试。',
+						icon:'none'
+					})
+					return;
+				}
+				if(e.title == '删除'){
+					//是否有在执行计划
+					uni.showModal({
+						title:'删除银行卡',
+						content:'删除银行卡是不可逆操作，是否执意删除银行卡嗫？',
+						cancelColor:'#FF4500',
+						success:res=>{
+							console.log(this.active_card_id,res)
+							this.$Request.postP('/bank/del',{
+								"id":this.active_card_id
+							}).then(res => {
+								uni.showToast({
+									title:res.msg,
+									icon:'none',
+									success:res=>{
+										uni.redirectTo({
+										    'url':'/pages/member/mycard'
+										});
+									}
+								})
+								
+							});
+						}
+					})
+					
+				}else{
+					uni.showToast({
+						title:'错误的操作。想啥呢？',
+						icon:'none'
+					})
+				}
+			});
+			
 		},
 		// 切换触发的事件
 		toggle(e) {
