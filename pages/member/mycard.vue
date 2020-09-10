@@ -5,21 +5,21 @@
 				<view class="title" @click="selListItem(index, item.id)">
 					<view class="box">
 						<view style="display: flex;">
-							<view><image style="width: 80upx; height: 80upx;margin-top: 20upx; margin-left: 20upx;" src="../../static/img/yhk_logo_02.png"></image></view>
+							<view style="padding-left: 50upx;"><image style="width: 80upx; height: 80upx;margin-top: 20upx;" src="../../static/img/yhk_logo_02.png"></image></view>
 							<view>
 								<view class="hd">
 									<text class="info">{{ item.bankname }}</text>
-									<view class="wrap" @click.stop="moveStopTo(item.id,$event)"><text class="cuIcon-settings" style="color: #ffffff;" ></text></view>
+									<view class="wrap" @click.stop="moveStopTo(item.id,$event)"><text class="cuIcon-delete" style="color: #ffffff;" ></text></view>
 								</view>
-
+								<!-- cuIcon-settings -->
 								<view class="main">{{ item.banknumber }}</view>
 							</view>
 						</view>
 
-						<view v-if="isFlag" class="bd" style="margin-top: 15rpx;" @click.stop="moveHandleStop">中转金：{{ item.bd }}</view>
-						<view @click.stop="moveHandleStop" v-if="!isFlag" class="flex" style="margin-top: 25rpx;margin-left: 53.72upx;">
-							请输入金额 ：
-							<input type="digit" v-model="money" placeholder="输入金额" style="width: 230upx;" />
+						<view v-if="isFlag" class="bd" style="margin-top: 15rpx;font-size:26upx;" @click.stop="moveHandleStop">中转金：{{ item.bd }}</view>
+						<view @click.stop="moveHandleStop" v-if="!isFlag" class="flex" style="margin-top: 25rpx;margin-left: 53.72upx;height:40upx;line-height: 40upx;;">
+							<text style="font-size:26upx;">请输入金额 ：</text>
+							<input type="digit" v-model="money" placeholder="输入金额" style="width: 230upx;font-size:26upx;" placeholder-class="pla_color" />
 						</view>
 						<view class="ft">
 							<view class="block">
@@ -48,32 +48,92 @@
 					</view>  
 					<swiper :duration="500" :current="thisindex"   @change="toggle" circular="true" :id="index" style="height: 100%;">
 						<swiper-item>
-							<view style="height: 220px;overflow:auto;">
+							<view style="height: 230px;overflow:auto;">
 							<!-- {{item.trade_info.daihuan.daihuan_yue}} -->
 							<!-- 按顺序对应第一个的内容 -->  
 							<view v-for="(item1, index1) in item.trade_info.daihuan.daihuan_yue" :key="'yue-'+index1" style="line-height: 80rpx; margin-top: 5rpx;">
-								<text class="bg-gray" >{{ item1.show_name }}</text> --
+								<view class="swiper_1">
+									<view style="color:#ffffff;font-size:32upx;margin:10upx 0;">{{ item1.show_name }}</view>
+									<view class="swiper_2">
+										<view @click="ShowTradeInfo(item1.id)">
+											<image src="../../static/img/info.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
+											<view style="color:#ffffff">查看详情</view>
+										</view>
+										<view v-if="item1.is_sign===1" @click="addPlan(item1.id,item.id)">
+											<image src="../../static/img/addplan.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
+											<view style="color:#ffffff">添加计划</view>
+										</view>
+										<view v-if="item1.is_sign===0" @tap="jihuo(item1.id,item.id)" data-target="DialogModal1">
+											<image src="../../static/img/send.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
+											<view style="color:#ffffff">激活通道</view>
+										</view>
+										<view @click="lookPlan(item1.id,item.id)">
+											<image src="../../static/img/lookplan.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
+											<view style="color:#ffffff">查看计划</view>
+										</view>
+									</view>
+								</view>
+								<!-- <text class="" >{{ item1.show_name }}</text> --
 								<text class="line-blue" @click="ShowTradeInfo(item1.id)" >查看详情</text> -- 
 								<text v-if="item1.is_sign===1" class="line-green" @click="addPlan(item1.id,item.id)">添加计划</text> 
 								<text v-if="item1.is_sign===0"  class="line-green" @tap="jihuo(item1.id,item.id)" data-target="DialogModal1">激活通道</text>-- 
-								<text class="line-red" @click="addPlan(item1.id,item.id)">查看计划</text> 
+								<text class="line-red" @click="addPlan(item1.id,item.id)">查看计划</text> -->
 							 </view>
 							 
 							 <view v-for="(item1, index1) in item.trade_info.daihuan.daihuan_kongka" :key="'kongka-'+index1" style="line-height: 80rpx; margin-top: 5rpx;">
-							 	<text class="bg-gray" >{{ item1.show_name }}</text> --
+							 	<view class="swiper_1">
+							 		<view style="color:#ffffff;font-size:32upx;margin:10upx 0;">{{ item1.show_name }}</view>
+							 		<view class="swiper_2">
+							 			<view @click="ShowTradeInfo(item1.id)">
+							 				<image src="../../static/img/info.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
+							 				<view style="color:#ffffff">查看详情</view>
+							 			</view>
+							 			<view v-if="item1.is_sign===1" @click="addPlan(item1.id,item.id)">
+							 				<image src="../../static/img/addplan.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
+							 				<view style="color:#ffffff">添加计划</view>
+							 			</view>
+							 			<view v-if="item1.is_sign===0" @tap="jihuo(item1.id,item.id)" data-target="DialogModal1">
+							 				<image src="../../static/img/send.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
+							 				<view style="color:#ffffff">激活通道</view>
+							 			</view>
+							 			<view @click="lookPlan(item1.id,item.id)">
+							 				<image src="../../static/img/lookplan.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
+							 				<view style="color:#ffffff">查看计划</view>
+							 			</view>
+							 		</view>
+							 	</view>
+
+								<!-- <text class="" >{{ item1.show_name }}</text> --
 							 	<text class=" line-blue" @click="ShowTradeInfo(item1.id)" >查看详情</text> -- 
 							 	<text v-if="item1.is_sign===1" class="line-green" @click="addPlan(item1.id,item.id)">添加计划</text> 
 							 	<text v-if="item1.is_sign===0"  class="line-green" @tap="jihuo(item1.id,item.id)" data-target="DialogModal1">激活通道</text>-- 
-								<text class="line-red" @click="addPlan(item1.id,item.id)">查看计划</text>
+								<text class="line-red" @click="addPlan(item1.id,item.id)">查看计划</text> -->
 								</view>
 							 </view>
 						</swiper-item>
 						<swiper-item>
 							<view v-if="item.trade_info.kuaijie.enable" v-for="(item1, index1) in item.trade_info.kuaijie.enable" :key="'kuaijie-'+index1" style="line-height: 80rpx; margin-top: 5rpx;">
-								<text class=" bg-gray" >{{ item1.show_name }}</text> --
+								<view class="swiper_1" style="padding:0 100upx;">
+									<view style="color:#ffffff;font-size:32upx;margin:10upx 0;">{{ item1.show_name }}</view>
+									<view class="swiper_2">
+										<view @click="ShowTradeInfo(item1.id)">
+											<image src="../../static/img/info.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
+											<view style="color:#ffffff">查看详情</view>
+										</view>
+										<view v-if="item1.is_sign===1" @click="easyPayCreate(item1.id,item.id)" >
+											<image src="../../static/img/jiaoyi.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
+											<view style="color:#ffffff">交易</view>
+										</view>
+										<view v-if="item1.is_sign===0" @tap="jihuo(item1.id,item.id)" data-target="DialogModal1">
+											<image src="../../static/img/send.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
+											<view style="color:#ffffff">激活通道</view>
+										</view>
+									</view>
+								</view>	
+								<!-- <text class="" >{{ item1.show_name }}</text> --
 								<text class=" line-blue" @click="ShowTradeInfo(item1.id)" >查看详情</text> -- 
 								<text v-if="item1.is_sign===1" class="line-green" @click="easyPayCreate(item1.id,item.id)" >交易</text> 
-								<text v-if="item1.is_sign===0"  class="line-green" @tap="jihuo(item1.id,item.id)" data-target="DialogModal1">激活通道</text>
+								<text v-if="item1.is_sign===0"  class="line-green" @tap="jihuo(item1.id,item.id)" data-target="DialogModal1">激活通道</text> -->
 							</view>
 							<!-- 按顺序对应第二个的内容 -->
 
@@ -87,22 +147,22 @@
 			</view>
 		</view>
 		
-		<chunLei-popups v-model="value1" :popData="data1" @tapPopup="tapPopup" :x="x" :y="y" ></chunLei-popups>
+		<!-- <chunLei-popups v-model="value1" :popData="data1" @tapPopup="tapPopup" :x="x" :y="y" ></chunLei-popups> -->
 		 
 		<view class="cu-modal" :class="modalName=='Image'?'show':''">
 			<view class="cu-dialog">
 				<view class="cu-bar justify-center ">
-					<view style="font-size: 50rpx;">{{showTradeName}}</view>
+					<view style="font-size: 36rpx;">{{showTradeName}}</view>
 					<!-- <view class="action" @tap="hideModal">
 						<text class="cuIcon-close "></text>
 					</view> -->
 				</view> 
 				
 				<rich-text :nodes="showTradeInfo"></rich-text>
-				
-				<view class="cu-bar bg-white">
+				<button type="default" @tap="hideModal" class="btn_know">我知道了</button>
+				<!-- <view class="cu-bar bg-white">
 					<view class="action margin-0 flex-sub  solid-left" @tap="hideModal">我知道了</view>
-				</view>
+				</view> -->
 			</view>
 		</view>
 			
@@ -138,7 +198,7 @@
 				<view style="margin-top: 16upx;" class="h_newlit" v-bind:class="[navBarButton ? 'active' : '', '']">
 			<!-- #endif -->
 			<!-- #ifndef H5 -->
-				<view style="margin-top: 66upx;" class="h_newlit" v-bind:class="[navBarButton ? 'active' : '', '']">
+				<view style="top:0;" class="h_newlit" v-bind:class="[navBarButton ? 'active' : '', '']">
 			<!-- #endif -->
 			<view class="em">
 				<view style="font-size: 28upx" @tap="navBarButtontO('home')">
@@ -344,6 +404,11 @@
 				url:'../daihuan/daihuan?planid='+planid+'&cardid='+cardid
 			});
 		},
+		lookPlan(planid,cardid){
+			uni.navigateTo({
+				url:'../daihuan/lookplan?planid='+planid+'&cardid='+cardid
+			});
+		},
 		/**
 		 * 确认选择日期时间
 		 * @param {Object} date 日期数据
@@ -462,6 +527,55 @@
 			this.value1 = !this.value1
 			this.active_card_id = active_card_id
 			console.log(e);
+			console.log(this.active_card_id);
+			if(this.active_card_id <= 0 || !this.active_card_id){
+				uni.showToast({
+					title:'操作银行卡信息错误',
+					icon:'none'
+				})
+				return;
+			}
+			this.$Request.postP('/bank/detail',{
+				"bank_id":this.active_card_id
+			}).then(res => {
+				console.log(res);
+				if(res.data.plan_info.count_plan_work > 0){
+					uni.showToast({
+						title:'有正在执行的计划，不能执行此次操作。请关闭计划重试。',
+						icon:'none'
+					})
+					return;
+				}else{
+					//是否有在执行计划
+					uni.showModal({
+						title:'删除银行卡',
+						content:'删除银行卡是不可逆操作，是否执意删除银行卡嗫？',
+						cancelColor:'#FF4500',
+						success:res=>{
+							console.log(this.active_card_id,res)
+							this.$Request.postP('/bank/del',{
+								"id":this.active_card_id
+							}).then(res => {
+								uni.showToast({
+									title:res.msg,
+									icon:'none',
+									success:res=>{
+										uni.redirectTo({
+										    'url':'/pages/member/mycard'
+										});
+									}
+								})
+								
+							}).catch(()=>{
+								uni.showToast({
+									title:'错误的操作。想啥呢？',
+									icon:'none'
+								})
+							})
+						}
+					})
+				}
+			});
 		},
 		moveHandleStop: function() {
 			//console.log('111');
@@ -520,10 +634,11 @@ $content: 300px;
 	height: 100%;
 	box-sizing: border-box;
 	// padding-top: 100upx;
-	position: absolute;
+	position: fixed;
 	top: 0;
 	bottom: 0;
-	/* overflow: hidden; */
+	overflow: hidden;
+	overflow-y: scroll;
 }
 .card-box {
 	position: relative;
@@ -616,8 +731,8 @@ $content: 300px;
 	flex-direction: row;
 	justify-content: space-between;
 	margin-top: 5rpx;
-	margin-left: 53.72rpx;
-	width: 520rpx;
+	margin-left: 48.72rpx;
+	width: 490rpx;
 	height: 51.58rpx;
 }
 
@@ -628,7 +743,8 @@ $content: 300px;
 	text-overflow: ellipsis;
 	line-height: 40rpx;
 	white-space: nowrap;
-	color: rgba(19, 19, 21, 0.5);
+	// color: rgba(19, 19, 21,0.5);
+	color: rgb(51,51,51);
 	font-size: 32rpx;
 	font-weight: 500;
 }
@@ -704,6 +820,7 @@ $content: 300px;
 	margin-top: 35.46rpx;
 	margin-left: 53.72rpx;
 	height: 66.62rpx;
+	font-size:26upx;
 }
 
 .block {
@@ -724,7 +841,7 @@ $content: 300px;
 	white-space: nowrap;
 	color: rgba(19, 19, 21, 0.6);
 	font-family: MicrosoftYaHei, Microsoft YaHei;
-	font-size: 21.49rpx;
+	// font-size: 21.49rpx;
 	font-weight: normal;
 }
 
@@ -754,7 +871,7 @@ $content: 300px;
 	white-space: nowrap;
 	color: rgba(19, 19, 21, 0.6);
 	font-family: MicrosoftYaHei, Microsoft YaHei;
-	font-size: 21.49rpx;
+	// font-size: 21.49rpx;
 	font-weight: normal;
 }
 
@@ -787,23 +904,28 @@ $content: 300px;
 .nuter view {
 	flex: 1;
 	font-size: 30rpx;
+	line-height: 80rpx;
 	text-align: center;
 	transition: all 0.5s ease 0.1s;
 	background-color: #f0f0f0;
 }
 .active {
 	box-sizing: border-box;
-	color: #007aff;
-	border-bottom: 5rpx solid #00aaff;
-	background-color: #f3ffff;
-	border-radius: 10rpx;
-	box-shadow: 3px 3px 5px #888888;
+	// color: #007aff;
+	color: #ffffff;
+	background-color:#00aaff !important;
+	opacity: 0.5;
+	// border-bottom: 3rpx solid #00aaff;
+	// background-color: #f3ffff;
+	// border-radius: 10rpx;
+	// box-shadow: 3px 3px 5px #888888;
 }
 swiper-item {
 	width: 100%;
 	overflow: hidden;
 	text-align: center;
 	line-height: 300rpx;
+	background-color: #ffffff;
 	/* background-color: red; */
 }
 .swiper-item {
@@ -819,6 +941,36 @@ swiper-item {
 	min-width: calc(4em + 15px);
 	height: 40rpx;
 }
-
-	
+.pla_color{
+	color:#ffffff;
+}
+.swiper_1{
+	// background-color: #5cca47;
+	background-color: #00aaff;
+	padding:0 60upx;
+	opacity: 0.5;
+	width:90%;
+	height:200upx;
+	border-radius: 10upx;
+	margin:0 auto;
+	margin-top:20upx;
+}
+.swiper_2{
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+.btn_know{
+	width:190upx;
+	font-size:32upx;
+	color:#ffffff;
+	background-color:#00aaff;
+	height:50upx;
+	line-height: 50upx;
+	border-radius: 12upx;
+	margin:30upx auto;
+}
+.btn_know::after{
+	border:0;
+}
 </style>

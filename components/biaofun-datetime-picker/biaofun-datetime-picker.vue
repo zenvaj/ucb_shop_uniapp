@@ -508,7 +508,8 @@ export default {
 
 <style lang="scss" scoped>
 .content {
-	text-align: right;
+	width:260upx !important;
+	text-align: center;
 }
 
 .placeholder {

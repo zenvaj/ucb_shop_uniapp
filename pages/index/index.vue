@@ -167,7 +167,7 @@
 							<view class="fr-jutext" style="width: 86%;text-align: right;color: #999999;">发现更多 ></view>
 						</view>
 					</view>
-					<view style="display: flex;margin: 16upx;text-align: center;" v-if="juhuasuanlist.length>0"s>
+					<view style="display: flex;margin: 16upx;text-align: center;" v-if="juhuasuanlist.length>0">
 						<view>
 							<view v-for="(g, index7) in juhuasuanlist" :key="index7" class="box-float">
 								<image lazy-load='true' fade-show='true' style="border-radius: 16upx;width: 166upx;height: 166upx;" class="image" :src="g.itempic + '_310x310.jpg'" @click="toGoodsInfos(g.itemid)" mode="scaleToFill"></image>

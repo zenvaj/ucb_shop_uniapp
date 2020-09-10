@@ -1,12 +1,12 @@
 <template>
 	<view> 
 			<view class="bank_list" style="background-image: url(../../static/img/yhk_big.png);">
-				<view class="uni-flex uni-row">
-					<view class="uni-center" style="width: 100upx;">
+				<view style="display: flex;justify-content: space-between;align-items: center;">
+					<view style="display: flex;flex-direction: row;align-items: center;">
 						<image style="width: 80upx; height: 80upx;" v-bind:src="yhklog"></image>
+						<view class="bank_list_name">{{bankname}}</view>
 					</view>
-					<view class="bank_list_name" style="-webkit-flex: 1;flex: 1;">{{bankname}}</view>
-					<view class="bank_list_num" style="-webkit-flex: 1;flex: 1;">{{banknumber}}</view>
+					<view class="bank_list_num">{{banknumber}}</view>
 				</view>
 	
 				<view class="uni-flex uni-row">
@@ -16,13 +16,13 @@
 						<view>￥{{money_or_}}</view>
 					</view>
 					<view class=" bank_list_day" style="-webkit-flex: 1;flex: 1;">
-						<view>
+						<view style="display:flex;flex-direction: row; align-items: center;">
 							<image src="../../static/img/huanqian_01.png"></image>
-							账单日 {{daymark_or_}}
+							<view>账单日 {{daymark_or_}}</view>
 						</view>
-						<view>
+						<view style="display:flex;flex-direction: row;align-items: center;">
 							<image src="../../static/img/huanqian_01.png"></image>
-							还款日 {{dayjob_or_}}
+							<view>还款日 {{dayjob_or_}}</view>
 						</view>
 					</view>
 				</view>
@@ -70,36 +70,42 @@
 				</view> -->
 			</view>
 			<view  class="bg-white flex" style="width: 90%;margin: auto">
-			<view class="flex solid-bottom padding align-center">
-				<text class="cuIcon-refund text-olive" style="margin: -10upx;font-size: 45upx;width: 50upx;"></text>
-				<input type="digit" v-model="money" placeholder="输入金额"  style="width: 230upx; padding-left: 20rpx;" />
-				</input>
+				<view class="flex solid-bottom padding align-center">
+					<text class="cuIcon-refund text-olive" style="margin: -10upx;font-size: 30upx;width: 50upx;"></text>
+					<input type="digit" v-model="money" placeholder="输入金额"  style="width: 230upx; padding-left: 20rpx;" />
+					</input>
+				</view>
+				<view class="flex solid-bottom padding align-center">
+					<text class="cuIcon-time text-olive" style="font-size: 30upx;width: 50upx;"></text>
+					<input  type="text"  @tap="toggleTab()"   v-model="datas" placeholder="请选择日期"  style="width: 230upx;" disabled="false" />
+					</input>
+				</view>
 			</view>
-			<view class="flex solid-bottom padding align-center">
-				<text class="cuIcon-time text-olive" style="font-size: 45upx;width: 50upx;"></text>
-				<input  type="text"  @tap="toggleTab()"   v-model="datas" placeholder="请选择日期"  style="width: 230upx;" disabled="false" />
-				</input>
-			</view>
+			<view style="color:#cccccc;width: 90%;margin: auto;padding:0 20upx;font-size: 30upx;border-bottom: 1upx solid rgba(0,0,0,0.3)" class="bg-white" v-if="selectedDate.length!==0">
+				<text>日期：</text>
+				<text v-for="(item,index) in selectedDate" :key="'data'+index" style="margin:0 20upx;">{{item}}</text>
 			</view>
 			 
 			<!-- 日历组件 -->
 			<view class="masking_layer"  v-if="isFlag" >
 				<calendar :startDate="startDate" :endDate="endDate"  :selectedDate="selectedDate"    @change="calendarChange" />
-				<button type="primary" size="mini" @click="qdData">确定</button>
+				<button type="default" class="btn_sure" @click="qdData">确定</button>
 				
 			</view> 
 			  
 			<view  class="bg-white flex"  style="width: 90%; margin: auto;">
-					<view  class="flex solid-bottom padding align-center">
+					<view  class="flex solid-bottom padding align-center;" style="font-size: 30upx;">
 						选择方式
 					</view>
-					<view   class="flex solid-bottom padding align-center">
+					<view   class="flex solid-bottom padding align-center;">
 						<picker mode="multiSelector" @columnchange="bindMultiPickerColumnChange" :value="multiIndex" :range="multiArray">
-							<view class="uni-input">{{multiArray[0][multiIndex[0]]}}，{{multiArray[1][multiIndex[1]]}}</view>
+							<view class="uni-input" style="padding:0; font-size: 30upx;">{{multiArray[0][multiIndex[0]]}}，{{multiArray[1][multiIndex[1]]}}</view>
 						</picker>
 					</view>
 			</view>
 			 <view  v-for="(item, index) in list" :key="index" class="item">
+				 <view class="itemm">
+				 	
 			 		<view class="solids-bottom " style="color: #333333;font-size: 32upx; overflow: hidden;text-overflow: ellipsis;white-space:nowrap">
 						交易时间 ： {{index}}	 
 			 		</view>
@@ -112,12 +118,13 @@
 							<text class=" cuIcon-time" style="width: 200rpx;">   {{item1.timer}}</text>
 						</view> 
 					</view> 
+				 </view>
 			 
 			 		<!-- <view style="margin-top: 10upx;color: #999999;font-size: 28upx;text-align: right;">{{ item.createAt }}</view> -->
 			 </view>
-			<view class="uni-flex">
-				<button type="primary" size="mini" @click="crateplan">生成</button>
-				<button type="primary" size="mini" @click="addplan">添加</button>
+			<view class="btns">
+				<button type="default" class="btn_bottom" @click="crateplan">生成</button>
+				<button type="default" class="btn_bottom" @click="addplan">添加</button>
 			</view>
 		</view>
 	
@@ -421,13 +428,18 @@ image {
 		font-size: 22px;
 	}
 	.masking_layer{
+		width:85%;
 		position: fixed;
-		bottom: 0rpx;
+		left:50%;
+		top:50%;
+		transform: translate(-50%,-50%);
+		// bottom: 40upx;
 		z-index:900;
-		background-color: #a5b4c4;
+		background-color: #FFFFFF;
 		display: flex; 
 		flex-direction: column;
 		justify-content: flex-end;
+		padding-bottom: 40upx;
 	}
 	.price_total{
 		flex-direction: row;
@@ -474,14 +486,20 @@ image {
 		}
 		
 		.item {
-			background: white;
-			padding: 16rpx;
-			margin: 16rpx;
+			width:100%;
+			// padding: 16rpx;
+			margin: 16rpx auto;
 			font-size: 28rpx;
-			box-shadow: 7px 9px 34px rgba(0, 0, 0, 0.1);
+			// box-shadow: 7px 9px 34px rgba(0, 0, 0, 0.1);
+			// border-radius: 16upx;
+		}
+		.itemm{
+			width:90%;
+			margin:0 auto;
+			padding: 20rpx;
+			background: white;
 			border-radius: 16upx;
 		}
-	
 	.filter-area-inner {
 		height: 100%;
 	}
@@ -551,5 +569,35 @@ image {
 	 	color: #108040;
 	 	background-color: #39b54a;
 	 }
-	 
+	 .btns{
+		 margin:80upx auto;
+		 display: flex;
+		 justify-content: space-around;
+		 align-items: center;
+	 }
+	 .btn_bottom{
+		 width:240upx;
+		 height:75upx;
+		 border-radius: 40upx;
+		 font-size:36upx;
+		 line-height: 75upx;
+		 color:#ffffff !important;
+		 background-color: #00aaff !important;
+	 }
+	 .btn_bottom::after{
+		 border:0;
+	 }
+	 .btn_sure{
+		 position: relative;
+		 right:-180upx;
+		 width:170upx;
+		 height:60upx;
+		 line-height: 60upx;
+		 color:#ffffff !important;
+		 background-color: #00aaff !important;
+		 font-size:32upx;
+	 }
+	 .btn_sure::after{
+		 border:0;
+	 }
 </style>

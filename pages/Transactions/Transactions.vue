@@ -1,66 +1,144 @@
 <template>
 	<view class="content">
-		<view>
-			<view class="grid margin-bottom text-center " >
-				<view class="flex-sub" @click="showIs">
-					{{title}}<text v-if="isshow" class="cuIcon-triangledownfill" style="font-size: 50rpx;"></text> 
-					<text v-if="!isshow"   class="cuIcon-triangleupfill" style="font-size: 50rpx;"></text> 
-				</view>
-				<view class="flex-sub">
-					<biaofun-datetime-picker 
-						:isShow="true" 
-						placeholder="开始时间"
-						start="2000-02"
-						end="2100-10"
-						fields="day"
-						@change="changeDatetimePicker"
-					></biaofun-datetime-picker> 
-				</view>
-				<view class="flex-sub">
-					<biaofun-datetime-picker
-						:isShow="true"
-						placeholder="结束时间"
-						start="2000-02"
-						end="2100-10"
-						fields="day"
-						@change="changeDatetimePicker1"
-					></biaofun-datetime-picker> 
-				</view>
-			</view>
 		<!-- #ifdef H5 -->
-		<transition-group tag="view" enter-active-class="animated slideInDown faster" leave-active-class="animated slideOutUp faster">
-			<!-- #endif -->
-			<view  v-if="!isshow" class="filter-signal-item" 
-			style="padding-left: 50rpx;"
-			v-bind:class="{ 
-			 'filter-signal-item-active' : selected.value == item.value}"
-			v-bind:key="item.value" 
-			v-on:click="selectItem(item)" 
-			v-for="item in data">
-				{{ item.text }} 
-				<i class='filter-signal-item-active' v-show="selected.value == item.value">✔</i>
-			</view>
-			
-			<!-- #ifdef H5 -->
-			</transition-group>
-			<!-- #endif -->
-		</view>
-		<view class="navbar">
-			<view v-for="(item, index) in tabList" :key="index" class="nav-item" :class="{ current: tabFromIndex === item.state }" @click="tabClicks(item.state)">
-				{{ item.text }}
-			</view>
-		</view>
-		<view v-for="(item, index) in list" :key="index" class="item">
-				<view class="solids-bottom " style="color: #333333;font-size: 32upx; overflow: hidden;text-overflow: ellipsis;white-space:nowrap">
-				类型 ： {{item.type}} 日期： {{item.time}}
-				{{ item.title }}
+			<view class="navbar_2">
+				<view v-for="(item, index) in tabList" :key="index" class="nav-item" :class="{ current: tabFromIndex === item.state }" @click="tabClicks(item.state)">
+					{{ item.text }}
 				</view>
-				<view style="color: #666666;font-size: 28upx;margin-top: 10upx;">{{ item.des }};￥{{ item.money }}</view>
-				<view style="color: #666666;font-size: 28upx;margin-top: 10upx;">{{ item.from }}</view>
+			</view>
+			<view style="position: fixed;top:160upx;z-index:999;background-color: #fff;width:100%;height:100upx;line-height: 100upx;">
+				<view class="grid margin-bottom text-center ">
+					<view class="flex-sub" @click="showIs">
+						{{title}}<text v-if="isshow" class="cuIcon-triangledownfill" style="font-size: 50rpx;"></text> 
+						<text v-if="!isshow"   class="cuIcon-triangleupfill" style="font-size: 50rpx;"></text> 
+					</view>
+					<view class="flex-sub" style="width:260upx;">
+						<biaofun-datetime-picker 
+							:isShow="true" 
+							placeholder="开始时间"
+							start="2000-02"
+							end="2100-10"
+							fields="day"
+							@change="changeDatetimePicker"
+						></biaofun-datetime-picker> 
+					</view>
+					<view class="flex-sub" style="width:260upx;">
+						<biaofun-datetime-picker
+							:isShow="true"
+							placeholder="结束时间"
+							start="2000-02"
+							end="2100-10"
+							fields="day"
+							@change="changeDatetimePicker1"
+						></biaofun-datetime-picker> 
+					</view>
+				</view>
+			<!-- #ifdef H5 -->
+			<transition-group tag="view" enter-active-class="animated slideInDown faster" leave-active-class="animated slideOutUp faster">
+				<!-- #endif -->
+				<view  v-if="!isshow" class="filter-signal-item" 
+				style="padding-left: 50rpx;margin-top:-20upx;"
+				v-bind:class="{ 
+				 'filter-signal-item-active' : selected.value == item.value}"
+				v-bind:key="item.value" 
+				v-on:click="selectItem(item)" 
+				v-for="item in data">
+					{{ item.text }} 
+					<i class='filter-signal-item-active' v-show="selected.value == item.value">✔</i>
+				</view>
+				
+				<!-- #ifdef H5 -->
+				</transition-group>
+				<!-- #endif -->
+			</view>
+			<view style="position: absolute;top:160upx;left:50%;transform: translate(-50%);width:100%;margin-bottom: 60upx;">
+				<view v-for="(item, index) in list" :key="index" class="item">
+						<view class="solids-bottom " style="color: #333333;font-size: 30upx; overflow: hidden;text-overflow: ellipsis;white-space:nowrap">
+						类型 ： {{item.type}} &nbsp;&nbsp;日期： {{item.time}}
+						{{ item.title }}
+						</view>
+						<view style="color: #666666;font-size: 28upx;margin-top: 10upx;">{{ item.des }};￥{{ item.money }}</view>
+						<view style="color: #666666;font-size: 28upx;margin-top: 10upx;">{{ item.from }}</view>
+				
+						<!-- <view style="margin-top: 10upx;color: #999999;font-size: 28upx;text-align: right;">{{ item.createAt }}</view> -->
+				</view>
+			</view>
+		<!-- #endif -->
 		
-				<!-- <view style="margin-top: 10upx;color: #999999;font-size: 28upx;text-align: right;">{{ item.createAt }}</view> -->
+		<!-- 移动端 -->
+		
+		<!-- #ifndef H5 -->
+			<view class="navbar">
+				<view v-for="(item, index) in tabList" :key="index" class="nav-item" :class="{ current: tabFromIndex === item.state }" @click="tabClicks(item.state)">
+					{{ item.text }}
+				</view>
+			</view>
+			<view style="position: fixed;top:82upx;z-index:999;background-color: #fff;width:100%;height:100upx;line-height: 100upx;">
+				<view class="grid margin-bottom text-center " >
+					<view class="flex-sub" @click.stop="showIs">
+						{{title}}<text v-if="isshow" class="cuIcon-triangledownfill" style="font-size: 50rpx;"></text> 
+						<text v-if="!isshow"   class="cuIcon-triangleupfill" style="font-size: 50rpx;"></text> 
+					</view>
+					<view class="flex-sub">
+						<biaofun-datetime-picker 
+							:isShow="true" 
+							placeholder="开始时间"
+							start="2000-02"
+							end="2100-10"
+							fields="day"
+							@change="changeDatetimePicker"
+						></biaofun-datetime-picker> 
+					</view>
+					<view class="flex-sub">
+						<biaofun-datetime-picker
+							:isShow="true"
+							placeholder="结束时间"
+							start="2000-02"
+							end="2100-10"
+							fields="day"
+							@change="changeDatetimePicker1"
+						></biaofun-datetime-picker> 
+					</view>
+				</view>
+			<!-- #ifdef H5 -->
+			<transition-group tag="view" enter-active-class="animated slideInDown faster" leave-active-class="animated slideOutUp faster">
+				<!-- #endif -->
+				<view  v-if="!isshow" class="filter-signal-item" 
+				style="padding-left: 50rpx;margin-top:-20upx;"
+				v-bind:class="{ 
+				 'filter-signal-item-active' : selected.value == item.value}"
+				v-bind:key="item.value" 
+				v-on:click="selectItem(item)" 
+				v-for="item in data">
+					{{ item.text }}
+					<i class='filter-signal-item-active' v-show="selected.value == item.value">✔</i>
+				</view>
+				
+				<!-- #ifdef H5 -->
+				</transition-group>
+				<!-- #endif -->
+			</view>
+			<view style="position: absolute;top:200upx;left:50%;transform: translate(-50%);width:100%;margin-bottom: 60upx;">		
+				<view v-for="(item, index) in list" :key="index" class="item">
+						<view class="solids-bottom " style="color: #333333;font-size: 30upx; overflow: hidden;text-overflow: ellipsis;white-space:nowrap">
+						类型 ： {{item.type}} &nbsp;&nbsp;日期： {{item.time}}
+						{{ item.title }}
+						</view>
+						<view style="color: #666666;font-size: 28upx;margin-top: 10upx;">{{ item.des }};￥{{ item.money }}</view>
+						<view style="color: #666666;font-size: 28upx;margin-top: 10upx;">{{ item.from }}</view>
+				
+						<!-- <view style="margin-top: 10upx;color: #999999;font-size: 28upx;text-align: right;">{{ item.createAt }}</view> -->
+				</view>
+			</view>
+		<!-- #endif -->
+		
+		
+		
+		<!-- <view v-if="list.length === 0" style="text-align: center;padding-top: 140upx">暂无消息</view> -->
+		<view v-if="list.length === 0" style="text-align: center; width:256upx;height:256upx;position: absolute;top:50%;left:50%;transform: translate(-50%,-50%);">
+			<image src="../../static/img/no.png" style="width:100%;height:100%;"></image>
+			<text style="font-size:32upx;">暂无信息哦。</text>
 		</view>
-		<view v-if="list.length === 0" style="background: #FFFFFF;text-align: center;padding-top: 140upx">暂无消息</view>
 	</view>
 </template>
 
@@ -204,6 +282,7 @@
 			 * @param {Object} date 日期数据
 			 */
 			changeDatetimePicker(date) {
+				console.log(date)
 				this.starDate = date.f7;
 				console.log('选择的日期时间数据：', date);
 				this.tabClicks(this.tabFromIndex);
@@ -211,7 +290,7 @@
 			changeDatetimePicker1(date) {
 				this.endDate = date.f7;
 				console.log('选择的日期时间数据：', date);
-				this.tabClicks(this.tabFromIndex);
+				this.tabClicks(this.tabFromIndex)
 			},
 			showIs(){
 				this.isshow = !this.isshow;
@@ -243,9 +322,11 @@
 		padding: 0 5px;
 		background: #fff;
 		box-shadow: 0 1px 5px rgba(0, 0, 0, 0.06);
-		position: relative;
+		position: fixed;
+		top:0upx;
+		width:100%;
 		z-index: 10;
-	
+		
 		.nav-item {
 			flex: 1;
 			display: flex;
@@ -272,14 +353,51 @@
 			}
 		}
 	}
+	.navbar_2 {
+		display: flex;
+		height: 40px;
+		padding: 0 5px;
+		background: #fff;
+		box-shadow: 0 1px 5px rgba(0, 0, 0, 0.06);
+		position: fixed;
+		top:80upx;
+		width:100%;
+		z-index: 10;
+		
+		.nav-item {
+			flex: 1;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 100%;
+			font-size: 15px;
+			color: $font-color-dark;
+			position: relative;
 	
+			&.current {
+				color: $base-color;
+	
+				&:after {
+					content: '';
+					position: absolute;
+					left: 50%;
+					bottom: 0;
+					transform: translateX(-50%);
+					width: 44px;
+					height: 0;
+					border-bottom: 2px solid $base-color;
+				}
+			}
+		}
+	}
 	.item {
 		background: white;
 		padding: 16rpx;
-		margin: 16rpx;
 		font-size: 28rpx;
 		box-shadow: 7px 9px 34px rgba(0, 0, 0, 0.1);
 		border-radius: 16upx;
+		width:90%;
+		margin:16rpx auto;
 	}
 .filter-area-inner {
 	height: 100%;

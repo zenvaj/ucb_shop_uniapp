@@ -135,7 +135,8 @@
 	}
 </script>
 
-<style lang='less'>
+<style lang='scss'>
+	/* <style lang='less'> */
 	@import "../../static/css/index.css";
 
 	.cash {
