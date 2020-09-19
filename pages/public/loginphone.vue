@@ -87,7 +87,7 @@ export default {
 						this.$queue.setData('idcard', res.data.idCard); 
 						this.$queue.setData('realName', res.data.realName); 
 						 
-						
+						//uni.setStorageSync('token', res.data.uuid);
 						
 						this.getUserInfo(res.data.userId, res.data.uuid);
 					} else {

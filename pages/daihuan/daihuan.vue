@@ -284,7 +284,14 @@
 								 	}
 								 });
 							}else{
-								 
+								 uni.showModal({
+								 	title: '提示',
+								 	content: res.msg,
+								 	showCancel: false,
+								 	success: res => {
+								 		
+								 	}
+								 });
 							}
 						}); 
 				}else{
