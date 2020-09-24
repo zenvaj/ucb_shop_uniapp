@@ -186,7 +186,7 @@
 							<text class="news_title">一</text>
 						</view>
 						<view class="goods-list" v-if="category[0].orderList.length > 0">
-							<orange-goods-list v-for="(item, index8) in category[0].orderList" :tkmoney="item.tkmoney" :tkmoneys="item.tkmoneys"
+							<orange-goods-list v-for="(item, index8) in category[0].orderList" :key="index8" :tkmoney="item.tkmoney" :tkmoneys="item.tkmoneys"
 							 :itemid="item.itemid" :shopname='item.shopname' :isEnable="isEnable" :is-invitation="isInvitation" :logo="logo" :itempic="item.itempic + '_310x310.jpg'"
 							 :itemtitle="item.itemtitle" :itemprice="'在售价 ¥' + item.itemprice" :itemsale="item.itemsale" :itemendprice="item.itemendprice"
 							 :couponmoney="item.couponmoney"></orange-goods-list>
@@ -210,9 +210,9 @@
 							</view>
 						</view>
 						<view class="goods-list" v-if="category[TabCur].orderList.length > 0">
-							<orange-goods-card-home v-for="(item, index9) in category[TabCur].orderList" v-bind:key='item.id' :index="index9 % 2"
+							<orange-goods-card-home v-for="(item, index9) in category[TabCur].orderList" v-bind:key='item.itemid' :index="index9 % 2"
 							 :logo="logo" :isEnable="isEnable" :tkmoney="item.tkmoney" :tkmoneys="item.tkmoneys" :itemid="item.itemid"
-							 :itempic="item.itempic ? item.itempic + '_310x310.jpg' : 'https://www.gomyorder.cn/logo.png'" :itemtitle="item.itemtitle"
+							 :itempic="item.itempic ? item.itempic : 'https://www.gomyorder.cn/logo.png'" :itemtitle="item.itemtitle"
 							 :is-invitation="isInvitation" :shopname='item.shopname' :itemprice="'¥' + item.itemprice" :itemsale="item.itemsale" :itemendprice="'' + item.itemendprice"
 							 :couponmoney="item.couponmoney"></orange-goods-card-home>
 						</view>
@@ -1160,9 +1160,11 @@
 					.get('/api/column/apikey/maxd/type/9/back/10/min_id/' + this.category[this.TabCur].page + '/sort/9/cid/' + this.category[
 						this.TabCur].positon)
 					.then(res => {
+						// console.log(res)
 						this.category[this.TabCur].loadingType = 0;
 						if (res.code === 1) {
 							this.category[this.TabCur].page = res.min_id;
+							console.log('-------')
 							res.data.forEach(d => {
 								let grade = this.$queue.getData('grade');
 								d.tkmoneys = (d.tkmoney * parseFloat(this.$queue.maxMoney())).toFixed(2);
@@ -1176,6 +1178,8 @@
 
 								// this.category[this.TabCur].orderList.push(d);
 							});
+							console.log('+++++++++')
+							// console.log(this.category)
 						} else {
 							this.category[this.TabCur].loadingType = 2;
 						}
@@ -1229,13 +1233,17 @@
 			 * @param {Object} e tab切换
 			 */
 			tabSelect(e) {
+				console.log(e)
 				this.TabCur = e.currentTarget.dataset.id;
 				this.scrollLeft = (e.currentTarget.dataset.id - 1) * 50;
 				let list = this.category[e.currentTarget.dataset.id].orderList;
+				console.log(this.TabCur)
 				if (list.length == 0) {
+					console.log('123')
 					this.loadCouponList('Refresh');
 				}
 				if(e.currentTarget.dataset.id==0){
+					console.log('123')
 					this.loadBanner();
 					this.loadMenuList();
 					this.loadMenuList1();
