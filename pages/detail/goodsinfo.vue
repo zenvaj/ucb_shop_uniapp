@@ -118,7 +118,7 @@
 			<view class="goods_reco" style="margin-top: -100rpx" v-if="goods.images">
 				<view class="goods-info-title">宝贝详情</view>
 				<view class="imglist">
-					<block v-for="(item, index) in goods.images"><image lazy-load :src="item" mode="widthFix" class="is-response" @longpress="toSave(item)"></image></block>
+					<block v-for="(item, index) in goods.images" :key="index"><image lazy-load :src="item" mode="widthFix" class="is-response" @longpress="toSave(item)"></image></block>
 				</view>
 			</view>
 			<!-- 购买按钮 -->
@@ -135,8 +135,8 @@
 						</view>
 					</view>
 					<view style="width: 75%;display: flex;color: white">
-						<view style="width: 50%;background: #FF6DB2;text-align: center;padding-top:8px;margin: 4px" @tap="shopCartShares('tkl')">{{ buyDes }}</view>
-						<view class="getTbk" style="width: 50%;background:#F15B6C; text-align: center;padding-top: 8px;margin: 4px" @tap="shopCartShare('quan')">{{ getQun }}</view>
+						<view style="width: 50%;background: #FF6DB2;text-align: center;padding-top:12px;margin: 4px" @tap="shopCartShares('tkl')">{{ buyDes }}</view>
+						<view class="getTbk" style="width: 50%;background:#F15B6C; text-align: center;padding-top: 12px;margin: 4px" @tap="shopCartShare('quan')">{{ getQun }}</view>
 					</view>
 				</view>
 			</view>
@@ -254,9 +254,10 @@
 		</view>
 
 		<view v-if="couponlist.length > 0" style="text-align: center;font-size: 36upx;color: #E10A07;background: white;margin-top: -60px;padding: 16px">为你推荐</view>
-		<view class="goods-list" style="margin-bottom: 120upx" v-if="couponlist.length > 0">
+		<view class="goods-list" style="margin-bottom: 140upx" v-if="couponlist.length > 0">
 			<orange-goods-card-home
 				v-for="(item, index) in couponlist"
+				:key="index"
 				:tkmoney="item.tkmoney"
 				:tkmoneys="item.tkmoney"
 				:itemid="item.itemid"
@@ -681,6 +682,7 @@ export default {
 						d.itemsale = d.itemsale > 10000 ? '已售 ' + (d.itemsale / 10000).toFixed(1) + '万' : '已售 ' + d.itemsale;
 						this.couponlist.push(d);
 					});
+					console.log(this.couponlist)
 				}
 			});
 		},
@@ -1442,6 +1444,18 @@ export default {
 
 page {
 	background: #f8f8f8;
+}
+
+/* 清除浮动 */
+.goods-list:after {
+	display: block;
+	clear: both;
+	content: "";
+	visibility: hidden;
+	height: 0;
+}
+.goods-list {
+	zoom: 1;
 }
 
 .swiper-container {

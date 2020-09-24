@@ -1,10 +1,10 @@
 <template>
-	<view>
+	<!-- <view> -->
 		<view @click="open(itemid)" class="itemInfo1" v-bind:key="itemid">
 			<view style="position: relative"><image :src="itempic" style="border-radius: 10upx;width: 100%;height: 400upx" lazy-load="true" fade-show="true"></image></view>
 			<view>
 				<!-- <view class="dianpu">店铺</view> -->
-				<text class="twolist-hidden" style="height: 80upx;font-size: 28upx;margin-right: 8upx;margin-left: 8upx;max-lines:2;overflow: hidden">
+				<text class="twolist-hidden" style="height: 80upx;font-size: 24upx;margin-right: 8upx;margin-left: 8upx;max-lines:2;overflow: hidden">
 					<text
 						v-if="logo == '../../static/img/pinduoduo.png'"
 						style="color: #FFFFFF;background: #E10A07;font-size: 24upx;padding-left: 12upx;padding-right: 12upx;border-radius: 16upx;margin-right: 8upx;padding-top: 4upx;padding-bottom: 4upx;"
@@ -40,21 +40,21 @@
 							升级返￥{{ tkmoneys }}
 						</view>
 					</view>
-					<view style="margin-top: 4upx;display: flex;margin-bottom: 8upx;">
-						<view style="display: flex;width: 42%">
+					<view style="margin-top: 4upx;display: flex;margin-bottom: 8upx;justify-content: space-between;align-items: center;">
+						<view style="display: flex;width: 42%;justify-content: space-between;">
 							<view style="margin-bottom: 8upx;font-size: 20upx;color: grey;margin-left: 16upx">
 								<view style="text-align: center;text-decoration:line-through;margin-top: 10upx">{{ itemprice }}</view>
 							</view>
 						</view>
-						<view style="width: 40%;font-size: 22upx;margin-top: 8upx;margin-left:12upx;color: grey; text-overflow: ellipsis;overflow: hidden">{{ itemsale }}</view>
+						<view style="width: 40%;font-size: 22upx;color: grey; text-overflow: ellipsis;overflow: hidden;display: flex;justify-content: center;align-items: center;">{{ itemsale }}</view>
 					</view>
 
-					<view style="display: flex;margin-left: 16upx;">
+					<view style="display: flex;padding: 0 16upx;justify-content: space-between;align-items: center;">
 						<view style="width: 40%;margin-bottom: 4upx;font-size: 28upx;color: #FF563A;padding-top: 4upx;text-align: left;">
 							<text style="font-size: 20upx;margin-right: 4upx">¥</text>
 							<text style="text-align: left;font-weight: bold">{{ itemendprice }}</text>
 						</view>
-						<view style="text-align: center;margin-bottom: 8upx">
+						<view style="text-align: center;display: flex;justify-content: center;align-items: center;">
 							<text class="quan" v-if="couponmoney != null" style="font-size: 28upx;">
 								<i></i>
 								{{ couponmoney }}元券
@@ -69,7 +69,7 @@
 				</view>
 			</view>
 		</view>
-	</view>
+	<!-- </view> -->
 </template>
 
 <script>
