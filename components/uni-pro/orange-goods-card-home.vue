@@ -64,7 +64,7 @@
 					</view>
 					<view style="display: flex;margin-top: 8upx;margin-left: 16upx;margin-bottom: 16upx;" v-if="shopname">
 						<image style="height: 36upx;width:36upx;margin-right: 8upx" src="../../static/shop.png"></image>
-						<view style="font-size: 24upx;color: #999999;">{{ shopname }}</view>
+						<view style="font-size: 24upx;color: #999999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ shopname }}</view>
 					</view>
 				</view>
 			</view>

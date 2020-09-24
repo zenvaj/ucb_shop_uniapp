@@ -15,7 +15,7 @@
 			</view>
 			<view v-if="isEnable!='否'" style="display: flex;color: white;font-size: 24upx;margin-top: 8upx;">
 				<view style="background: #f15b6c;padding: 4upx 12upx 4upx 12upx;border-radius: 10upx;">预估返￥{{ tkmoney }}</view>
-				<view style="background: #FF927C;margin-left: 20upx;padding: 4upx 12upx 4upx 12upx;;border-radius: 10upx;" v-if="tkmoneys!=tkmoney">升级返￥{{ tkmoneys }}</view>
+				<view style="background: #FF927C;margin-left: 20upx;padding: 4upx 12upx 4upx 12upx;border-radius: 10upx;" v-if="tkmoneys!=tkmoney">升级返￥{{ tkmoneys }}</view>
 			</view>
 			<view class="num s-row" style="font-size: 24upx;margin-top: -6px;margin-right: 32upx;">
 				<text class="tmprice">{{itemprice}}</text>
@@ -33,7 +33,7 @@
 			</view>
 			<view style="display: flex;margin-left: -4upx;margin-top: 8upx;" v-if="shopname">
 				<image style="height: 36upx;width:36upx;margin-right: 8upx" src="../../static/shop.png"></image>
-				<view style="font-size: 24upx;color: #999999;">{{shopname}}</view>
+				<view style="font-size: 24upx;color: #999999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{shopname}}</view>
 			</view>
 		</view>
 	</view>

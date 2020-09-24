@@ -135,8 +135,8 @@
 						</view>
 					</view>
 					<view style="width: 75%;display: flex;color: white">
-						<view style="width: 50%;background: #FF6DB2;text-align: center;padding-top:12px;margin: 4px" @tap="shopCartShares('tkl')">{{ buyDes }}</view>
-						<view class="getTbk" style="width: 50%;background:#F15B6C; text-align: center;padding-top: 12px;margin: 4px" @tap="shopCartShare('quan')">{{ getQun }}</view>
+						<view style="width: 50%;background: #FF6DB2;text-align: center;margin: 4px;display: flex;justify-content: center;align-items: center;border-radius: 2px;" @tap="shopCartShares('tkl')">{{ buyDes }}</view>
+						<view class="getTbk" style="width: 50%;background:#F15B6C; text-align: center;margin: 4px;display: flex;justify-content: center;align-items: center;border-radius: 2px;" @tap="shopCartShare('quan')">{{ getQun }}</view>
 					</view>
 				</view>
 			</view>
@@ -682,7 +682,7 @@ export default {
 						d.itemsale = d.itemsale > 10000 ? '已售 ' + (d.itemsale / 10000).toFixed(1) + '万' : '已售 ' + d.itemsale;
 						this.couponlist.push(d);
 					});
-					console.log(this.couponlist)
+					// console.log(this.couponlist)
 				}
 			});
 		},
@@ -793,6 +793,7 @@ export default {
 		},
 		//获取优惠券
 		getQuan: function() {
+			console.log('quan')
 			uni.showLoading({
 				title: '领券中...'
 			});
@@ -805,6 +806,7 @@ export default {
 					apikey: this.$queue.getTaoBaoKey()
 				})
 				.then(res => {
+					console.log(res)
 					if (res.code === 1) {
 						let coupon_click_url = res.data.coupon_click_url;
 						let relation_id = that.$queue.getData('relation_id');
@@ -863,7 +865,15 @@ export default {
 						//     this.loginS();
 						// }
 						that.coupon_click_url = coupon_click_url;
+					} else {
+						uni.showToast({
+							title: '领取失败',
+							icon: "none",
+							mask: true,
+							duration: 2000
+						})
 					}
+					
 				});
 		},
 		/**
@@ -1075,7 +1085,7 @@ export default {
 		},
 		navBarButtontO: function(type) {
 			if (type === 'search') {
-				uni.switchTab({
+				uni.navigateTo({
 					url: '/pages/homeSearch/index'
 				});
 			} else if (type === 'like') {
@@ -1094,6 +1104,7 @@ export default {
 		},
 
 		shopCartShare: function(type) {
+			console.log(type)
 			if (type === 'tkl') {
 				this.copyTklStatus = false;
 				this.getTkl(type);

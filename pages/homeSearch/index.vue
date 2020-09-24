@@ -23,7 +23,7 @@
 				</view>
 				<view class="src-content">
 					<view class="main-src">
-						<block v-for="(key, index) in recentKeyword">
+						<block v-for="(key, index) in recentKeyword" :key="index">
 							<view
 								v-if="key.keyword.length > 15"
 								class="src-item "
@@ -431,6 +431,7 @@ export default {
 	border-radius: 20px;
 	margin-right: -20px;
 	z-index: 30;
+	line-height: 40px;
 }
 
 .main-title .search input {

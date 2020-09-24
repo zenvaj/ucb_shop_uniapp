@@ -29,7 +29,7 @@
 				scroll-with-animation
 				style="position: fixed;z-index: 100;text-align: center;width: 100%;margin-top: 150upx;border-bottom: 2upx solid ghostwhite"
 			>
-				<view class="cu-item" :class="index == TabCur ? 'text-green cur' : ''" v-for="(item, index) in tab" @tap="tabSelect" :data-id="index">
+				<view class="cu-item" :class="index == TabCur ? 'text-green cur' : ''" v-for="(item, index) in tab" :key="index" @tap="tabSelect" :data-id="index">
 					<text :style="index==TabCur?'border-bottom: 4upx solid #E10A07;padding-bottom: 10upx;margin-right: -20upx;font-size: 32upx;':'background: #ffffff;color: #333333;margin-right: -10px'">
 					
 						{{ item.name }}
@@ -49,7 +49,7 @@
 				scroll-with-animation
 				style="border-top: 1px solid #F8F8F8;position: fixed;z-index: 100;text-align: center;width: 100%;margin-top: 84upx"
 			>
-				<view class="cu-item" :class="index == TabCur ? 'text-green cur' : ''" v-for="(item, index) in tab" @tap="tabSelect" :data-id="index">
+				<view class="cu-item" :class="index == TabCur ? 'text-green cur' : ''" v-for="(item, index) in tab" :key="index" @tap="tabSelect" :data-id="index">
 					<text :style="index==TabCur?'border-bottom: 4upx solid #E10A07;padding-bottom: 10upx;margin-right: -20upx;font-size: 32upx;':'background: #ffffff;color: #333333;margin-right: -10px'">
 					
 						{{ item.name }}
@@ -64,6 +64,7 @@
 			<view class="goods-list" v-if="couponlist.length > 0 && fromTabIndex == 0" style="padding-top: 230upx">
 				<orange-goods-card-home
 					v-for="(item, index) in couponlist"
+					:key="index"
 					:index="index % 2"
 					:tkmoney="item.tkmoney"
 					:tkmoneys="item.tkmoneys"
@@ -85,6 +86,7 @@
 			<view class="goods-list" v-if="couponlist.length > 0 && fromTabIndex == 1" style="padding-top: 230upx">
 				<orange-goods-card-home
 					v-for="(item, index) in couponlist"
+					:key="index"
 					:index="index % 2"
 					:logo="pddlogo"
 					:tkmoney="item.tkmoney"
@@ -106,6 +108,7 @@
 			<view class="goods-list" v-if="couponlist.length > 0 && fromTabIndex == 2" style="padding-top: 172upx">
 				<orange-goods-card-home
 					v-for="(item, index) in couponlist"
+					:key="index"
 					:index="index"
 					:tkmoney="item.tkmoney"
 					:tkmoneys="item.tkmoneys"
@@ -131,6 +134,7 @@
 			<view class="goods-list" v-if="couponlist.length > 0 && fromTabIndex == 0" style="padding-top: 172upx">
 				<orange-goods-card-home
 					v-for="(item, index) in couponlist"
+					:key="index"
 					:index="index % 2"
 					:logo="item.shoptype == 'B' ? logo : taobao"
 					:tkmoney="item.tkmoney"
@@ -152,6 +156,7 @@
 			<view class="goods-list" v-if="couponlist.length > 0 && fromTabIndex == 1" style="padding-top: 172upx">
 				<orange-goods-card-home
 					v-for="(item, index) in couponlist"
+					:key="index"
 					:index="index % 2"
 					:logo="pddlogo"
 					:tkmoney="item.tkmoney"
@@ -174,6 +179,7 @@
 			<view class="goods-list" v-if="couponlist.length > 0 && fromTabIndex == 2" style="padding-top: 172upx">
 				<orange-goods-card-home
 					v-for="(item, index) in couponlist"
+					:key="index"
 					:index="index"
 					:tkmoney="item.tkmoney"
 					:tkmoneys="item.tkmoneys"
@@ -776,6 +782,9 @@ background: -webkit-linear-gradient(left, #e10a07 0, #f15b6c 100%);
 	/* #ifdef APP-PLUS */
 	padding-top: var(--status-bar-height);
 	/* #endif */
+	padding-left: 40upx;
+	display: flex;
+	align-items: center;
 }
 
 .search-pop .search-tab .my-sub-src {
@@ -796,12 +805,12 @@ background: -webkit-linear-gradient(left, #e10a07 0, #f15b6c 100%);
 }
 
 .main-title .search-tab .close-src {
-	position: absolute;
-	left: 40upx;
-	display: block;
-	float: left;
+	// position: absolute;
+	// left: 40upx;
+	// display: block;
+	// float: left;
 	color: #ffffff;
-	margin-top: 10upx;
+	// margin-top: 10upx;
 }
 
 .main-title .search-tab .close-src .iconfont {
@@ -817,7 +826,8 @@ background: -webkit-linear-gradient(left, #e10a07 0, #f15b6c 100%);
 	background-color: #fff;
 	border-radius: 40upx;
 	width: 76%;
-	margin-left: 12%;
+	// margin-left: 12%;
+	margin-left: 4%;
 	position: relative;
 	padding: 0 18upx;
 	height: 64upx;
@@ -837,6 +847,7 @@ background: -webkit-linear-gradient(left, #e10a07 0, #f15b6c 100%);
 	border-radius: 32upx;
 	margin-right: -32upx;
 	z-index: 30;
+	line-height: 64upx;
 }
 
 .clear {
