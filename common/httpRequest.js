@@ -134,11 +134,11 @@ module.exports = {
         url = this.config("APIHOST1") + url;
         let token = uni.getStorageSync("token");
         if (token) {
-			console.log(url)
-			console.log({
-                        "content-type": header,
-                        "token": token
-                    })
+			// console.log(url)
+			// console.log({
+   //                      "content-type": header,
+   //                      "token": token
+   //                  })
             return new Promise((succ, error) => {
                 uni.request({
                     url: url,

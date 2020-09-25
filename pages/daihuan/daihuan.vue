@@ -24,7 +24,7 @@
 							<image src="../../static/img/huanqian_01.png"></image>
 							<view>还款日 {{dayjob_or_}}</view>
 						</view>
-					</view>
+					</view> 
 				</view>
 			</view>
 			
@@ -192,6 +192,9 @@
 						 let dd = new Date().getDate();
 						 this.startDate = yy + "-" + mm +"-"+dd;
 						 this.endDate = yy + "-" + mm +"-"+this.dayjob_or_;
+						 if(this.dayjob_or_ < this.daymark_or_){
+							 this.endDate = yy + "-" + (mm + 1) +"-"+this.dayjob_or_;
+						 }
 					}else{
 						 
 					}

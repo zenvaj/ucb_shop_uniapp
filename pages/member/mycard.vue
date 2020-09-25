@@ -309,7 +309,7 @@
 					title: '请输入消费金额！',
 					icon: 'none'
 				});
-				return;
+				return; 
 			}
 			this.$queue.showLoading("请稍后...");
 			this.$Request.postP('/easyPayCreate',{
@@ -341,7 +341,7 @@
 					"signOrderid": this.signOrderid,
 					"smsCode":this.smsCode,
 			}).then(res => {
-				console.log(res);
+				//console.log(res);
 				uni.hideLoading();
 				if (res.status === 10000) { 
 					uni.showToast({
@@ -366,7 +366,7 @@
 				    "trade_id": planid, //通道id
 				    "bank_id": cardid //银行卡id
 			}).then(res => {
-				console.log(res);
+				//console.log(res);
 				if (res.status === 10000) {
 					console.log('is_sign_auto')
 					if(res.data.is_sign_auto == 1){
@@ -379,7 +379,9 @@
 						});
 						return;
 					}
+					//console.log(res.data)
 					this.signOrderid = res.data.hnapayOrderId;
+					//console.log(this.signOrderid)
 					uni.showToast({
 						title: '短信发送成功！',
 						icon: 'none'
@@ -404,9 +406,9 @@
 				url:'../daihuan/daihuan?planid='+planid+'&cardid='+cardid
 			});
 		},
-		lookPlan(planid,cardid){
+		lookPlan(tradeid,cardid){
 			uni.navigateTo({
-				url:'../daihuan/lookplan?planid='+planid+'&cardid='+cardid
+				url:'../daihuan/lookplan?tradeid='+tradeid+'&cardid='+cardid
 			});
 		},
 		/**
