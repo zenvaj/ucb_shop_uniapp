@@ -9,7 +9,7 @@
 				<text class="twolist-hidden"
 				      style="height: 80upx;font-size: 24upx;margin-right: 4upx;margin-left: 4upx;width: 95%;max-lines:2;overflow: hidden">
 				   <!-- <text style="color: #FFFFFF;background: #E10A07;font-size: 24upx;padding-left: 12upx;padding-right: 12upx;border-radius: 16upx;margin-right: 8upx;padding-top: 4upx;padding-bottom: 4upx;">天猫</text> -->
-				   
+				   <!-- <p></p> -->
 				  <text> {{ itemtitle }}</text>
 				</text>
 			</view>
