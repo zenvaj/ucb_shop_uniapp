@@ -1,17 +1,29 @@
 <template> 
 		<view class="uni-flex uni-center uni-column">
-			<view>身份证 正面</view>
+			<view class="title-font">身份证 正面</view>
 			<view> 
 				<image v-bind:src="uidzm == '' ? '../../static/img/smrz-04.png' :  uidzm" @click="inter('uidzm')"></image>
 			</view>
-			<view>身份证 反面</view>
+			<view class="title-font">身份证 反面</view>
 			<view><image v-bind:src="uidfm == '' ? '../../static/img/smrz-05.png' :  uidfm" @click="inter('uidfm')"></image></view>
-			<view>手持身份证</view>
+			<view class="title-font">手持身份证</view>
 			<view><image v-bind:src="uidpm == '' ? '../../static/img/smrz-10.png' :  uidpm" @click="inter('uidpm')"></image></view>
-			<view>姓名 :{{ name }}</view>
-			<view>身份证号:{{ uid }}</view>
+			<!-- <view>姓名 :{{ name }}</view> -->
+			<!-- <view>身份证号:{{ uid }}</view> -->
+			<view class="idcard idcard-first">
+				<view class="idcard-title">
+					姓名：
+				</view>
+				<input class="idcard-inp" type="text" maxlength="30" v-model="name" :placeholder="'姓名'" :placeholder-class="'inp-place'" />
+			</view>
+			<view class="idcard">
+				<view class="idcard-title">
+					身份证号：
+				</view>
+				<input class="idcard-inp" type="idcard" v-model="uid" :placeholder="'证件号码'" :placeholder-class="'inp-place'" />
+			</view>
 			
-			<button @click="confirm">确认</button>
+			<button class="confirm" @click="confirm">确认</button>
 		</view> 
 </template>
 
@@ -195,10 +207,50 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss">
 	
 image {
 	width: 600rpx;
 	height: 375rpx;
+}
+.title-font {
+	font-size: 30rpx;
+	font-weight: bolder;
+}
+.idcard-first {
+	margin-top: 20px;
+}
+.idcard {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+	align-items: center;
+	padding: 10px 20px;
+	.idcard-title {
+		font-size: 30rpx;
+		font-weight: bolder;
+	}
+	.idcard-inp {
+		flex: 1;
+		border-bottom: 2rpx solid #000000;
+		text-align: left;
+		font-size: 30rpx;
+		font-weight: bolder;
+	}
+	.inp-place {
+		font-size: 30rpx;
+		color: #949696;
+	}
+}
+.confirm {
+	width: 90%;
+	margin-bottom: 20px;
+	background-color: #1989fa;
+	opacity: 0.9;
+	color: #FFFFFF;
+	&:active {
+		background-color: #1989fa;
+		opacity: 1;
+	}
 }
 </style>

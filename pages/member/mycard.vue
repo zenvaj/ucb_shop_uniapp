@@ -46,7 +46,7 @@
 						<view :class="target == 0 ? 'active' : ''" @click="setIndex" data-index="0">智能养卡</view>
 						<view :class="target == 1 ? 'active' : ''" @click="setIndex" data-index="1">快捷支付</view>
 					</view>  
-					<swiper :duration="500" :current="thisindex"   @change="toggle" circular="true" :id="index" style="height: 100%;">
+					<swiper :duration="500" :current="thisindex"   @change="toggle" circular="true" :id="index" style="height: 230px;">
 						<swiper-item>
 							<view style="height: 230px;overflow:auto;">
 							<!-- {{item.trade_info.daihuan.daihuan_yue}} -->
@@ -663,7 +663,7 @@ $content: 300px;
 }
 
 .content {
-	height: $content;
+	// height: $content;
 	background: #e6e6e6;
 	display: none;
 	border-radius: 12upx;
@@ -900,6 +900,8 @@ $content: 300px;
 	display: flex;
 	justify-content: space-around;
 	font-size: 35rpx;
+	border-radius: 5px 5px 0 0;
+	overflow: hidden;
 }
 .nuter view {
 	flex: 1;
@@ -907,7 +909,7 @@ $content: 300px;
 	line-height: 80rpx;
 	text-align: center;
 	transition: all 0.5s ease 0.1s;
-	background-color: #f0f0f0;
+	// background-color: #f0f0f0;
 }
 .active {
 	box-sizing: border-box;
@@ -949,7 +951,7 @@ swiper-item {
 	background-color: #00aaff;
 	padding:0 60upx;
 	opacity: 0.5;
-	width:90%;
+	width:96%;
 	height:200upx;
 	border-radius: 10upx;
 	margin:0 auto;
