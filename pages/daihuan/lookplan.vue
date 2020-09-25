@@ -5,26 +5,26 @@
 				<view @click="changeTab(index)" :class="[index==currentindex ? 'color' : '']" v-for="(item,index) in tablist" :key="'top'+index">{{item.title}}</view>
 			</view>
 			<view class="content_1" @touchstart="start" @touchend="end">
-				<view v-if="currentindex == 0">				
+				<view v-if="currentindex == 0">
 					<view class="con_title" v-for="(item,index) in going" :key="'going'+index">
 						<view class="con_top con_color_1">
-							<view>账单日：{{item.date}}</view>
-							<view>计划号：{{item.plannum}}</view>
+							<view>计划日期：{{item.time_between}}</view>
+							<view>计划金额：{{item.amount}}</view>
 						</view>
 						<view class="con_bottom">
 							<view class="con_bottom_top">
 								<view>
-									<view>消费金额：{{item.consume_money}}</view>
-									<view>消费手续费：{{item.consume_service_charge}}</view>
+									<view>消费金额：{{item.money_pay}}</view>
+									<view>消费手续费：{{item.fee_pay}}</view>
 								</view>
 								<view>
-									<view>还款金额：{{item.repayment_money}}</view>
-									<view>还款手续费：{{item.repayment__service_charge}}</view>
+									<view>还款金额：{{item.money_repay}}</view>
+									<view>还款手续费：{{item.fee_repay}}</view>
 								</view>
 							</view>
 							<view class="btns">
 								<view class="btn con_color_1" @click="stop">终止计划</view>
-								<view class="btn con_color_1" @click="look(currentindex)">计划详情</view>
+								<view class="btn con_color_1" @click="look(currentindex,item.id)">计划详情</view>
 							</view>
 						</view>
 					</view>
@@ -32,23 +32,23 @@
 				<view v-if="currentindex == 1">
 					<view class="con_title"  v-for="(item,index) in success" :key="'success'+index">
 						<view class="con_top con_color_2">
-							<view>账单日：{{item.date}}</view>
-							<view>计划号：{{item.plannum}}</view>
+							<view>计划日期：{{item.time_between}}</view>
+							<view>计划金额：{{item.amount}}</view>
 						</view>
 						<view class="con_bottom">
 							<view class="con_bottom">
 								<view class="con_bottom_top">
 									<view>
-										<view>消费金额：{{item.consume_money}}</view>
-										<view>消费手续费：{{item.consume_service_charge}}</view>
+										<view>消费金额：{{item.money_pay}}</view>
+										<view>消费手续费：{{item.fee_pay}}</view>
 									</view>
 									<view>
-										<view>还款金额：{{item.repayment_money}}</view>
-										<view>还款手续费：{{item.repayment__service_charge}}</view>
+										<view>还款金额：{{item.money_repay}}</view>
+										<view>还款手续费：{{item.fee_repay}}</view>
 									</view>
 								</view>
 								<view class="btns">
-									<view class="btn con_color_2" @click="look(currentindex)">计划详情</view>
+									<view class="btn con_color_2" @click="look(currentindex,item.id)">计划详情</view>
 								</view>
 							</view>
 						</view>
@@ -57,23 +57,23 @@
 				<view v-if="currentindex == 2">
 					<view class="con_title"  v-for="(item,index) in cancel" :key="'cancel'+index">
 						<view class="con_top con_color_3">
-							<view>账单日：{{item.date}}</view>
-							<view>计划号：{{item.plannum}}</view>
+							<view>计划日期：{{item.time_between}}</view>
+							<view>计划金额：{{item.amount}}</view>
 						</view>
 						<view class="con_bottom">
 							<view class="con_bottom">
 								<view class="con_bottom_top">
 									<view>
-										<view>消费金额：{{item.consume_money}}</view>
-										<view>消费手续费：{{item.consume_service_charge}}</view>
+										<view>消费金额：{{item.money_pay}}</view>
+										<view>消费手续费：{{item.fee_pay}}</view>
 									</view>
 									<view>
-										<view>还款金额：{{item.repayment_money}}</view>
-										<view>还款手续费：{{item.repayment__service_charge}}</view>
+										<view>还款金额：{{item.money_repay}}</view>
+										<view>还款手续费：{{item.fee_repay}}</view>
 									</view>
 								</view>
 								<view class="btns">
-									<view class="btn con_color_3" @click="look(currentindex)">计划详情</view>
+									<view class="btn con_color_3" @click="look(currentindex,item.id)">计划详情</view>
 								</view>
 							</view>
 						</view>
@@ -89,23 +89,23 @@
 				<view v-if="currentindex == 0">
 				   	<view class="con_title" v-for="(item,index) in going" :key="'going'+index">
 				   		<view class="con_top con_color_1">
-				   			<view>账单日：{{item.date}}</view>
-				   			<view>计划号：{{item.plannum}}</view>
+				   			<view>计划日期：{{item.time_between}}</view>
+				   			<view>计划金额：{{item.amount}}</view>
 				   		</view>
 				   		<view class="con_bottom">
 				   			<view class="con_bottom_top">
 				   				<view>
-				   					<view>消费金额：{{item.consume_money}}</view>
-				   					<view>消费手续费：{{item.consume_service_charge}}</view>
+				   					<view>消费金额：{{item.money_pay}}</view>
+				   					<view>消费手续费：{{item.fee_pay}}</view>
 				   				</view>
 				   				<view>
-				   					<view>还款金额：{{item.repayment_money}}</view>
-				   					<view>还款手续费：{{item.repayment__service_charge}}</view>
+				   					<view>还款金额：{{item.money_repay}}</view>
+				   					<view>还款手续费：{{item.fee_repay}}</view>
 				   				</view>
 				   			</view>
 				   			<view class="btns">
 				   				<view class="btn con_color_1" @click="stop">终止计划</view>
-				   				<view class="btn con_color_1" @click="look(currentindex)">计划详情</view>
+				   				<view class="btn con_color_1" @click="look(currentindex,item.id)">计划详情</view>
 				   			</view>
 				   		</view>
 				   	</view>
@@ -113,23 +113,23 @@
 				<view v-if="currentindex == 1">
 					<view class="con_title"  v-for="(item,index) in success" :key="'success'+index">
 						<view class="con_top con_color_2">
-							<view>账单日：{{item.date}}</view>
-							<view>计划号：{{item.plannum}}</view>
+							<view>计划日期：{{item.time_between}}</view>
+							<view>计划金额：{{item.amount}}</view>
 						</view>
 						<view class="con_bottom">
 							<view class="con_bottom">
 								<view class="con_bottom_top">
 									<view>
-										<view>消费金额：{{item.consume_money}}</view>
-										<view>消费手续费：{{item.consume_service_charge}}</view>
+										<view>消费金额：{{item.money_pay}}</view>
+										<view>消费手续费：{{item.fee_pay}}</view>
 									</view>
 									<view>
-										<view>还款金额：{{item.repayment_money}}</view>
-										<view>还款手续费：{{item.repayment__service_charge}}</view>
+										<view>还款金额：{{item.money_repay}}</view>
+										<view>还款手续费：{{item.fee_repay}}</view>
 									</view>
 								</view>
 								<view class="btns">
-									<view class="btn con_color_2" @click="look(currentindex)">计划详情</view>
+									<view class="btn con_color_2" @click="look(currentindex,item.id)">计划详情</view>
 								</view>
 							</view>
 						</view>
@@ -138,23 +138,23 @@
 				<view v-if="currentindex == 2">
 					<view class="con_title"  v-for="(item,index) in cancel" :key="'cancel'+index">
 						<view class="con_top con_color_3">
-							<view>账单日：{{item.date}}</view>
-							<view>计划号：{{item.plannum}}</view>
+							<view>计划日期：{{item.time_between}}</view>
+							<view>计划金额：{{item.amount}}</view>
 						</view>
 						<view class="con_bottom">
 							<view class="con_bottom">
 								<view class="con_bottom_top">
 									<view>
-										<view>消费金额：{{item.consume_money}}</view>
-										<view>消费手续费：{{item.consume_service_charge}}</view>
+										<view>消费金额：{{item.money_pay}}</view>
+										<view>消费手续费：{{item.fee_pay}}</view>
 									</view>
 									<view>
-										<view>还款金额：{{item.repayment_money}}</view>
-										<view>还款手续费：{{item.repayment__service_charge}}</view>
+										<view>还款金额：{{item.money_repay}}</view>
+										<view>还款手续费：{{item.fee_repay}}</view>
 									</view>
 								</view>
 								<view class="btns">
-									<view class="btn con_color_3" @click="look(currentindex)">计划详情</view>
+									<view class="btn con_color_3" @click="look(currentindex,item.id)">计划详情</view>
 								</view>
 							</view>
 						</view>
@@ -178,76 +178,71 @@
 					{title:'完成'},
 					{title:'取消计划'}
 				],
+				tradeid:0,
+				cardid:0,
 				page:0,
-				page1:0,
-				page2:0,
 				currentindex:0,
-				going:[
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					// {date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					// {date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					// {date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'}
-				],
-				success:[
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'}
-				],
-				cancel:[
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'}
-				],
+				going:[],
+				success:[],
+				cancel:[],
 			}
 		},
 		onShow(){
 			
 		},
-		onLoad(){
-			
+		onLoad(response){
+			this.tradeid  = response.tradeid
+			this.cardid = response.cardid
+			this.PlanList()
 		},
 		//上拉加载
 		onReachBottom() {
-			if(this.page<=3 && this.currentindex == 0){
-				this.page = this.page + 1;
-				this.going.push(
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200',},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200',},
-				)
-			}
-			if(this.page1<=3 && this.currentindex == 1){
-				this.page1 = this.page1 + 1;
-				this.success.push(
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200',},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200',},
-				)
-			}
-			if(this.page2<=3 && this.currentindex == 2){
-				this.page2 = this.page2 + 1;
-				this.cancel.push(
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200'},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200',},
-					{date:'2020-09-09',plannum:'23123123213213213',consume_money:'6000',repayment_money:'6000',consume_service_charge:'200',repayment__service_charge:'200',},
-				)
-			}
+			
 		},
 		methods:{
+			PlanList(){
+				/*
+				"trade_id": "",
+				"bank_id": "",
+				"status": "",
+				"page": "1",
+				"ps": "status：[完成,停止,执行中,NULL]"
+				*/
+				this.$queue.showLoading("请稍后...");
+				this.$Request.postP('/plan/view',{
+					    "trade_id": this.tradeid, //通道id
+					    "bank_id": this.cardid ,//银行卡id 
+						"status": '',
+						"page":this.page,
+				}).then(res => {
+					console.log(res);
+					res.data.forEach((item,index)=>{
+						//console.log(item)
+						if(item.status == '执行中'){
+							if(this.going.length > 0){
+								this.going.push(item)	
+							}else{
+								this.going = [item]	
+							}
+						}
+						if(item.status == '完成'){
+							if(this.success.length > 0){
+								this.success.push(item)	
+							}else{
+								this.success = [item]	
+							}
+						}
+						if(item.status == '停止'){
+							if(this.cancel.length > 0){
+								this.cancel.push(item)	
+							}else{
+								this.cancel = [item]	
+							}
+						}
+					})
+				});
+				uni.hideLoading();
+			},
 			start(e){
 				this.startData.clientX=e.changedTouches[0].clientX;             
 				this.startData.clientY=e.changedTouches[0].clientY;
@@ -291,9 +286,9 @@
 				});
 			},
 			//计划详情
-			look(index){
+			look(index,planid){
 				uni.navigateTo({
-					url:'../daihuan/daihuanxiangqing?index='+index
+					url:'../daihuan/daihuanxiangqing?index='+index+'&planid='+planid
 				});
 			},
 		}

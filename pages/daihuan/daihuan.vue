@@ -192,6 +192,9 @@
 						 let dd = new Date().getDate();
 						 this.startDate = yy + "-" + mm +"-"+dd;
 						 this.endDate = yy + "-" + mm +"-"+this.dayjob_or_;
+						 if(this.dayjob_or_ < this.daymark_or_){
+							 this.endDate = yy + "-" + (mm + 1) +"-"+this.dayjob_or_;
+						 }
 					}else{
 						 
 					}

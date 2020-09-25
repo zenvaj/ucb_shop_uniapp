@@ -1204,24 +1204,30 @@
 				"selectedIconPath": "static/img/footer/type-act.png",
 				"text": "分类"
 			},
+			{
+				"pagePath": "pages/discovery/list",
+				"iconPath": "static/img/footer/hot.png",
+				"selectedIconPath": "static/img/footer/hot-act.png",
+				"text": "好物圈"
+			},
 			// {
-			// 	"pagePath": "pages/discovery/list",
-			// 	"iconPath": "static/img/footer/hot.png",
-			// 	"selectedIconPath": "static/img/footer/hot-act.png",
-			// 	"text": "好物圈"
+			// 	"pagePath": "pages/im-chat/im-list",
+			// 	"iconPath": "static/img/tabbar/chat_1.png",
+			// 	"selectedIconPath": "static/img/tabbar/chat_1HL.png",
+			// 	"text": "会话"
 			// },
-			{
-				"pagePath": "pages/im-chat/im-list",
-				"iconPath": "static/img/tabbar/chat_1.png",
-				"selectedIconPath": "static/img/tabbar/chat_1HL.png",
-				"text": "会话"
-			},
-			{
-				"pagePath": "pages/address-book/address-book",
-				"iconPath": "static/img/tabbar/avatar.png",
-				"selectedIconPath": "static/img/tabbar/avatarHL.png",
-				"text": "通讯录"
-			},
+			// {
+			// 	"pagePath": "pages/address-book/address-book",
+			// 	"iconPath": "static/img/tabbar/avatar.png",
+			// 	"selectedIconPath": "static/img/tabbar/avatarHL.png",
+			// 	"text": "通讯录"
+			// },
+			// {
+			// 	"pagePath": "pages/member/mycard",
+			// 	"iconPath": "static/img/tabbar/addressBook.png",
+			// 	"selectedIconPath": "static/img/tabbar/addressBookHL.png",
+			// 	"text": "卡包"
+			// },
 			{
 				"pagePath": "pages/member/user",
 				"iconPath": "static/img/footer/my.png",

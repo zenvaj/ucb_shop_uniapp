@@ -285,8 +285,8 @@
 		
 		methods: {
 			init:function(){
-				
 				let userId = this.$queue.getData('userId');
+				console.log(userId)
 				if(!userId){
 				// if(!this.hasLogin){ 
 					// uni.showToast({
@@ -318,6 +318,29 @@
 					});
 					return false;
 				}
+				console.log(this.userinfo)
+				//userRegister
+				var params = {
+					"username": formdata.username,
+					"password": formdata.password,
+					"nickname": formdata.nickname,
+					"gender":"unknown",
+					"birthday":"",
+					"region":formdata.region,
+					"address":formdata.address,
+					"signature":formdata.signature,
+					"extras":{
+						"truename":"abc"
+					}
+				}
+				console.log('userRegister')
+				this.jpushIM.userRegister(params,(res) => {
+					console.log(res)
+					
+				})
+				return
+				// userLogin
+				
 				this.getList();
 				this.friendReason = "HI, 我是" + this.nickname;
 				
@@ -327,6 +350,7 @@
 				// var list = [];
 				// #ifdef APP-PLUS
 				this.jpushIM.getFriends((res) => {
+					console.log(res)
 					if (res.errorCode == 0) {
 						var list = res.data;
 						this.listData = this.setList(list);

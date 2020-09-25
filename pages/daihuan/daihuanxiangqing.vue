@@ -3,54 +3,57 @@
 		<!-- 点击进行中过来 -->
 		<view class="info" v-for="(item,index) in going" :key="'going'+index" v-if="currentindex == 0">
 			<view class="info-top color_1">
-				<view>交易类型：{{item.type}}</view>
-				<view>日期：{{item.date}}</view>
-				<view>未执行</view>
+				<view>日期：{{index}}</view>
+				<view>通道：{{plan_info.show_name}}</view>
+				<view>执行中</view>
 			</view>
 			<view class="info-bottom">
-				<view class="info-line" v-for="(child,num) in item.data" :key="'child'+num">
+				<view class="info-line" v-for="(child,num) in item" :key="'child'+num">
 					<view>
-						<text :class="[child.type == '消费' ? 'font-1' : 'font-2']">{{child.type == '消费' ? '消' : '还'}}</text>
-						<text class=" cuIcon-redpacket_fill">{{child.consume_money}}</text>
+						<text :class="[child.type == 'in' ? 'font-1' : 'font-2']">{{child.type == 'in' ? '消' : '还'}}</text>
+						<text class=" cuIcon-redpacket_fill">{{child.amount}}</text>
 					</view>
-					<text class="  cuIcon-recharge">{{child.consume_service_charge}}</text>
-					<text class=" cuIcon-time">{{child.time}}</text>
+					<text class="  cuIcon-recharge">{{child.active_fee}}</text>
+					<text class=" cuIcon-time">{{child.exectime}}</text>
+					<text class=" cuIcon-time">{{child.finishtime||'未执行'}}</text>
 				</view>
 			</view>
 		</view>
 		<!-- 点击已完成过来 -->
 		<view class="info" v-for="(item,index) in going" :key="'success'+index" v-if="currentindex == 1">
 			<view class="info-top color_2">
-				<view>交易类型：{{item.type}}</view>
-				<view>日期：{{item.date}}</view>
-				<view>已执行</view>
+				<view>日期：{{index}}</view>
+				<view>通道：{{plan_info.show_name}}</view>
+				<view>完成</view>
 			</view>
 			<view class="info-bottom">
-				<view class="info-line" v-for="(child,num) in item.data" :key="'child'+num">
+				<view class="info-line" v-for="(child,num) in item" :key="'child'+num">
 					<view>
-						<text :class="[child.type == '消费' ? 'font-1' : 'font-2']">{{child.type == '消费' ? '消' : '还'}}</text>
-						<text class=" cuIcon-redpacket_fill">{{child.consume_money}}</text>
+						<text :class="[child.type == 'in' ? 'font-1' : 'font-2']">{{child.type == 'in' ? '消' : '还'}}</text>
+						<text class=" cuIcon-redpacket_fill">{{child.amount}}</text>
 					</view>
-					<text class="  cuIcon-recharge">{{child.consume_service_charge}}</text>
-					<text class=" cuIcon-time">{{child.time}}</text>
+					<text class="  cuIcon-recharge">{{child.active_fee}}</text>
+					<text class=" cuIcon-time">{{child.exectime}}</text>
+					<text class=" cuIcon-time">{{child.finishtime||'未执行'}}</text>
 				</view>
 			</view>
 		</view>
 		<!-- 点击取消计划过来 -->
 		<view class="info" v-for="(item,index) in going" :key="'cancel'+index" v-if="currentindex == 2">
 			<view class="info-top color_3">
-				<view>交易类型：{{item.type}}</view>
-				<view>日期：{{item.date}}</view>
-				<view>异常停止</view>
+				<view>日期：{{index}}</view>
+				<view>通道：{{plan_info.show_name}}</view>
+				<view>停止</view>
 			</view>
 			<view class="info-bottom">
-				<view class="info-line" v-for="(child,num) in item.data" :key="'child'+num">
+				<view class="info-line" v-for="(child,num) in item" :key="'child'+num">
 					<view>
-						<text :class="[child.type == '消费' ? 'font-1' : 'font-2']">{{child.type == '消费' ? '消' : '还'}}</text>
-						<text class=" cuIcon-redpacket_fill">{{child.consume_money}}</text>
+						<text :class="[child.type == 'in' ? 'font-1' : 'font-2']">{{child.type == 'in' ? '消' : '还'}}</text>
+						<text class=" cuIcon-redpacket_fill">{{child.amount}}</text>
 					</view>
-					<text class="  cuIcon-recharge">{{child.consume_service_charge}}</text>
-					<text class=" cuIcon-time">{{child.time}}</text>
+					<text class="  cuIcon-recharge">{{child.active_fee}}</text>
+					<text class=" cuIcon-time">{{child.exectime}}</text>
+					<text class=" cuIcon-time">{{child.finishtime||'未执行'}}</text>
 				</view>
 			</view>
 		</view>
@@ -61,55 +64,45 @@
 	export default{
 		data(){
 			return{
+				planid:0,
 				page:0,
 				currentindex:0, //默认是进行中点击进来
-				going:[
-					{type:'快捷',date:'2020-09-09',data:[
-						{type:'消费',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'},
-						{type:'消费',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'},
-						{type:'还款',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'}
-					]},
-					{type:'奖金',date:'2020-09-09',data:[
-						{type:'消费',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'},
-						{type:'消费',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'},
-						{type:'还款',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'}
-					]},
-					{type:'代还进账',date:'2020-09-09',data:[
-						{type:'消费',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'},
-						{type:'消费',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'},
-						{type:'还款',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'}
-					]},
-					{type:'代还出账',date:'2020-09-09',data:[
-						{type:'消费',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'},
-						{type:'消费',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'},
-						{type:'还款',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'}
-					]},
-					{type:'提现',date:'2020-09-09',data:[
-						{type:'消费',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'},
-						{type:'消费',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'},
-						{type:'还款',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'}
-					]},
-					{type:'分润',date:'2020-09-09',data:[
-						{type:'消费',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'},
-						{type:'消费',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'},
-						{type:'还款',consume_money:'23123',consume_service_charge:'66.66',time:'12:00'}
-					]},
-				],
+				going:[],
 				success:[], //已执行数据
 				cancel:[], //异常停止数据
+				plan_info:{}
 			}
 		},
 		onReachBottom(){
 			this.page = this.page + 1;
 		},
 		onLoad(options){
+			console.log(options)
 			this.currentindex = options.index;
+			this.planid = options.planid;
+			this.PlanOrder()
 		},
 		onShow(){
 			
 		},
 		methods:{
-			
+			PlanOrder(){
+				this.$queue.showLoading("请稍后...");
+				this.$Request.postP('/plan/detail',{
+					    "plan_id": this.planid, //计划id
+				}).then(res => {
+					console.log(res);
+					if(res.status != 10000){
+						uni.showModal({
+							content:"计划详情数据异常，请重新进入"
+						})
+						uni.navigateBack()
+					}
+					this.going = res.data.order_list
+					this.plan_info = res.data
+				});
+				uni.hideLoading();
+			}
 		}
 	}
 </script>
