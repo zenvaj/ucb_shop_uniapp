@@ -223,6 +223,10 @@
 			this.loadData();
 		},
 		onLoad(options) {
+			var date = new Date()
+			this.starDate = date.getFullYear()+'-'+(date.getMonth()+1)+"-"+date.getDate();
+			this.endDate = date.getFullYear()+'-'+(date.getMonth()+1)+"-"+date.getDate();
+			console.log(this.starDate,this.endDate)
 			this.$queue.showLoading("加载中...")
 			this.loadData();
 		},
@@ -245,7 +249,7 @@
 					"type": this.type,  //分润 奖金 提现 快捷 代还进账 代还出账
 					"time_start": this.starDate,
 					"time_end": this.endDate,
-					"userid": "2",
+					"userid": this.$queue.getData('userId'),
 					"page":  parseInt(this.page),
 					"num": number
 				}).then(res => {
@@ -258,7 +262,7 @@
 					 uni.hideLoading();
 					// console.log(this.options);
 				});
-				
+				return
 				
 				if (token) { 
 					this.$Request
