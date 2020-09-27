@@ -377,6 +377,53 @@
 			}
 		},
 		{
+			"path": "pages/member/mycard-entrance",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"navigationBarTitleText": "我的卡包",
+				"enablePullDownRefresh": false, 
+				"app-plus": {
+					"bounce": "none",
+					"scrollIndicator": "none",
+					"titleNView": {
+						"titleText":"我的卡包"
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/member/card-list",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"navigationBarTitleText": "信用卡列表",
+				"enablePullDownRefresh": false, 
+				"app-plus": {
+					"bounce": "none",
+					"scrollIndicator": "none",
+					"titleNView": {
+						"titleText":"信用卡列表"
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/member/card-smart",
+			"style": {
+				"navigationBarTextStyle": "black",
+				// 快捷支付也在这里
+				"navigationBarTitleText": "智能养卡",
+				"enablePullDownRefresh": false, 
+				"app-plus": {
+					"bounce": "none",
+					"scrollIndicator": "none",
+					"titleNView": {
+						"titleText":"智能养卡"
+					}
+				}
+			}
+		},
+		
+		{
 			"path": "pages/member/mycard",
 			"style": {
 				"navigationBarTextStyle": "black",

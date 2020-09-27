@@ -138,7 +138,7 @@
 						<view class="tui-icon-box"><image src="../../static/img/my/icon_kaipiao.png" class="tui-tool-icon"></image></view>
 						<view class="tui-tool-text">我的足迹</view>
 					</view>
-					<view class="tui-tool-item" @click="navToLogins('/pages/member/mycard')">
+					<view class="tui-tool-item" @click="navToLogins('/pages/member/mycard-entrance')">
 						<view class="tui-icon-box"><image src="../../static/img/my/icon_kaipiao.png" class="tui-tool-icon"></image></view>
 						<view class="tui-tool-text">我的卡包</view>
 					</view>
