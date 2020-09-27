@@ -135,7 +135,7 @@
 									icon:'none',
 									success:res=>{
 										uni.redirectTo({
-										    'url':'/pages/member/mycard'
+										    'url':'/pages/member/card-list'
 										});
 									}
 								})
