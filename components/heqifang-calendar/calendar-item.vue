@@ -86,8 +86,8 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		width: 90rpx;
-		height: 90rpx;
+		/* width: 90rpx;
+		height: 90rpx; */
 		margin: 5rpx;
 	}
 
@@ -125,7 +125,7 @@
 	.uni-calendar-item--checked {
 		background-color: #1aad19;
 		border-radius: 20rpx;
-		margin: 5rpx;
+		/* margin: 5rpx; */
 		color: #fff;
 		opacity: 0.8;
 	}

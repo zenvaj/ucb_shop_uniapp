@@ -24,7 +24,7 @@
 							<image src="../../static/img/huanqian_01.png"></image>
 							<view>还款日 {{dayjob_or_}}</view>
 						</view>
-					</view> 
+					</view>
 				</view>
 			</view>
 			
