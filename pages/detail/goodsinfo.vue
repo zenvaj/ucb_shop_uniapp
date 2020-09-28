@@ -828,35 +828,37 @@ export default {
 								linkkey: 'taobao',
 								nativeFailedMode: 'download'
 							},
-							result => {}
+							result => {
+								console.log(123)
+							}
 						);
 						uni.hideLoading();
-						// uni.showToast({
-						// 	title: '正在获取优惠券请稍后...',
-						// 	mask: false,
-						// 	duration: 1500,
-						// 	icon: 'none'
-						// });
-						// if (plus.os.name == 'Android') {
-						// 	plus.runtime.openURL(
-						// 		coupon_click_url,
-						// 		function(res) {
-						// 			that.shopCartShare('tttt');
-						// 			uni.hideLoading();
-						// 		},
-						// 		'com.taobao.taobao'
-						// 	);
-						// } else {
-						// 	coupon_click_url = coupon_click_url.split('//')[1];
-						// 	plus.runtime.openURL(
-						// 		'taobao://' + coupon_click_url,
-						// 		function(res) {
-						// 			that.shopCartShare('tttt');
-						// 			uni.hideLoading();
-						// 		},
-						// 		'taobao://'
-						// 	);
-						// }
+						uni.showToast({
+							title: '正在获取优惠券请稍后...',
+							mask: false,
+							duration: 1500,
+							icon: 'none'
+						});
+						if (plus.os.name == 'Android') {
+							plus.runtime.openURL(
+								coupon_click_url,
+								function(res) {
+									that.shopCartShare('tttt');
+									uni.hideLoading();
+								},
+								'com.taobao.taobao'
+							);
+						} else {
+							coupon_click_url = coupon_click_url.split('//')[1];
+							plus.runtime.openURL(
+								'taobao://' + coupon_click_url,
+								function(res) {
+									that.shopCartShare('tttt');
+									uni.hideLoading();
+								},
+								'taobao://'
+							);
+						}
 						//#endif
 						//#ifndef APP-PLUS
 						that.shopCartShare('tttt');
