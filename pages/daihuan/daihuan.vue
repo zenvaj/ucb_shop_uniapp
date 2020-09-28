@@ -24,6 +24,19 @@
 						<image src="../../static/img/huanqian_01.png"></image>
 						<view>还款日 {{dayjob_or_}}</view>
 					</view>
+<<<<<<< HEAD
+					<view class=" bank_list_day" style="-webkit-flex: 1;flex: 1;">
+						<view style="display:flex;flex-direction: row; align-items: center;">
+							<image src="../../static/img/huanqian_01.png"></image>
+							<view>账单日 {{daymark_or_}}</view>
+						</view>
+						<view style="display:flex;flex-direction: row;align-items: center;">
+							<image src="../../static/img/huanqian_01.png"></image>
+							<view>还款日 {{dayjob_or_}}</view>
+						</view>
+					</view>
+=======
+>>>>>>> 343ab48d74a3303aa78c517411feeb9234265c6e
 				</view>
 			</view>
 		</view>
