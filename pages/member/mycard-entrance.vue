@@ -35,7 +35,7 @@
 		},
 		methods: {
 			go(type) {
-				console.log(type)
+				//console.log(type)
 				if(type === 'addcard') {
 					uni.navigateTo({
 						url: '/pages/member/addcard'

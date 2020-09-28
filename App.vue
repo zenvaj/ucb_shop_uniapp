@@ -865,7 +865,7 @@ export default {
 		this.getClipboardData();
 		if (uni.getSystemInfoSync().platform == 'android') {
 			let clientid = plus.push.getClientInfo().clientid;
-			console.error(clientid);
+			//console.error(clientid);
 			let userId = this.$queue.getData('userId');
 			if (userId) {
 				this.$Request.postT('/user/updateClientId?clientId=' + clientid + '&userId=' + userId).then(res => {});

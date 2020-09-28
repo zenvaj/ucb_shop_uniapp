@@ -443,7 +443,10 @@ export default {
 								if (res.status === 10000) {
 									uni.showToast({
 										title: '绑卡成功！',
-										icon: 'none'
+										icon: 'none',
+										complete:function(res){
+											uni.navigateBack();
+										}
 									});
 								}else{
 									uni.showToast({
