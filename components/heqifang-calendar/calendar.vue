@@ -134,6 +134,7 @@
 				startDate: this.startDate,
 				endDate: this.endDate
 			})
+			// console.log(this.cale)
 			this.init(this.cale.date.fullDate)
 		},
 		methods: {

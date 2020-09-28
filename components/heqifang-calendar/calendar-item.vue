@@ -47,8 +47,13 @@
 				}
 			},
 		},
+		mounted() {
+			// console.log(this.weeks)
+			// console.log(this.selectedDate)
+		},
 		methods: {
 			choiceDate(weeks) {
+				console.log(weeks)
 				this.$emit('change', weeks)
 			}
 		}

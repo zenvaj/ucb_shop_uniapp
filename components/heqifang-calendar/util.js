@@ -147,12 +147,20 @@ class Calendar {
 	 */
 	_getNextMonthDays(surplus, full) {
 		let dateArr = []
+		// console.log(this.date)
+		// console.log(full)
+		// console.log(surplus)
+		// console.log(Number(this.date.month) , (Number(full.month) + 1))
+		// console.log(Number(this.date.month) >= (Number(full.month) + 1)?"true":"false")
 		for (let i = 1; i < surplus + 1; i++) {
+			let ful = full.year + "-" + (Number(full.month) + 1) + "-" + (i < 10 ? '0' + i : i)
 			dateArr.push({
-				date: i,
-				month: Number(full.month) + 1,
+				fullDate: ful,
+				year: full.year,
+				date: i < 10 ? '0' + i : i,
+				month: (Number(full.month) + 1).toString(),
 				lunar: this.getlunar(full.year, Number(full.month) + 1, i),
-				disable: true
+				disable: Number(this.date.month) >= (Number(full.month) + 1)?true:false
 			})
 		}
 		return dateArr
