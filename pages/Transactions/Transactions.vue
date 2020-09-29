@@ -118,7 +118,8 @@
 				</transition-group>
 				<!-- #endif -->
 			</view>
-			<view style="position: absolute;top:200upx;left:50%;transform: translate(-50%);width:100%;margin-bottom: 60upx;">		
+			<!-- position: absolute;top:200upx;left:50%;transform: translate(-50%); -->
+			<view style="width:100%;margin-top:200upx;margin-bottom: 60upx;">		
 				<view v-for="(item, index) in list" :key="index" class="item">
 						<view class="solids-bottom " style="color: #333333;font-size: 30upx; overflow: hidden;text-overflow: ellipsis;white-space:nowrap">
 						类型 ： {{item.type}} &nbsp;&nbsp;日期： {{item.time}}
@@ -219,6 +220,7 @@
 			this.scrollTop = e.scrollTop > 200;
 		},
 		onReachBottom: function() {
+			console.log('到底啦')
 			this.page = this.page + 1;
 			this.loadData();
 		},

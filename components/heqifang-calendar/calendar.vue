@@ -169,6 +169,7 @@
 				this.setEmit('change')
 			},
 			monthSwitch() {
+				console.log('huanyue')
 				let {
 					year,
 					month
@@ -195,11 +196,12 @@
 				})
 			},
 			choiceDate(weeks) {
+				// console.log(this.calendar)
 				if (weeks.disable) 
 					return
 				this.calendar = weeks
 				// 设置多选
-				this.cale.setMultiple(this.calendar.fullDate)
+				// this.cale.setMultiple(this.calendar.fullDate)
 				this.weeks = this.cale.weeks
 				this.change()
 			},

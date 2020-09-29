@@ -1232,7 +1232,8 @@
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "优财宝",
 		"navigationBarBackgroundColor": "#FFFFFF",
-		"backgroundColor": "#FFFFFF"
+		"backgroundColor": "#FFFFFF",
+		"onReachBottomDistance": 50
 	},
 	"tabBar": {
 		"color": "#666666",

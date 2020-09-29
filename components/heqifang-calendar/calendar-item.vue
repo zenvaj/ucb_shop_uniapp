@@ -54,6 +54,8 @@
 		methods: {
 			choiceDate(weeks) {
 				console.log(weeks)
+				// console.log(this.selectedDate)
+				// console.log(this.weeks.fullDate)
 				this.$emit('change', weeks)
 			}
 		}

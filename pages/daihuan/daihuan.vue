@@ -328,7 +328,7 @@
 				this.isFlag = !this.isFlag
 			},
 			calendarChange(e) { // 当前选择时间
-				console.log(e);
+				// console.log(e);
 				// // 当前选择时间
 				let _date = e.fulldate;
 				// // 判断这个时间是否已选中

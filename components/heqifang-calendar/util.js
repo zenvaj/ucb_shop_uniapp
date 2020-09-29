@@ -73,13 +73,47 @@ class Calendar {
 	 */
 	_getLastMonthDays(firstDay, full) {
 		let dateArr = []
+		let star = this.startDate.split('-')
+		// console.log(star)
 		for (let i = firstDay; i > 0; i--) {
+			
 			const beforeDate = new Date(full.year, full.month - 1, -i + 1).getDate()
+			let ful = full.year + "-" + ((Number(full.month) - 1) >= 10 ? (Number(full.month) - 1) : '0' + (Number(full.month) - 1) ) + "-" + beforeDate
+			let disable = true
+			if(Number(full.year) == Number(star[0])) {
+				if(Number(full.month) - 1 == Number(star[1]) && beforeDate >= Number(star[2])) {
+					disable = false
+				}
+			} else {
+				disable = true
+			}
+			// if( Number(this.date.year) == Number(full.year) ) {
+			// 	if( Number(this.date.month) > (Number(full.month) - 1) ) {
+			// 		disable = true
+			// 	} else if( Number(this.date.month) == (Number(full.month) - 1) ) {
+			// 		if( i < Number(this.date.date) ) {
+			// 			disable = true
+			// 		} else {
+			// 			disable = false
+			// 		}
+			// 	} else {
+			// 		disable = false
+			// 	}
+			// }
+			// if( Number(this.date.year) > Number(full.year) ) {
+			// 	disable = true
+			// }
+			// if( Number(this.date.year) < Number(full.year) ) {
+			// 	disable = false
+			// }
+			
 			dateArr.push({
+				fullDate: ful,
 				date: beforeDate,
+				year: full.year,
 				month: full.month - 1,
 				lunar: this.getlunar(full.year, full.month - 1, beforeDate),
-				disable: true
+				disable: disable
 			})
 		}
 		return dateArr
@@ -150,17 +184,49 @@ class Calendar {
 		// console.log(this.date)
 		// console.log(full)
 		// console.log(surplus)
+		// console.log(this.endDate.split('-'))
+		let end = this.endDate.split('-')
 		// console.log(Number(this.date.month) , (Number(full.month) + 1))
 		// console.log(Number(this.date.month) >= (Number(full.month) + 1)?"true":"false")
 		for (let i = 1; i < surplus + 1; i++) {
-			let ful = full.year + "-" + (Number(full.month) + 1) + "-" + (i < 10 ? '0' + i : i)
+			let ful = full.year + "-" + ((Number(full.month) + 1)>=10?(Number(full.month) + 1): "0" + (Number(full.month) + 1)) + "-" + (i < 10 ? '0' + i : i)
+			
+			let disable = true
+			if(Number(full.year) == Number(end[0])) {
+				if(Number(full.month) + 1 == Number(end[1]) && i <= Number(end[2])) {
+					disable = false
+				}
+			} else {
+				disable = true
+			}
+			
+			// if( Number(this.date.year) == Number(full.year) ) {
+			// 	if( Number(this.date.month) > (Number(full.month) + 1) ) {
+			// 		disable = true
+			// 	} else if( Number(this.date.month) == (Number(full.month) + 1) ) {
+			// 		if( i >= Number(this.date.date) ) {
+			// 			disable = false
+			// 		} else {
+			// 			disable = true
+			// 		}
+			// 	} else {
+			// 		disable = false
+			// 	}
+			// }
+			// if( Number(this.date.year) > Number(full.year) ) {
+			// 	disable = true
+			// }
+			// if( Number(this.date.year) < Number(full.year) ) {
+			// 	disable = false
+			// }
+			
 			dateArr.push({
 				fullDate: ful,
 				year: full.year,
 				date: i < 10 ? '0' + i : i,
 				month: (Number(full.month) + 1).toString(),
 				lunar: this.getlunar(full.year, Number(full.month) + 1, i),
-				disable: Number(this.date.month) >= (Number(full.month) + 1)?true:false
+				disable: disable
 			})
 		}
 		return dateArr
