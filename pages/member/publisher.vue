@@ -150,8 +150,10 @@ export default {
 			let that = this;
 			let userId = this.$queue.getData('userId');
 			let relation = this.$queue.getData('relation');
+			console.log(userId)
 			if (userId) {
 				this.$Request.getT('/user/' + userId).then(res => {
+					console.log(res)
 					if (res.status === 0) {
 						if (res.data.phone) {
 							if (res.data.relationId) {
@@ -197,6 +199,7 @@ export default {
 			let that = this;
 			let _this = this;
 			Alibcsdk.login(result => {
+				console.log(result)
 				if (result.status) {
 					Alibcsdk.getpublisher(
 						{
@@ -210,6 +213,7 @@ export default {
 						result => {
 							if (result.status) {
 								_this.$Request.get('/tao/taobao/savePublisher/' + result.data.access_token).then(res => {
+									console.log(res.tbk_sc_publisher_info_save_response)
 									if (res.tbk_sc_publisher_info_save_response && res.tbk_sc_publisher_info_save_response.data.relation_id) {
 										_this.$Request
 											.getT('/user/bind/relationId/' + res.tbk_sc_publisher_info_save_response.data.relation_id + '/' + this.$queue.getData('userId'))

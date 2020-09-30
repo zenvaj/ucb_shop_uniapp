@@ -6,7 +6,7 @@
 					<view class="goods-list" v-if="couponlist.length > 0">
 						<orange-goods-card-home
 							v-for="(item, index9) in couponlist"
-							v-bind:key="item.id"
+							v-bind:key="item.itemid"
 							:index="index9 % 2"
 							:logo="logo"
 							:isEnable="isEnable"
@@ -125,6 +125,7 @@ export default {
 		if (userId) {
 			this.loadCouponList();
 			this.$Request.getT('/user/' + userId).then(res => {
+				// console.log(res)
 				if (res.status === 0) {
 					this.$queue.setData('image_url', res.data.image_url);
 					this.$queue.setData('mobile', res.data.phone);
@@ -211,6 +212,7 @@ export default {
 			this.loadingType = 1;
 			this.$Request.get('/api/low_price_Pinkage_data/apikey/maxd/back/10/order/4/type/' + this.type + '/min_id/' + this.min_id).then(res => {
 				this.loadingType = 0;
+				// console.log(res)
 				if (res.code === 1) {
 					if (this.page === 1) {
 						this.couponlist = [];

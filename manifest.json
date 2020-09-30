@@ -100,7 +100,8 @@
                         "appsecret" : "39d77330a646ba1e726ef2ace9adc536",
                         "UniversalLinks" : "https://api.qdfqxx.com/"
                     }
-                }
+                },
+                "payment" : {}
             },
             "icons" : {
                 "android" : {
@@ -136,20 +137,6 @@
             }
         },
         "nativePlugins" : {
-            "UZK-Alibcsdk" : {
-                "__plugin_info__" : {
-                    "name" : "新版阿里百川SDK 4.0.0.8",
-                    "description" : "UZK-AlibcSDK插件封装了最新版阿里百川电商sdk",
-                    "platforms" : "Android,iOS",
-                    "url" : "https://ext.dcloud.net.cn/plugin?id=873",
-                    "android_package_name" : "com.youcaibao.ovr",
-                    "ios_bundle_id" : "com.youcaibao.pay",
-                    "isCloud" : true,
-                    "bought" : 1,
-                    "pid" : "873",
-                    "parameters" : {}
-                }
-            },
             "YOYO-JPushIM" : {
                 "app_key" : "f5b67ea8cc9ca5d22ba662f1",
                 "channel" : "203988aaee2b31eb96d26f4a",
@@ -188,6 +175,20 @@
                     "isCloud" : true,
                     "bought" : 1,
                     "pid" : "847",
+                    "parameters" : {}
+                }
+            },
+            "UZK-Alibcsdk" : {
+                "__plugin_info__" : {
+                    "name" : "新版阿里百川SDK安卓4.0.0.15苹果4.0.1.6",
+                    "description" : "新增渠道授权（静默式），无需用户进行二次授权，即可获得用户的渠道ID。",
+                    "platforms" : "Android,iOS",
+                    "url" : "https://ext.dcloud.net.cn/plugin?id=873",
+                    "android_package_name" : "com.youcaibao.ovr",
+                    "ios_bundle_id" : "com.youcaibao.pay",
+                    "isCloud" : true,
+                    "bought" : 1,
+                    "pid" : "873",
                     "parameters" : {}
                 }
             }

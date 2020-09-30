@@ -19,14 +19,14 @@
 				<view class="uni-list">
 					<view class="uni-list-cell">
 						<view class="uni-list-cell-left">卡号</view>
-						<view class="uni-list-cell-db"><input v-model="card_no" type="number" maxlength="20" placeholder="信用卡卡号" /></view>
+						<view class="uni-list-cell-db"><input v-model="card_no" type="number" maxlength="20" placeholder="储蓄卡卡号" /></view>
 					</view>
 				</view>
 
 				<view class="uni-list">
 					<view class="uni-list-cell">
 						<view class="uni-list-cell-left">确认卡号</view>
-						<view class="uni-list-cell-db"><input v-model="card_qno" type="number" maxlength="20" placeholder="信用卡卡号" /></view>
+						<view class="uni-list-cell-db"><input v-model="card_qno" type="number" maxlength="20" placeholder="储蓄卡卡号" /></view>
 					</view>
 				</view>
 
