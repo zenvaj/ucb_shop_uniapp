@@ -1,12 +1,12 @@
 <template>
 	<view class="content">
 		<!-- #ifdef H5 -->
-			<view class="navbar_2">
+			<view class="navbar_2" v-if="0">
 				<view v-for="(item, index) in tabList" :key="index" class="nav-item" :class="{ current: tabFromIndex === item.state }" @click="tabClicks(item.state)">
 					{{ item.text }}
 				</view>
 			</view>
-			<view style="position: fixed;top:160upx;z-index:999;background-color: #fff;width:100%;height:100upx;line-height: 100upx;">
+			<view style="position: fixed;top:76upx;z-index:999;background-color: #fff;width:100%;height:100upx;line-height: 100upx;">
 				<view class="grid margin-bottom text-center ">
 					<view class="flex-sub" @click="showIs">
 						{{title}}<text v-if="isshow" class="cuIcon-triangledownfill" style="font-size: 50rpx;"></text> 
@@ -68,12 +68,12 @@
 		<!-- 移动端 -->
 		
 		<!-- #ifndef H5 -->
-			<view class="navbar">
+			<view class="navbar" v-if="0">
 				<view v-for="(item, index) in tabList" :key="index" class="nav-item" :class="{ current: tabFromIndex === item.state }" @click="tabClicks(item.state)">
 					{{ item.text }}
 				</view>
 			</view>
-			<view style="position: fixed;top:82upx;z-index:999;background-color: #fff;width:100%;height:100upx;line-height: 100upx;">
+			<view style="position: fixed;top:0upx;z-index:999;background-color: #fff;width:100%;height:100upx;line-height: 100upx;">
 				<view class="grid margin-bottom text-center " >
 					<view class="flex-sub" @click.stop="showIs">
 						{{title}}<text v-if="isshow" class="cuIcon-triangledownfill" style="font-size: 50rpx;"></text> 
@@ -102,7 +102,7 @@
 				</view>
 			<!-- #ifdef H5 -->
 			<transition-group tag="view" enter-active-class="animated slideInDown faster" leave-active-class="animated slideOutUp faster">
-				<!-- #endif -->
+			<!-- #endif -->
 				<view  v-if="!isshow" class="filter-signal-item" 
 				style="padding-left: 50rpx;margin-top:-20upx;"
 				v-bind:class="{ 
@@ -119,7 +119,7 @@
 				<!-- #endif -->
 			</view>
 			<!-- position: absolute;top:200upx;left:50%;transform: translate(-50%); -->
-			<view style="width:100%;margin-top:200upx;margin-bottom: 60upx;">		
+			<view style="width:100%;margin-top:110upx;margin-bottom: 60upx;">		
 				<view v-for="(item, index) in list" :key="index" class="item">
 						<view class="solids-bottom " style="color: #333333;font-size: 30upx; overflow: hidden;text-overflow: ellipsis;white-space:nowrap">
 						类型 ： {{item.type}} &nbsp;&nbsp;日期： {{item.time}}
@@ -213,7 +213,8 @@
 				title: '交易类型',
 				type:'分润',
 				starDate:'2010-06-14',
-				endDate:'2120-06-14' 
+				endDate:'2120-06-14',
+				order_bad:0,
 			}; 
 		},
 		onPageScroll: function(e) {
@@ -235,6 +236,52 @@
 		methods: {
 			//顶部渠道点击
 			tabClicks(index) {
+				console.log(index)
+				if(index == 5 || index == 4){
+					this.data = [
+						{
+							value: 1,  
+							text: '分润'
+						},
+						{
+							value: 2,
+							text: '奖金'
+						},
+						{
+							value: 3,
+							text: '提现'
+						},
+						{
+							value: 4,     
+							text: '快捷'
+						},
+						{
+							value: 5,
+							text: '代还进账'
+						},
+						{
+							value: 6,
+							text: '代还出账'
+						}
+					]
+					this.order_bad = 0
+				}else if(index == 6){
+					this.data = [
+						{
+							value: 4,     
+							text: '快捷'
+						},
+						{
+							value: 5,
+							text: '代还进账'
+						},
+						{
+							value: 6,
+							text: '代还出账'
+						}
+					]
+					this.order_bad = 1
+				}
 				this.list = [];
 				this.page = 0;
 				this.tabFromIndex = index; 
@@ -253,7 +300,8 @@
 					"time_end": this.endDate,
 					"userid": this.$queue.getData('userId'),
 					"page":  parseInt(this.page),
-					"num": number
+					"num": number,
+					"order_bad": this.order_bad,
 				}).then(res => {
 					console.log(res);
 					 if (res.status === 10000) {

@@ -392,6 +392,35 @@
 			}
 		},
 		{
+			"path": "pages/member/team",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"navigationBarTitleText": "团队",
+				"enablePullDownRefresh": false, 
+				"app-plus": {
+					"bounce": "none",
+					"scrollIndicator": "none",
+					"titleNView": {
+						"titleText":"团队"
+					}
+				}
+			}
+		},{
+			"path": "pages/member/money",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"navigationBarTitleText": "钱包",
+				"enablePullDownRefresh": false, 
+				"app-plus": {
+					"bounce": "none",
+					"scrollIndicator": "none",
+					"titleNView": {
+						"titleText":"钱包"
+					}
+				}
+			}
+		},
+		{
 			"path": "pages/member/card-list",
 			"style": {
 				"navigationBarTextStyle": "black",
@@ -507,6 +536,18 @@
 			"style": {
 				"navigationBarTextStyle": "black",
 				"navigationBarTitleText": "储蓄卡维护",
+				"enablePullDownRefresh": false,
+				"app-plus": {
+					"bounce": "none",
+					"titleNView": true
+				}
+			}
+		},
+		{
+			"path": "pages/member/cxkView",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"navigationBarTitleText": "收款储蓄卡信息",
 				"enablePullDownRefresh": false,
 				"app-plus": {
 					"bounce": "none",

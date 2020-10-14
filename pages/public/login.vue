@@ -64,6 +64,7 @@ export default {
 				provider: 'weixin',
 				success: function(loginRes) {
 					that.$queue.showLoading('正在登录中...');
+					console.log(loginRes)
 					console.error(loginRes.authResult);
 					that.$queue.setData('weixinToken', loginRes.authResult.access_token);
 					that.$queue.setData('unionid', loginRes.authResult.unionid);
@@ -78,7 +79,7 @@ export default {
 						    "openid":loginRes.authResult.openid
 					}).then(res => {
 						console.log(res);
-						console.log(res.status==="10000");
+						//console.log(res.status==="10000");
 						if (res.status === 10000) {
 							if (uni.getSystemInfoSync().platform == "android") {
 							let clientid = plus.push.getClientInfo().clientid;

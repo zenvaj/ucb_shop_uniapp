@@ -96,7 +96,7 @@
 					</swiper-item>
 				</block>
 			</swiper>
-			<view style="background: white;border-radius: 16upx;margin-top: 16upx;box-shadow: 0 1px 10px rgba(183, 183, 183, 0.3);">
+			<view style="background: white;border-radius: 16upx;margin-top: 16upx;box-shadow: 0 1px 10px rgba(183, 183, 183, 0.3);" v-if="0">
 				<view class="tui-cell-header"><view class="tui-cell-title">我的资产</view></view>
 				<view class="tj-sction">
 					<view class="tj-item" @click="navToLogin('/pages/member/jifen')">
@@ -116,6 +116,80 @@
 
 			<!-- <view class="tui-box tui-tool-box" @tap="href(7)"> -->
 			<view class="tui-box tui-tool-box" >
+				<view class="tui-cell-header"><view class="tui-cell-title">我的商城</view></view>
+				<view class="tui-order-list tui-flex-wrap">
+					<view class="tui-tool-item" @click="navToLogins('/pages/member/yaoqing')">
+						<view class="tui-icon-box"><image src="../../static/img/my/team.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">商城团队</view>
+					</view>
+					<view class="tui-tool-item" @click="navToLogins('/pages/order/team')">
+						<view class="tui-icon-box"><image src="../../static/img/my/teamOrder.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">团队订单</view>
+					</view>
+					<view class="tui-tool-item" @click="taunduishouyi()">
+						<view class="tui-icon-box"><image src="../../static/img/my/icon_fanxian.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">团队收益</view>
+					</view>
+					<view class="tui-tool-item" @click="navTo('/pages/footer/like')">
+						<view class="tui-icon-box"><image src="../../static/img/my/icon_gift.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">我的收藏</view>
+					</view>
+					<view class="tui-tool-item" @click="navTo('/pages/footer/index')">
+						<view class="tui-icon-box"><image src="../../static/img/my/icon_kaipiao.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">我的足迹</view>
+					</view>
+					<view class="tui-tool-item" @click="navToLogins('/pages/member/jifen')">
+						<view class="tui-icon-box"><image src="../../static/img/my/jifen.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">我的积分</view>
+					</view>
+					<view class="tui-tool-item" @click="shengJiMethod">
+						<view class="tui-icon-box"><image src="../../static/img/send.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">商城等级</view>
+					</view>
+					<view class="tui-tool-item" @click="getMoneys()">
+						<view class="tui-icon-box"><image src="../../static/img/my/icon_zhihuan.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">商城提现</view>
+					</view>
+				</view>
+			</view>
+			<view class="tui-box tui-tool-box" >
+				<view class="tui-cell-header"><view class="tui-cell-title">收款常用工具</view></view>
+				<view class="tui-order-list tui-flex-wrap">
+					<view class="tui-tool-item" @click="navToLogins('/pages/member/mycard-entrance')">
+						<view class="tui-icon-box"><image src="../../static/img/my/kabao.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">我的卡包</view>
+					</view>
+					<view class="tui-tool-item" @click="navToLogins('/pages/Transactions/Transactions')">
+						<view class="tui-icon-box"><image src="../../static/img/my/icon_kaipiao.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">刷卡记录</view>
+					</view>
+					<view class="tui-tool-item" @click="navToLogins('/pages/authen/authen')">
+						<view class="tui-icon-box"><image src="../../static/img/my/shiming.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">实名认证</view>
+					</view>
+					<view class="tui-tool-item" @click="navToLogins('/pages/member/yao')">
+						<view class="tui-icon-box"><image src="../../static/img/my/yaoqing.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">邀请赚钱</view>
+					</view>
+					<view class=" tui-tool-item" @click="navToLogin('/pages/member/message')">
+						<view class="tui-icon-box"><image src="../../static/img/my/message.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">消息中心</view>
+					</view>
+					<view class=" tui-tool-item" @click="navToLogin('/pages/member/account')">
+						<view class="tui-icon-box"><image src="../../static/img/my/anquans.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">账户安全</view>
+					</view>
+					<view class="tui-tool-item" @click="navTo('/pages/set/set')">
+						<view class="tui-icon-box"><image src="../../static/img/my/set.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">设置中心</view>
+					</view>
+					<view class=" tui-tool-item" @click="navTo('/pages/member/customer')">
+						<view class="tui-icon-box"><image src="../../static/img/my/icon_kefu.png" class="tui-tool-icon"></image></view>
+						<view class="tui-tool-text">联系客服</view>
+					</view>
+				</view>
+			</view>
+			<view class="tui-box tui-tool-box" v-if="0">
 				<view class="tui-cell-header"><view class="tui-cell-title">常用工具</view></view>
 				<view class="tui-order-list tui-flex-wrap">
 					<view class="tui-tool-item" @click="navToLogins('/pages/member/mycard-entrance')">

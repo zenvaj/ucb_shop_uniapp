@@ -60,7 +60,7 @@
 											<image src="../../static/img/addplan.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
 											<view style="color:#ffffff">添加计划</view>
 										</view>
-										<view v-if="item1.is_sign===0" @tap="jihuo(item1.id,item.id)" data-target="DialogModal1">
+										<view v-if="item1.is_sign===0" @tap="jihuo(item1.id,item.id,index1)" data-target="DialogModal1">
 											<image src="../../static/img/send.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
 											<view style="color:#ffffff">激活通道</view>
 										</view>
@@ -85,7 +85,7 @@
 											<image src="../../static/img/addplan.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
 											<view style="color:#ffffff">添加计划</view>
 										</view>
-										<view v-if="item1.is_sign===0" @tap="jihuo(item1.id,item.id)" data-target="DialogModal1">
+										<view v-if="item1.is_sign===0" @tap="jihuo(item1.id,item.id,index1)" data-target="DialogModal1">
 											<image src="../../static/img/send.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
 											<view style="color:#ffffff">激活通道</view>
 										</view>
@@ -118,7 +118,7 @@
 										<image src="../../static/img/jiaoyi.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
 										<view style="color:#ffffff">交易</view>
 									</view>
-									<view v-if="item1.is_sign===0" @tap="jihuo(item1.id,item.id)" data-target="DialogModal1">
+									<view v-if="item1.is_sign===0" @tap="jihuo(item1.id,item.id,index1)" data-target="DialogModal1">
 										<image src="../../static/img/send.png" mode="scaleToFill" style="width:64upx;height:64upx;"></image>
 										<view style="color:#ffffff">激活通道</view>
 									</view>
@@ -266,7 +266,8 @@
 					url: '../daihuan/daihuan?planid=' + planid + '&cardid=' + cardid
 				});
 			},
-			jihuo(planid, cardid) {
+			jihuo(planid, cardid,action_index) {
+				
 				this.$queue.showLoading("正在激活...");
 				this.trade_id = planid;
 				this.bank_id = cardid;
@@ -283,9 +284,21 @@
 								title: '激活通道成功！',
 								icon: 'none'
 							});
-							// uni.redirectTo({
-							//     'url':'/pages/member/mycard'
-							// });
+							//更新数据 刷新当前页面
+							let data_trade = this.options[0].trade_info;
+							if(this.target == 1){
+								data_trade.kuaijie.enable[action_index].is_sign = 1
+							}else if(this.target == 0){
+								data_trade.daihuan.daihuan_yue[action_index].is_sign = 1
+							}
+							this.options[0].trade_info = data_trade
+							//console.log(this.options[0])
+							uni.redirectTo({
+								url: '/pages/member/card-smart?type=' + this.target + '&bgColor=' + this.bgColor
+							})
+							uni.$emit("card", {
+								data: this.options[0],
+							});
 							return;
 						}
 						//console.log(res.data)

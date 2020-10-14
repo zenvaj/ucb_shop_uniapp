@@ -148,6 +148,13 @@ export default {
 							this.$queue.setData('userId', res.data.userId);
 							this.$queue.setData('mobile', mobile);
 							this.getUserInfo(res.data.userId, res.data.uuid);
+							
+							this.$Request.postP('/user/bind',{
+								uid:res.data.userId
+							}).then(res => {
+								console.log("注册新用户同步上下级关系 register");
+								console.log(res);
+							});
 						} else {
 							uni.hideLoading();
 							uni.showModal({

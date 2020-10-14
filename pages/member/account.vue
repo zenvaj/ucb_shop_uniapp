@@ -2,21 +2,26 @@
     <view class="container">
         <view v-if="relation_id" class="list-cell b-b" @click="navTo('/pages/member/zhifubao')" hover-class="cell-hover"
               :hover-stay-time="50">
-            <text class="cell-tit">提现账号设置</text>
+            <text class="cell-tit">商城支付宝提现设置</text>
             <text class="cell-more yticon icon-you"></text>
         </view>
+		<view class="list-cell b-b" @click="navTo('/pages/member/cxkView')" hover-class="cell-hover"
+		      :hover-stay-time="50">
+		    <text class="cell-tit">收款储蓄卡信息</text>
+		    <text class="cell-more yticon icon-you"></text>
+		</view>
+		<view class="list-cell b-b" style="margin-top: 2upx" @click="navTo('/pages/member/cxkAdd')"
+		      hover-class="cell-hover"
+		      :hover-stay-time="50">
+		    <text class="cell-tit">更换储蓄卡设置</text>
+		    <text class="cell-more yticon icon-you"></text>
+		</view>
         <view class="list-cell b-b" style="margin-top: 2upx" @click="navTo('/pages/public/bind')"
               hover-class="cell-hover"
               :hover-stay-time="50">
             <text class="cell-tit">换绑手机号</text>
             <text class="cell-more yticon icon-you"></text>
         </view>
-		<view class="list-cell b-b" style="margin-top: 2upx" @click="navTo('/pages/member/cxkAdd')"
-		      hover-class="cell-hover"
-		      :hover-stay-time="50">
-		    <text class="cell-tit">储蓄卡维护</text>
-		    <text class="cell-more yticon icon-you"></text>
-		</view>
        <!-- <view class="list-cell b-b" style="margin-top: 2upx" @click="navTo('/pages/public/pwd')" hover-class="cell-hover"
               :hover-stay-time="50">
             <text class="cell-tit">修改密码</text>

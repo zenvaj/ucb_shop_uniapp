@@ -102,7 +102,7 @@
 				//console.log(res.data);
 				uni.hideLoading();
 				this.options = res.data;
-				if (this.options.length == 0) {
+				if (!this.options || this.options.length == 0) {
 					uni.redirectTo({
 						url: '/pages/member/addcard'
 					})

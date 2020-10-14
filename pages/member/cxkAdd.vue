@@ -68,7 +68,7 @@ export default {
 			card_phone: '',
 			setcardp: '',
 			index: 0,
-			bank: []
+			bank: [{bank_name:""}]
 		};
 	},
 	onLoad() {
@@ -82,7 +82,9 @@ export default {
 		console.log(auth);
 		if(auth!=1){
 		uni.navigateTo({
-			url: '/pages/public/login' 
+			//去实名认证
+			// url: '/pages/public/login' 
+			url: '/pages/authen/authen' 
 		});
 		}
 		this.card_idno = this.$queue.getData('idcard'); 
@@ -162,7 +164,7 @@ export default {
 			this.$Request
 				.postP('/bank/add', {
 					type: 'cxk',
-					bankname: this.bank[this.index],
+					bankname: this.bank[this.index].bank_name,
 					banknumber: this.card_qno,
 					mobile: this.card_phone,
 					idcard: this.card_idno,
@@ -173,6 +175,13 @@ export default {
 				})
 				.then(res => {
 					console.log(res);
+					if(res.status == 10000){
+						uni.navigateBack()
+					}else{
+						uni.showToast({
+							title: res.msg
+						});
+					}
 					this.options = res.data;
 					console.log(this.options);
 				});

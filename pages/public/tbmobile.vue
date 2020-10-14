@@ -170,6 +170,12 @@
 						this.$queue.setData("userId", res.data.userId);
 						this.$queue.setData("mobile", _this.phoneData);
 						this.getUserInfo(res.data.userId, res.data.uuid);
+						this.$Request.postP('/user/bind',{
+							uid:res.data.userId
+						}).then(res => {
+							console.log("注册新用户同步上下级关系 tbmobile");
+							console.log(res);
+						});
 					} else {
 						_this.isRotate = false;
 						uni.hideLoading();

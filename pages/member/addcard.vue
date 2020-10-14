@@ -162,6 +162,16 @@ export default {
 	// 	...mapState(['hasLogin', 'userInfo'])
 	// },
 	onLoad(e) {
+		let auth = this.$queue.getData('auth');
+		console.log(auth);
+		if(auth!=1){
+			uni.navigateTo({
+				//去实名认证
+				// url: '/pages/public/login' 
+				url: '/pages/authen/authen' 
+			});
+		}
+		this.checkCxk() 
 		var date = new Date();
 		this.defaultValue = utils.formatDate(date).f3;//   date.toLocaleString( ); //获取日期与时间
 		console.log(this.defaultValue);
@@ -170,13 +180,6 @@ export default {
 			this.bank = res; 
 		});
 		 
-		let auth = this.$queue.getData('auth');
-		console.log(auth);
-		if(auth!=1){
-			uni.navigateTo({
-				url: '/pages/public/login' 
-			});
-		}
 		this.card_idno = this.$queue.getData('idcard'); 
 		this.card_name = this.$queue.getData('realName'); 
 		
@@ -198,6 +201,22 @@ export default {
 	methods: {
 		handleTap (name) {
 			this.$refs[name].show()
+		},
+		checkCxk(){
+			uni.showLoading({
+				title:"结算卡验证..."
+			})
+			this.$Request.postP('/bank/bag',{
+				"type": "cxk"
+			}).then(res => {
+				console.log(res.data);
+				uni.hideLoading();
+				if (!res.data || res.data.length == 0) {
+					uni.redirectTo({
+						url: '/pages/member/cxkAdd'
+					})
+				}
+			});
 		},
 		handleChange (item) { 
 			console.log('change::', item)
@@ -461,7 +480,7 @@ export default {
 				fail: () => {},
 				complete: () => {}
 			});
-		}
+		},
 	}
 };
 </script>
