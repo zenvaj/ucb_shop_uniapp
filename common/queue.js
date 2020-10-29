@@ -75,7 +75,7 @@ module.exports = {
 		this.remove("bincard");//是否绑定储蓄卡
 		this.remove("idcard");//身份证号
 		this.remove("realName");//真实姓名
-		
+		this.remove("taobaoName");
 		
 		this.remove("token");
 		this.remove("userId");
@@ -88,7 +88,7 @@ module.exports = {
 	},
 	loginClear() {
 		this.remove("tokenP");
-		
+		this.remove("taobaoName");
 		
 		this.remove("token");		
 		this.remove("userId");

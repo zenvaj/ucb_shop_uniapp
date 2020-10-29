@@ -43,11 +43,11 @@ export default {
 					text: '订单消息',
 					totalElements: 0
 				},
-				{
-					state: 6,
-					text: '测试消息',
-					totalElements: 0
-				}
+				// {
+				// 	state: 6,
+				// 	text: '测试消息',
+				// 	totalElements: 0
+				// }
 			]
 		};
 	},

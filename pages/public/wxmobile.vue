@@ -178,7 +178,7 @@
 							uid:res.data.userId
 						}).then(res => {
 							console.log("注册新用户同步上下级关系 wxmobile");
-							console.log(res);
+							// console.log(res);
 						});
 						this.getUserInfo(res.data.userId, res.data.uuid);
 					} else {

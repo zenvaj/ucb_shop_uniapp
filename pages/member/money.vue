@@ -22,10 +22,10 @@
 					分润
 				</view>
 				<view class="content-item">
-					{{moeny.profits}}
+					{{money.profits}}
 				</view>
 				<view class="content-item">
-					{{moeny.profits_all}}
+					{{money.profits_all}}
 				</view>
 				<view class="content-item text-btn" @click="MoneyTranslation('分润')">
 					转余额
@@ -37,10 +37,10 @@
 					佣金
 				</view>
 				<view class="content-item">
-					{{moeny.bonus}}
+					{{money.bonus}}
 				</view>
 				<view class="content-item">
-					{{moeny.bonus_all}}
+					{{money.bonus_all}}
 				</view>
 				<view class="content-item text-btn" @click="MoneyTranslation('佣金')">
 					转余额
@@ -52,10 +52,10 @@
 					红包
 				</view>
 				<view class="content-item">
-					{{moeny.redbonus}}
+					{{money.redbonus}}
 				</view>
 				<view class="content-item">
-					{{moeny.redbonus_all}}
+					{{money.redbonus_all}}
 				</view>
 				<view class="content-item text-btn" @click="MoneyTranslation('红包')">
 					转余额
@@ -67,10 +67,10 @@
 					余额
 				</view>
 				<view class="content-item" style="width: 30%;">
-					{{moeny.money}}
+					{{money.money}}
 				</view>
 				<view class="content-item" style="width: 45%;">
-					{{moeny.money_all}}
+					{{money.money_all}}
 				</view>
 			</view>
 			<!-- 提现输入框 -->
@@ -92,7 +92,16 @@
 	export default {
 		data() {
 			return {
-				moeny:[],
+				money:{
+					profits:0,
+					profits_all:0,
+					bonus:0,
+					bonus_all:0,
+					redbonus:0,
+					redbonus_all:0,
+					money_all:0,
+					money_all:0,
+				},
 				money_cash:''
 			}
 		},
@@ -101,7 +110,7 @@
 		},
 		methods: {
 			cashAll(){
-				this.money_cash = this.moeny.money
+				this.money_cash = this.money.money
 			},
 			cashFlash(e){
 				this.money_cash = e.detail.value
@@ -111,7 +120,7 @@
 				}).then(res => {
 					//console.log(res);
 					if (res.status === 10000) {
-						this.moeny = res.data
+						this.money = res.data
 					}else{
 						uni.showToast({
 							title: res.msg,
@@ -124,7 +133,7 @@
 				this.$Request.postP('/money/translate',{
 					type:type
 				}).then(res => {
-					console.log(res);
+					// console.log(res);
 					if (res.status === 10000) {
 						uni.showModal({
 							content:"转换成功"
@@ -141,6 +150,13 @@
 				});
 			},
 			MoneyCash(){
+				if(this.money_cash <= 0) {
+					uni.showToast({
+						title:"请输入提现金额",
+						icon: 'none'
+					})
+					return
+				}
 				this.$Request.postP('/money/cash',{
 					money:this.money_cash
 				}).then(res => {

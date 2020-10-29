@@ -413,6 +413,7 @@ export default {
 		});
 		//获取APP下载地址
 		that.$Request.getT('/common/type/25').then(res => {
+			console.log(res)
 			if (res.status == 0) {
 				if (res.data && res.data.value) {
 					this.$queue.setData('appurl', res.data.value);
@@ -494,7 +495,7 @@ export default {
 		plus.screen.lockOrientation('portrait-primary'); //竖屏正方向锁定
 
 		const updated = uni.getStorageSync('updated'); // 尝试读取storage
-
+		console.log(updated)
 		if (updated.completed === true) {
 			// 如果上次刚更新过
 			// 删除安装包及安装记录
@@ -530,7 +531,9 @@ export default {
 			});
 		} else {
 			plus.runtime.getProperty(plus.runtime.appid, widgetInfo => {
+				console.log('widgetInfo',widgetInfo)
 				this.$Request.getT('/appinfo/').then(res => {
+					console.log('/appinfo/res=>',res)
 					res = res.data[0];
 					if (res.wgtUrl && widgetInfo.version < res.version) {
 						let downloadLink = '';
@@ -566,7 +569,7 @@ export default {
 										downloadLink = iosLink;
 										ready = true;
 									} else {
-										console.log('苹果只支持.wgt强制更新');
+										console.log('苹果只支持.wgt强制更新'); 
 									}
 								} else {
 									console.log('下载地址是空的，无法继续');

@@ -178,7 +178,7 @@ export default {
 					if(res.status == 10000){
 						uni.navigateBack()
 					}else{
-						uni.showToast({
+						uni.showModal({
 							title: res.msg
 						});
 					}

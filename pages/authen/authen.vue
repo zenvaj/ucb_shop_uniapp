@@ -154,13 +154,23 @@ export default {
 							this.$queue.setData('auth', 1); 
 							this.$queue.setData('idcard', res.data.idcard);
 							this.$queue.setData('realName', res.data.real_name); 
-							if(this.checkCxk()){
+							
+							uni.showLoading({
+								title:"结算卡验证..."
+							})
+							this.$Request.postP('/bank/bag',{
+								"type": "cxk"
+							}).then(res => {
+								console.log(res.data);
+								uni.hideLoading();
+								if (!res.data || res.data.length == 0) {
+									uni.redirectTo({
+										url: '/pages/member/cxkAdd'
+									})
+								}
 								uni.navigateBack()
-							}else{
-								uni.redirectTo({
-									url: '/pages/member/cxkAdd'
-								})
-							}
+							});
+							
 						}else{
 							uni.showToast({
 								title: res.msg,
@@ -169,21 +179,6 @@ export default {
 						}
 					});
 			}
-		},
-		checkCxk(){
-			uni.showLoading({
-				title:"结算卡验证..."
-			})
-			this.$Request.postP('/bank/bag',{
-				"type": "cxk"
-			}).then(res => {
-				console.log(res.data);
-				uni.hideLoading();
-				if (!res.data || res.data.length == 0) {
-					return false
-				}
-				return true
-			});
 		},
 		//此处列出图片转base64的转换函数，使用中遇到了很多坑。
 		//本地图片路径转换base64

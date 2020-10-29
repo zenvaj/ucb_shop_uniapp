@@ -174,7 +174,7 @@ export default {
 		this.checkCxk() 
 		var date = new Date();
 		this.defaultValue = utils.formatDate(date).f3;//   date.toLocaleString( ); //获取日期与时间
-		console.log(this.defaultValue);
+		// console.log(this.defaultValue);
 		this.$Request.postP('/bank/allow', {}).then(res => {
 			// res.unshift({"id": 0,"value": "请选择银行", "label": "请选择银行","bank_name": "请选择银行","bank_code": "CAAA","icon": null,"sort": 1});
 			this.bank = res; 
@@ -209,7 +209,7 @@ export default {
 			this.$Request.postP('/bank/bag',{
 				"type": "cxk"
 			}).then(res => {
-				console.log(res.data);
+				// console.log(res.data);
 				uni.hideLoading();
 				if (!res.data || res.data.length == 0) {
 					uni.redirectTo({
@@ -219,13 +219,13 @@ export default {
 			});
 		},
 		handleChange (item) { 
-			console.log('change::', item)
+			// console.log('change::', item)
 		},
 		handleConfirm(item) { 
-			console.log('confirm::', item)
+			// console.log('confirm::', item)
 		},
 		handleCancel (item) { 
-			console.log('cancel::', item) 
+			// console.log('cancel::', item) 
 		},
 		/**
 		 * 确认选择日期时间

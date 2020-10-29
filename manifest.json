@@ -2,8 +2,8 @@
     "name" : "ucb优财宝",
     "appid" : "__UNI__9E2DABB",
     "description" : "优财宝",
-    "versionName" : "2.0.9",
-    "versionCode" : 119,
+    "versionName" : "2.1.1",
+    "versionCode" : 211,
     "transformPx" : false,
     "plus" : {
         "kernel" : {
@@ -61,7 +61,8 @@
                     "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>",
                     "<uses-permission android:name=\"android.permission.WRITE_SMS\"/>"
                 ],
-                "schemes" : "ucb"
+                "schemes" : "ucb",
+                "abiFilters" : [ "armeabi-v7a", "arm64-v8a", "x86" ]
             },
             /* ios打包配置 */
             "ios" : {

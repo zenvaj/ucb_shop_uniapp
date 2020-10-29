@@ -68,7 +68,7 @@ export default {
 	onLoad() {
 		// #ifdef APP-PLUS
 		Alibcsdk.init(result => {
-			console.log(JSON.stringify(result));
+			// console.log(JSON.stringify(result));
 		});//删掉 阿里百川注释的
 		
 		plus.runtime.getProperty(plus.runtime.appid, widgetInfo => {

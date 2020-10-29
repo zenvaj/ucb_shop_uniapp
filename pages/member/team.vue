@@ -65,6 +65,7 @@ export default {
 		TabType(type){
 			this.show_type = type
 			this.page = 1
+			this.list = []
 			this.TeamList()
 		},
 		Team(){
@@ -82,7 +83,7 @@ export default {
 		},
 		TeamList(){
 			this.$Request.postP('/user/teamlist',{
-				type:"",
+				type:this.show_type,
 				p:this.page
 			}).then(res => {
 				if (res.status === 10000) {

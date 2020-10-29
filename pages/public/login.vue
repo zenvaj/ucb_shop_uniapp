@@ -64,8 +64,8 @@ export default {
 				provider: 'weixin',
 				success: function(loginRes) {
 					that.$queue.showLoading('正在登录中...');
-					console.log(loginRes)
-					console.error(loginRes.authResult);
+					// console.log(loginRes)
+					// console.error(loginRes.authResult);
 					that.$queue.setData('weixinToken', loginRes.authResult.access_token);
 					that.$queue.setData('unionid', loginRes.authResult.unionid);
 					that.$queue.setData('weixinOpenid', loginRes.authResult.openid);
@@ -176,7 +176,7 @@ export default {
 		},
 		init() {
 			Alibcsdk.init(result => {
-				console.log(JSON.stringify(result));
+				// console.log(JSON.stringify(result));
 			});//删掉 阿里百川注释的
 			
 			
@@ -254,15 +254,16 @@ export default {
 						"username": res.data.phone,
 						"password": '000000'
 					} 
-					console.log("登录方法json传参：" + JSON.stringify(params));
+					// console.log("登录方法json传参：" + JSON.stringify(params));
 					let userdata = {
 						userId :res.data.id ,
 						userName :res.data.phone,
 						mobile: res.data.phone,
 					}; 
 					this.login(res.data.phone);
-					this.jpushIM.userLogin(params, (rem) => { 
+					this.jpushIM.userLogin(params, (rem) => {
 						let href = this.$queue.getData('href');
+						// console.log(href)
 						if (href) {
 							if (href === '/pages/member/publisher') {
 								this.$queue.remove('href');

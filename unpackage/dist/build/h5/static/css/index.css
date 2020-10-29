@@ -796,7 +796,17 @@
 	/*  display: none; */
 	opacity: .5;
 }
-
+.goods_shop_cart_bg {
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	z-index: 50;
+	background: #000;
+	left: 0;
+	top: 0;
+	/*  display: none; */
+	opacity: .5;
+}
 .index-goods .goods_share {
 	position: fixed;
 	left: 2.5%;

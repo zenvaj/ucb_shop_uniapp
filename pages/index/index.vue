@@ -1164,7 +1164,7 @@
 						this.category[this.TabCur].loadingType = 0;
 						if (res.code === 1) {
 							this.category[this.TabCur].page = res.min_id;
-							console.log('-------')
+							// console.log('-------')
 							res.data.forEach(d => {
 								let grade = this.$queue.getData('grade');
 								d.tkmoneys = (d.tkmoney * parseFloat(this.$queue.maxMoney())).toFixed(2);
@@ -1178,7 +1178,7 @@
 
 								// this.category[this.TabCur].orderList.push(d);
 							});
-							console.log('+++++++++')
+							// console.log('+++++++++')
 							// console.log(this.category)
 						} else {
 							this.category[this.TabCur].loadingType = 2;

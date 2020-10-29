@@ -798,6 +798,12 @@ export default {
 				title: '领券中...'
 			});
 			let that = this;
+			console.log({
+					itemid: this.itemid,
+					tb_name: this.$queue.getTaoBaoName(),
+					pid: this.$queue.getTaoBaoPid(),
+					apikey: this.$queue.getTaoBaoKey()
+				})
 			this.$Request
 				.post('/api/ratesurl', {
 					itemid: this.itemid,

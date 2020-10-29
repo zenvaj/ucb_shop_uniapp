@@ -84,7 +84,7 @@
 			};
 		},
 		onLoad(query) {
-			console.log(query)
+			// console.log(query)
 			if (query.type === "smart") {
 				this.pageType = 0
 			}
@@ -93,7 +93,7 @@
 			}
 		},
 		created() {
-			console.log('onLoad 状态===============》');
+			// console.log('onLoad 状态===============》');
 			this.$queue.showLoading("加载中...");
 			this.$Request.postP('/bank/bag',{
 			//this.$Request.postP('/credit-list', {

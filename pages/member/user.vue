@@ -62,7 +62,7 @@
 					</view>
 					<view class="tj-item" @click="benyuefukuan()">
 						<text class="num">{{ moneyAll }} 元</text>
-						<text>本月付款</text>
+						<text>本月预估</text>
 					</view>
 					<view class="tj-item" @click="jinridingdan()">
 						<text class="num">{{ orderNum }} 笔</text>
@@ -155,19 +155,19 @@
 			<view class="tui-box tui-tool-box" >
 				<view class="tui-cell-header"><view class="tui-cell-title">收款常用工具</view></view>
 				<view class="tui-order-list tui-flex-wrap">
-					<view class="tui-tool-item" @click="navToLogins('/pages/member/mycard-entrance')">
+					<view class="tui-tool-item" @click="navToLogins('/pages/member/mycard-entrance',1)" v-if="shoukuan">
 						<view class="tui-icon-box"><image src="../../static/img/my/kabao.png" class="tui-tool-icon"></image></view>
 						<view class="tui-tool-text">我的卡包</view>
 					</view>
-					<view class="tui-tool-item" @click="navToLogins('/pages/Transactions/Transactions')">
+					<view class="tui-tool-item" @click="navToLogins('/pages/Transactions/Transactions',1)" v-if="shoukuan">
 						<view class="tui-icon-box"><image src="../../static/img/my/icon_kaipiao.png" class="tui-tool-icon"></image></view>
 						<view class="tui-tool-text">刷卡记录</view>
 					</view>
-					<view class="tui-tool-item" @click="navToLogins('/pages/authen/authen')">
+					<view class="tui-tool-item" @click="navToLogins('/pages/authen/authen',1)" v-if="shoukuan">
 						<view class="tui-icon-box"><image src="../../static/img/my/shiming.png" class="tui-tool-icon"></image></view>
 						<view class="tui-tool-text">实名认证</view>
 					</view>
-					<view class="tui-tool-item" @click="navToLogins('/pages/member/yao')">
+					<view class="tui-tool-item" @click="navToLogins('/pages/member/yao')" v-if="shoukuan">
 						<view class="tui-icon-box"><image src="../../static/img/my/yaoqing.png" class="tui-tool-icon"></image></view>
 						<view class="tui-tool-text">邀请赚钱</view>
 					</view>
@@ -175,7 +175,7 @@
 						<view class="tui-icon-box"><image src="../../static/img/my/message.png" class="tui-tool-icon"></image></view>
 						<view class="tui-tool-text">消息中心</view>
 					</view>
-					<view class=" tui-tool-item" @click="navToLogin('/pages/member/account')">
+					<view class=" tui-tool-item" @click="navToLogin('/pages/member/account',1)">
 						<view class="tui-icon-box"><image src="../../static/img/my/anquans.png" class="tui-tool-icon"></image></view>
 						<view class="tui-tool-text">账户安全</view>
 					</view>
@@ -183,7 +183,7 @@
 						<view class="tui-icon-box"><image src="../../static/img/my/set.png" class="tui-tool-icon"></image></view>
 						<view class="tui-tool-text">设置中心</view>
 					</view>
-					<view class=" tui-tool-item" @click="navTo('/pages/member/customer')">
+					<view class=" tui-tool-item" @click="navTo('/pages/member/customer',1)">
 						<view class="tui-icon-box"><image src="../../static/img/my/icon_kefu.png" class="tui-tool-icon"></image></view>
 						<view class="tui-tool-text">联系客服</view>
 					</view>
@@ -300,7 +300,8 @@ export default {
 			itemprice: '',
 			erweima: '',
 			itempic: '',
-			footprintKey: 'orange-sqx-footprint'
+			footprintKey: 'orange-sqx-footprint',
+			shoukuan:true 
 		};
 	},
 
@@ -325,6 +326,11 @@ export default {
 			}
 		}
 		//#endif
+		
+		this.$Request.postP('/cashBagShow', {}).then(res => {
+			console.log(res.status)
+			//this.shoukuan = res.status==0?false:true
+		});
 	},
 	onShow() {
 		let mobile = this.$queue.getData('nickName');
@@ -680,7 +686,7 @@ export default {
 			uni.showModal({
 				showCancel: false,
 				confirmColor:'#e10a07',
-				title: '本月付款收入说明',
+				title: '本月预估收入说明',
 				content: '本月【已付款】订单的佣金收入\n用户付款未确认收货的订单'
 			});
 		},
@@ -698,7 +704,7 @@ export default {
 		 * navigator标签现在默认没有转场动画，所以用view
 		 */
 		navTo(url) {
-			console.log(url);
+			// console.log(url);
 			if (url === '/pages/member/help') {
 				//#ifdef H5
 				window.location.href = this.$queue.publicYuMing() + '/help/custom.html';
@@ -709,7 +715,7 @@ export default {
 				});
 				//#endif
 			} else {
-				console.log(url);
+				// console.log(url);
 				uni.navigateTo({
 					url:url
 				});
@@ -810,7 +816,13 @@ export default {
 			});
 			//#endif
 		},
-		navToLogins(url) {
+		navToLogins(url,without_login = 0) {
+			if(without_login){
+				uni.navigateTo({
+					url
+				});
+				return
+			}
 			let token = this.$queue.getData('token');
 			if (token) {
 				let relation_id = this.$queue.getData('relation_id');

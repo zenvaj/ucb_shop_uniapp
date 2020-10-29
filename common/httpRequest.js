@@ -132,6 +132,7 @@ module.exports = {
     getT: function (url, data, header) {
         header = header || "application/x-www-form-urlencoded";
         url = this.config("APIHOST1") + url;
+		//console.log(url)
         let token = uni.getStorageSync("token");
         if (token) {
 			// console.log(url)
@@ -237,6 +238,7 @@ module.exports = {
     get: function (url, data, header) {
         header = header || "application/x-www-form-urlencoded";
         url = this.config("APIHOST") + url;
+		//console.log(url)
         return new Promise((succ, error) => {
             uni.request({
                 url: url,

@@ -72,37 +72,17 @@
 					})
 				}
 				if(type === 'level') {
-					// copyTklWenAn: function() {
-						let relation_id = this.$queue.getData('relation_id');
-						let token = this.$queue.getData('token');
-						let userId = this.$queue.getData('userId');
-						let gradle = this.$queue.getData('gradle');
-						if (!token) {
-							this.goLoginInfo();
-						} else {
-							if (!relation_id) {
-								this.navTo('/pages/member/publisher?uid=' + userId + '&token=' + token);
-							} else {
-								uni.showModal({
-									cancelText: '关闭',
-									confirmColor:'#e10a07',
-									cancelColor:'#999999',
-									confirmText: '我要升级',
-									showCancel: true,
-									title: '我的特权',
-									content:
-										'1、享受 ' +
-										this.dengji +
-										'级返现！\n2、购买商品可享受省钱 +返现！\n3、分享商品给好友购买拿返现金额！\n4、邀好友加入享受永久粉丝提成！\n5、享受积分免费兑换商品;\n6、可生成专属商城推广链接;\n7、更多会员特权我们将陆续上线！\n注：VIP越高返现越高哦',
-									success: res => {
-										if (res.confirm) {
-											this.shengJiMethod();
-										}
-									}
-								});
-							}
-						}
-					// },
+					this.$Request.postP('/user/lvdes',{
+						
+					}).then(res => {
+						console.log(res);
+						uni.showModal({
+							showCancel: false,
+							title: '我的等级：'+res.data.user_lv,
+							content:res.data.lv_des,
+							
+						});
+					});
 				}
 				if(type === 'addcard') {
 					uni.navigateTo({
